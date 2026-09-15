@@ -1,0 +1,32 @@
+---
+const nodes = [
+  { x: 50, y: 46, label: "решение задач", main: true },
+  { x: 25, y: 21, label: "физика" },
+  { x: 72, y: 18, label: "математика" },
+  { x: 82, y: 61, label: "информатика" },
+  { x: 57, y: 79, label: "исследование" },
+  { x: 17, y: 67, label: "программирование" },
+  { x: 41, y: 14, label: "модели" },
+  { x: 34, y: 84, label: "практика" },
+];
+const edges = [[0,1],[0,2],[0,3],[0,4],[0,5],[1,2],[1,6],[2,6],[3,5],[3,4],[4,7],[5,7],[6,0],[7,0]];
+---
+
+<div class="knowledge-graph" data-knowledge-graph>
+  <svg viewBox="0 0 100 100" role="img" aria-labelledby="graph-title graph-desc">
+    <title id="graph-title">Граф знаний Hopes and Dreams</title>
+    <desc id="graph-desc">Связи физики, математики, информатики, практики, исследования и программирования вокруг решения задач.</desc>
+    <g class="knowledge-graph__edges">
+      {edges.map(([from, to]) => <line x1={nodes[from].x} y1={nodes[from].y} x2={nodes[to].x} y2={nodes[to].y} />)}
+    </g>
+    <g class="knowledge-graph__nodes">
+      {nodes.map((node, index) => (
+        <g class:list={{ "is-main": node.main }} transform={`translate(${node.x} ${node.y})`}>
+          <circle r={node.main ? 2.4 : 1.25} />
+          <text x="2.5" y={index % 2 ? -1.8 : 3.7}>{node.label}</text>
+        </g>
+      ))}
+    </g>
+  </svg>
+  <span class="knowledge-graph__status">8 concepts · 14 meaningful links</span>
+</div>

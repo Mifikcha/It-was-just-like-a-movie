@@ -1,0 +1,30 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import StructureProgress from "../components/StructureProgress.astro";
+import HeroScene from "../components/HeroScene.astro";
+import ProofScene from "../components/ProofScene.astro";
+import SystemScene from "../components/SystemScene.astro";
+import CredentialsScene from "../components/CredentialsScene.astro";
+import FormatsScene from "../components/FormatsScene.astro";
+import DecisionScene from "../components/DecisionScene.astro";
+---
+
+<BaseLayout
+  title="Hopes and Dreams — образовательная среда"
+  description="Физика, математика и информатика в связанной образовательной среде. Подготовка к ОГЭ и ЕГЭ с Сергеем."
+>
+  <SiteHeader />
+  <StructureProgress />
+  <main>
+    <HeroScene />
+    <ProofScene />
+    <SystemScene />
+    <CredentialsScene />
+    <FormatsScene />
+    <DecisionScene />
+  </main>
+  <script>
+    import "../scripts/motion";
+  </script>
+</BaseLayout>

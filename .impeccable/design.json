@@ -1,0 +1,206 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-15T18:30:41.3924494+05:00",
+  "title": "Design System: Hopes and Dreams",
+  "extensions": {
+    "colorMeta": {
+      "void": {
+        "role": "neutral",
+        "displayName": "Void",
+        "canonical": "#080914",
+        "tonalRamp": ["oklch(15% 0.025 285)", "oklch(25% 0.025 285)", "oklch(35% 0.025 285)", "oklch(47% 0.025 285)", "oklch(59% 0.025 285)", "oklch(71% 0.025 285)", "oklch(83% 0.025 285)", "oklch(95% 0.025 285)"]
+      },
+      "deep-space": {
+        "role": "neutral",
+        "displayName": "Deep Space",
+        "canonical": "#0f1120",
+        "tonalRamp": ["oklch(15% 0.032 283)", "oklch(25% 0.032 283)", "oklch(35% 0.032 283)", "oklch(47% 0.032 283)", "oklch(59% 0.032 283)", "oklch(71% 0.032 283)", "oklch(83% 0.032 283)", "oklch(95% 0.032 283)"]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel",
+        "canonical": "#151727",
+        "tonalRamp": ["oklch(15% 0.034 283)", "oklch(25% 0.034 283)", "oklch(35% 0.034 283)", "oklch(47% 0.034 283)", "oklch(59% 0.034 283)", "oklch(71% 0.034 283)", "oklch(83% 0.034 283)", "oklch(95% 0.034 283)"]
+      },
+      "panel-bright": {
+        "role": "neutral",
+        "displayName": "Panel Bright",
+        "canonical": "#1d2035",
+        "tonalRamp": ["oklch(15% 0.041 282)", "oklch(25% 0.041 282)", "oklch(35% 0.041 282)", "oklch(47% 0.041 282)", "oklch(59% 0.041 282)", "oklch(71% 0.041 282)", "oklch(83% 0.041 282)", "oklch(95% 0.041 282)"]
+      },
+      "orbital-line": {
+        "role": "neutral",
+        "displayName": "Orbital Line",
+        "canonical": "rgba(169, 177, 214, 0.21)",
+        "tonalRamp": ["oklch(15% 0.035 277)", "oklch(25% 0.035 277)", "oklch(35% 0.035 277)", "oklch(47% 0.035 277)", "oklch(59% 0.035 277)", "oklch(71% 0.035 277)", "oklch(83% 0.035 277)", "oklch(95% 0.035 277)"]
+      },
+      "orbital-line-strong": {
+        "role": "neutral",
+        "displayName": "Orbital Line Strong",
+        "canonical": "rgba(169, 177, 214, 0.44)",
+        "tonalRamp": ["oklch(15% 0.035 277)", "oklch(25% 0.035 277)", "oklch(35% 0.035 277)", "oklch(47% 0.035 277)", "oklch(59% 0.035 277)", "oklch(71% 0.035 277)", "oklch(83% 0.035 277)", "oklch(95% 0.035 277)"]
+      },
+      "starlight": {
+        "role": "neutral",
+        "displayName": "Starlight",
+        "canonical": "#d7ddff",
+        "tonalRamp": ["oklch(15% 0.035 277)", "oklch(25% 0.035 277)", "oklch(35% 0.035 277)", "oklch(47% 0.035 277)", "oklch(59% 0.035 277)", "oklch(71% 0.035 277)", "oklch(83% 0.035 277)", "oklch(95% 0.035 277)"]
+      },
+      "starlight-strong": {
+        "role": "neutral",
+        "displayName": "Starlight Strong",
+        "canonical": "#f1f2ff",
+        "tonalRamp": ["oklch(15% 0.018 282)", "oklch(25% 0.018 282)", "oklch(35% 0.018 282)", "oklch(47% 0.018 282)", "oklch(59% 0.018 282)", "oklch(71% 0.018 282)", "oklch(83% 0.018 282)", "oklch(95% 0.018 282)"]
+      },
+      "lunar-muted": {
+        "role": "neutral",
+        "displayName": "Lunar Muted",
+        "canonical": "#a9b1d6",
+        "tonalRamp": ["oklch(15% 0.042 277)", "oklch(25% 0.042 277)", "oklch(35% 0.042 277)", "oklch(47% 0.042 277)", "oklch(59% 0.042 277)", "oklch(71% 0.042 277)", "oklch(83% 0.042 277)", "oklch(95% 0.042 277)"]
+      },
+      "coordinate-dim": {
+        "role": "neutral",
+        "displayName": "Coordinate Dim",
+        "canonical": "#737da8",
+        "tonalRamp": ["oklch(15% 0.054 277)", "oklch(25% 0.054 277)", "oklch(35% 0.054 277)", "oklch(47% 0.054 277)", "oklch(59% 0.054 277)", "oklch(71% 0.054 277)", "oklch(83% 0.054 277)", "oklch(95% 0.054 277)"]
+      },
+      "structural-violet": {
+        "role": "secondary",
+        "displayName": "Structural Violet",
+        "canonical": "#bb9af7",
+        "tonalRamp": ["oklch(15% 0.12 300)", "oklch(25% 0.12 300)", "oklch(35% 0.12 300)", "oklch(47% 0.12 300)", "oklch(59% 0.12 300)", "oklch(71% 0.12 300)", "oklch(83% 0.12 300)", "oklch(95% 0.12 300)"]
+      },
+      "signal-cyan": {
+        "role": "primary",
+        "displayName": "Signal Cyan",
+        "canonical": "#7dcfff",
+        "tonalRamp": ["oklch(15% 0.105 225)", "oklch(25% 0.105 225)", "oklch(35% 0.105 225)", "oklch(47% 0.105 225)", "oklch(59% 0.105 225)", "oklch(71% 0.105 225)", "oklch(83% 0.105 225)", "oklch(95% 0.105 225)"]
+      },
+      "archival-warm": {
+        "role": "tertiary",
+        "displayName": "Archival Warm",
+        "canonical": "#fff4dc",
+        "tonalRamp": ["oklch(15% 0.035 85)", "oklch(25% 0.035 85)", "oklch(35% 0.035 85)", "oklch(47% 0.035 85)", "oklch(59% 0.035 85)", "oklch(71% 0.035 85)", "oklch(83% 0.035 85)", "oklch(95% 0.035 85)"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Главное обещание и моменты максимального масштаба." },
+      "headline": { "displayName": "Headline", "purpose": "Названия больших сцен и смысловые повороты." },
+      "title": { "displayName": "Title", "purpose": "Форматы, записи и артефакты." },
+      "body": { "displayName": "Body", "purpose": "Ясное объяснение системы и условий." },
+      "label": { "displayName": "Instrument Label", "purpose": "Навигация, координаты, статусы и измерительные подписи." }
+    },
+    "shadows": [
+      { "name": "interface-float", "value": "0 42px 80px rgba(0, 0, 0, 0.34)", "purpose": "Отделяет интерфейсный артефакт от графа знаний." },
+      { "name": "credential-rest", "value": "18px 28px 38px rgba(0, 0, 0, 0.32)", "purpose": "Придаёт обложке документа предметность в покое." },
+      { "name": "credential-inspect", "value": "22px 36px 54px rgba(0, 0, 0, 0.4)", "purpose": "Поддерживает подъём и выпрямление документа при наведении." }
+    ],
+    "motion": [
+      { "name": "state-fast", "value": "220ms ease", "purpose": "Hover-состояния кнопок и ссылок." },
+      { "name": "header-settle", "value": "320ms ease", "purpose": "Появление подложки и линии фиксированного header." },
+      { "name": "artifact-inspect", "value": "300ms ease", "purpose": "Выпрямление и подъём физического артефакта." },
+      { "name": "scene-ease", "value": "power2.out", "purpose": "Появление связей графа знаний." },
+      { "name": "scroll-scrub", "value": "1.2", "purpose": "Плавная привязка орбитальной сборки к прокрутке." }
+    ],
+    "breakpoints": [
+      { "name": "compact-desktop", "value": "1040px" },
+      { "name": "mobile", "value": "760px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Главное действие на тёмном фоне; светлая плоскость превращается в cyan-сигнал при наведении.",
+      "html": "<button class=\"ds-btn-primary\">ПОСМОТРЕТЬ СИСТЕМУ</button>",
+      "css": ".ds-btn-primary { min-height: 48px; padding: 0 1.35rem; border: 1px solid var(--text-strong, #f1f2ff); border-radius: 8px; color: var(--ink, #080914); background: var(--text-strong, #f1f2ff); font: 400 0.72rem/1.4 'JetBrains Mono', Consolas, monospace; letter-spacing: 0.025em; text-transform: uppercase; cursor: pointer; transition: color 220ms ease, background-color 220ms ease, border-color 220ms ease, transform 220ms ease; } .ds-btn-primary:hover { transform: translateY(-2px); border-color: var(--cyan, #7dcfff); background: var(--cyan, #7dcfff); } .ds-btn-primary:focus-visible { outline: 2px solid var(--cyan, #7dcfff); outline-offset: 5px; } .ds-btn-primary:active { transform: translateY(0); }"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Вторичное действие остаётся почти текстом и не конкурирует с primary CTA.",
+      "html": "<button class=\"ds-btn-quiet\">ОБСУДИТЬ ОБУЧЕНИЕ</button>",
+      "css": ".ds-btn-quiet { min-height: 48px; padding: 0 1.35rem; border: 1px solid transparent; border-radius: 8px; color: var(--muted, #a9b1d6); background: transparent; font: 400 0.72rem/1.4 'JetBrains Mono', Consolas, monospace; letter-spacing: 0.025em; text-transform: uppercase; cursor: pointer; transition: color 220ms ease, transform 220ms ease; } .ds-btn-quiet:hover { color: var(--text-strong, #f1f2ff); transform: translateY(-2px); } .ds-btn-quiet:focus-visible { outline: 2px solid var(--cyan, #7dcfff); outline-offset: 5px; } .ds-btn-quiet:active { transform: translateY(0); }"
+    },
+    {
+      "name": "Instrument Navigation",
+      "kind": "nav",
+      "description": "Редкая mono-навигация между wordmark и прямым контактом.",
+      "html": "<nav class=\"ds-nav\"><a href=\"#proof\">Доказательства</a><a href=\"#system\">Система</a><a href=\"#author\">Автор</a></nav>",
+      "css": ".ds-nav { display: flex; gap: clamp(1.4rem, 3vw, 3.4rem); color: var(--muted, #a9b1d6); font: 400 0.73rem/1.4 'JetBrains Mono', Consolas, monospace; letter-spacing: 0.05em; } .ds-nav a { color: inherit; text-decoration: none; transition: color 220ms ease; } .ds-nav a:hover { color: var(--cyan, #7dcfff); } .ds-nav a:focus-visible { outline: 2px solid var(--cyan, #7dcfff); outline-offset: 5px; } .ds-nav a:active { color: var(--text-strong, #f1f2ff); }"
+    },
+    {
+      "name": "Contact Field",
+      "kind": "input",
+      "refersTo": "contact-field",
+      "description": "Прозрачное поле с одной измерительной линией вместо карточной рамки.",
+      "html": "<label class=\"ds-field\"><span>Как с вами связаться?</span><input placeholder=\"Email, Telegram или телефон\"></label>",
+      "css": ".ds-field { display: grid; gap: 0.55rem; color: var(--muted, #a9b1d6); font: 400 0.7rem/1.4 Manrope, 'Segoe UI', sans-serif; } .ds-field input { width: 100%; height: 48px; padding: 0; border: 0; border-bottom: 1px solid var(--line-strong, rgba(169,177,214,.44)); border-radius: 0; outline: 0; color: var(--text-strong, #f1f2ff); background: transparent; caret-color: var(--cyan, #7dcfff); font: 400 1rem/1.65 Manrope, 'Segoe UI', sans-serif; } .ds-field input::placeholder { color: #858fb9; } .ds-field input:hover { border-bottom-color: var(--muted, #a9b1d6); } .ds-field input:focus { border-bottom-color: var(--cyan, #7dcfff); } .ds-field input:focus-visible { outline: 2px solid var(--cyan, #7dcfff); outline-offset: 5px; }"
+    },
+    {
+      "name": "Evidence Ledger",
+      "kind": "card",
+      "description": "Остроугольная запись доказательства с разделителями, serif-заголовком и mono-статусом.",
+      "html": "<article class=\"ds-ledger\"><header><h3>Результаты</h3><span>BEFORE → AFTER</span></header><div><p>Подтверждённая траектория ученика</p><strong>[START] <b>→</b> [RESULT]</strong></div></article>",
+      "css": ".ds-ledger { width: min(520px, 100%); border-top: 1px solid var(--line-strong, rgba(169,177,214,.44)); border-bottom: 1px solid var(--line-strong, rgba(169,177,214,.44)); color: var(--text, #d7ddff); background: transparent; } .ds-ledger header { display: flex; align-items: baseline; justify-content: space-between; padding: 1.4rem 0; border-bottom: 1px solid var(--line, rgba(169,177,214,.21)); } .ds-ledger h3 { margin: 0; color: var(--text-strong, #f1f2ff); font: 400 2.3rem/.98 'Libertinus Serif', Georgia, serif; } .ds-ledger header span { color: var(--dim, #737da8); font: 400 .55rem/1.4 'JetBrains Mono', Consolas, monospace; letter-spacing: .05em; } .ds-ledger div { display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: baseline; padding: 2rem 0; } .ds-ledger p { margin: 0; color: var(--muted, #a9b1d6); font: 400 .82rem/1.65 Manrope, sans-serif; } .ds-ledger strong { color: var(--text-strong, #f1f2ff); font: 400 1.4rem/1.2 'JetBrains Mono', monospace; } .ds-ledger b { color: var(--cyan, #7dcfff); font-weight: 400; } .ds-ledger:hover { border-color: var(--cyan, #7dcfff); } .ds-ledger:focus-within { outline: 2px solid var(--cyan, #7dcfff); outline-offset: 5px; }"
+    },
+    {
+      "name": "Interface Frame",
+      "kind": "card",
+      "refersTo": "interface-frame",
+      "description": "Главный продуктовый артефакт: тёмное окно с инструментальным chrome и физической глубиной.",
+      "html": "<figure class=\"ds-interface\"><figcaption><span>H&amp;D / PUBLIC ENVIRONMENT</span><b>LIVE REFERENCE</b></figcaption><div>Рабочий интерфейс Hopes and Dreams</div></figure>",
+      "css": ".ds-interface { width: min(560px, 100%); margin: 0; padding: 12px; border: 1px solid var(--line-strong, rgba(169,177,214,.44)); color: var(--dim, #737da8); background: #0d0f1d; box-shadow: 0 42px 80px rgba(0,0,0,.34); transform: perspective(900px) rotateY(-3deg) rotateX(2deg); transition: transform 300ms ease; } .ds-interface figcaption { display: flex; align-items: center; justify-content: space-between; height: 42px; padding: 0 .6rem; border-bottom: 1px solid var(--line, rgba(169,177,214,.21)); font: 400 .6rem/1.4 'JetBrains Mono', monospace; letter-spacing: .04em; } .ds-interface b { color: var(--cyan, #7dcfff); font-weight: 400; } .ds-interface div { display: grid; min-height: 230px; place-items: center; color: var(--muted, #a9b1d6); background: var(--ink-soft, #0f1120); font: 400 .72rem/1.4 'JetBrains Mono', monospace; } .ds-interface:hover { transform: perspective(900px) rotateY(0) rotateX(0) translateY(-4px); } .ds-interface:focus-within { outline: 2px solid var(--cyan, #7dcfff); outline-offset: 5px; }"
+    },
+    {
+      "name": "Credential Artifact",
+      "kind": "custom",
+      "description": "Документальная обложка, которая выпрямляется для инспекции.",
+      "html": "<button class=\"ds-credential\"><i>H&amp;D / CREDENTIAL</i><strong>Магистратура</strong><small>Открыть сведения</small></button>",
+      "css": ".ds-credential { display: flex; width: 220px; min-height: 330px; flex-direction: column; justify-content: space-between; padding: 1.5rem; border: 1px solid rgba(255,244,220,.35); color: #32151f; background: #7d263f; box-shadow: 18px 28px 38px rgba(0,0,0,.32); text-align: left; transform: perspective(900px) rotateY(8deg) rotateX(2deg); transition: transform 300ms ease, box-shadow 300ms ease; cursor: pointer; } .ds-credential i, .ds-credential small { font: 400 .53rem/1.4 'JetBrains Mono', monospace; font-style: normal; letter-spacing: .07em; } .ds-credential strong { max-width: 8ch; overflow-wrap: anywhere; font: 400 2.1rem/1 'Libertinus Serif', Georgia, serif; } .ds-credential:hover { box-shadow: 22px 36px 54px rgba(0,0,0,.4); transform: perspective(900px) rotateY(0) rotateX(0) translateY(-8px); } .ds-credential:focus-visible { outline: 2px solid var(--cyan, #7dcfff); outline-offset: 5px; } .ds-credential:active { transform: perspective(900px) rotateY(0) rotateX(0) translateY(-3px); }"
+    },
+    {
+      "name": "Assembly Progress",
+      "kind": "custom",
+      "description": "Миниатюрная сфера связывает сцены и показывает степень сборки страницы.",
+      "html": "<aside class=\"ds-progress\"><span>ASSEMBLY</span><svg viewBox=\"0 0 64 64\" aria-hidden=\"true\"><circle class=\"ds-progress-guide\" cx=\"32\" cy=\"32\" r=\"25\"/><circle class=\"ds-progress-shell\" cx=\"32\" cy=\"32\" r=\"25\" pathLength=\"100\"/><ellipse cx=\"32\" cy=\"32\" rx=\"25\" ry=\"9\"/><ellipse cx=\"32\" cy=\"32\" rx=\"10\" ry=\"25\" transform=\"rotate(28 32 32)\"/><circle class=\"ds-progress-core\" cx=\"32\" cy=\"32\" r=\"3\"/></svg><small>64%</small></aside>",
+      "css": ".ds-progress { display: grid; width: 58px; justify-items: center; gap: .45rem; color: var(--muted, #a9b1d6); font: 400 .48rem/1.4 'JetBrains Mono', monospace; letter-spacing: .09em; text-transform: uppercase; } .ds-progress svg { width: 46px; overflow: visible; fill: none; stroke: rgba(169,177,214,.34); stroke-width: .6; } .ds-progress-shell { stroke: var(--cyan, #7dcfff); stroke-width: 1.5; stroke-dasharray: 64 36; transform: rotate(-90deg); transform-origin: center; } .ds-progress-core { fill: var(--violet, #bb9af7); stroke: none; } .ds-progress small { color: var(--cyan, #7dcfff); font: inherit; } .ds-progress:hover .ds-progress-shell { stroke: var(--text-strong, #f1f2ff); } .ds-progress:focus-within { outline: 2px solid var(--cyan, #7dcfff); outline-offset: 5px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Orbital Constructor",
+    "overview": "Hopes and Dreams выглядит как ночная научная обсерватория, в которой знание не декорируют, а собирают в работающую мегаструктуру. Визуальный мир сочетает космический масштаб с дисциплиной инженерного чертежа: крупные serif-высказывания отвечают за возможность и человеческий смысл, а моноширинные координаты, орбиты и тонкие связи делают систему проверяемой.\n\nКомпозиция монументальна, но не шумна. Большие поля тьмы, редкие сигнальные цвета и асимметричная 12-колоночная сетка создают кинематографический ритм; реальные интерфейсные артефакты появляются как доказательства внутри этого мира. Плотность растёт от первого обещания к устройству системы, затем снова освобождает пространство для решения.",
+    "keyCharacteristics": [
+      "Космическое изобилие, подчинённое математическому порядку.",
+      "Светлая редакционная антиква рядом с техническим mono-языком.",
+      "Глубина через тональные слои, орбитальные линии, масштаб и движение, а не через обычные карточки.",
+      "Один сквозной образ: сфера Дайсона становится всё более связной по мере прокрутки.",
+      "Честные артефакты и явно обозначенные пробелы вместо выдуманного социального доказательства."
+    ],
+    "rules": [
+      { "name": "The Signal Rarity Rule", "body": "Cyan и violet должны отмечать действие, связь или построение; они не становятся заливкой крупных секций.", "section": "colors" },
+      { "name": "The Night Has Layers Rule", "body": "Соседние сцены разделяются близкими тёмными тонами и линиями, а не белыми блоками или контрастными карточными подложками.", "section": "colors" },
+      { "name": "The Two Voices Rule", "body": "Serif формулирует смысл, mono измеряет и маркирует; обычный sans объясняет, но не пытается играть обе роли.", "section": "typography" },
+      { "name": "The Monument, Not Poster Rule", "body": "Крупная антиква сохраняет воздух и короткие строки; её не уплотняют до рекламного плаката.", "section": "typography" },
+      { "name": "The Orbit Before Stack Rule", "body": "На desktop отношения показываются пересечением сетки, осей и масштаба; обычный вертикальный стек появляется только там, где ширина экрана действительно этого требует.", "section": "layout" },
+      { "name": "The Evidence Casts Shadows Rule", "body": "Тень получают только артефакты, которые посетитель мысленно может взять в руки или открыть; информационные секции остаются плоскими.", "section": "elevation" },
+      { "name": "The Instrument Edge Rule", "body": "Не скругляйте секции и доказательные панели; мягкий угол принадлежит кнопке, не всему интерфейсу.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do сохраняйте один сквозной орбитальный мотив вместо набора несвязанных эффектов.",
+      "Do используйте starlight для смысла, lunar-muted для объяснения и coordinate-dim для метаданных.",
+      "Do оставляйте крупным serif-заголовкам достаточно тёмного пространства и короткую длину строки.",
+      "Do показывайте реальные интерфейсы, программы и документы как артефакты с понятным статусом.",
+      "Do сохраняйте читаемое статичное состояние при `prefers-reduced-motion`."
+    ],
+    "donts": [
+      "Don't превращайте страницы в сетку одинаковых скруглённых SaaS-карточек.",
+      "Don't используйте cyan или violet как широкую декоративную заливку без функции.",
+      "Don't добавляйте случайные космические иллюстрации, если они не объясняют связь, масштаб или сборку.",
+      "Don't смешивайте служебный mono-язык с длинным основным текстом.",
+      "Don't фабрикуйте результаты, отзывы, цены или подтверждения ради визуальной завершённости."
+    ]
+  }
+}

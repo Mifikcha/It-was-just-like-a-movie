@@ -1,0 +1,38 @@
+---
+import { formats, subjects } from "../data/content";
+---
+
+<section class="formats scene" id="formats" data-scene="formats">
+  <div class="formats__intro page-grid">
+    <h2>Не тариф.<br />Степень сопровождения.</h2>
+    <p>
+      Формат выбирается под задачу: от самостоятельной работы в среде до персонального
+      маршрута. Стоимость появляется после выбора формата — без выдуманных цифр.
+    </p>
+  </div>
+
+  <div class="guidance-scale page-grid" data-guidance-scale>
+    <div class="guidance-scale__axis" aria-hidden="true">
+      <span>меньше участия</span><i></i><span>больше участия</span>
+    </div>
+    <ol>
+      {formats.map((format, index) => (
+        <li>
+          <span class="guidance-scale__mark">{String(index + 1).padStart(2, "0")}</span>
+          <h3>{format.level}</h3>
+          <p>{format.description}</p>
+          <ul>
+            {format.includes.map((item) => <li>{item}</li>)}
+          </ul>
+          <small>Стоимость: [DATA REQUIRED]</small>
+        </li>
+      ))}
+    </ol>
+  </div>
+
+  <div class="subjects page-grid">
+    <p>Основные направления</p>
+    <ul>{subjects.map((subject) => <li>{subject}</li>)}</ul>
+    <p>ОГЭ · ЕГЭ · углублённая подготовка · олимпиады · СУНЦ</p>
+  </div>
+</section>

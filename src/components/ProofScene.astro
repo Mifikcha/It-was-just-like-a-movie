@@ -1,0 +1,80 @@
+---
+import { quotes, results, reviews, studentCases } from "../data/content";
+---
+
+<section class="proof scene" id="proof" data-scene="proof">
+  <div class="proof__intro page-grid">
+    <h2>Красивого мира недостаточно.<br /><em>Нужны основания доверять.</em></h2>
+    <p>
+      Здесь появятся реальные результаты, отзывы и истории учеников. Пока данных нет,
+      система показывает структуру честно — без придуманных баллов и побед.
+    </p>
+  </div>
+
+  <div class="evidence-ledger page-grid" data-proof-ledger>
+    <div class="evidence-ledger__rail" aria-hidden="true">
+      <span>VERIFIED EVIDENCE</span><span>PLACEHOLDERS ARE EXPLICIT</span>
+    </div>
+
+    <article class="result-record">
+      <header>
+        <h3>Результаты</h3>
+        <span>before → after</span>
+      </header>
+      <div class="result-record__rows">
+        {results.map((result) => (
+          <div class="result-line">
+            <p>{result.label}</p>
+            <div class="result-line__trajectory" aria-hidden="true">
+              <span></span><i></i><span></span>
+            </div>
+            <strong>{result.before} <b>→</b> {result.after}</strong>
+            <small>{result.note}</small>
+          </div>
+        ))}
+      </div>
+    </article>
+
+    <article class="review-record">
+      <header>
+        <h3>Отзывы</h3>
+        <span>original voice / text</span>
+      </header>
+      {reviews.map((review) => (
+        <figure>
+          <blockquote>“{review.body}”</blockquote>
+          <figcaption>
+            <span>{review.author}</span>
+            <small>{review.relationship} · {review.result}</small>
+          </figcaption>
+        </figure>
+      ))}
+    </article>
+
+    <article class="case-record">
+      <header>
+        <h3>Истории</h3>
+        <span>start / method / result</span>
+      </header>
+      {studentCases.map((studentCase, index) => (
+        <div class="case-line">
+          <span class="case-line__index">CASE {String(index + 1).padStart(2, "0")}</span>
+          <dl>
+            <div><dt>Старт</dt><dd>{studentCase.start}</dd></div>
+            <div><dt>Задача</dt><dd>{studentCase.problem}</dd></div>
+            <div><dt>Работа</dt><dd>{studentCase.method}</dd></div>
+            <div><dt>Результат</dt><dd>{studentCase.result}</dd></div>
+          </dl>
+        </div>
+      ))}
+    </article>
+  </div>
+
+  <figure class="quote quote--work page-grid">
+    <blockquote>“{quotes.work.text}”</blockquote>
+    <figcaption>
+      <span>— {quotes.work.author}</span>
+      <p>Не «талант к предмету». Работа, маршрут и обратная связь.</p>
+    </figcaption>
+  </figure>
+</section>
