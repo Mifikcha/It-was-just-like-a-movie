@@ -9,6 +9,8 @@ npm install
 npm run dev
 ```
 
+На Windows проект автоматически использует WASI-компилятор Astro: локальная Application Control policy блокирует неподписанный нативный `.node`-модуль. Проектная `.npmrc` сохраняет этот fallback при обычном `npm install`; предупреждение npm о `force` в данном случае ожидаемо.
+
 Проверка production-сборки:
 
 ```sh

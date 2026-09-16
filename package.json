@@ -4,19 +4,21 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro check && astro build",
-    "preview": "astro preview",
-    "check": "astro check",
+    "dev": "node scripts/astro.mjs dev",
+    "build": "node scripts/astro.mjs check && node scripts/astro.mjs build",
+    "preview": "node scripts/astro.mjs preview",
+    "check": "node scripts/astro.mjs check",
     "verify": "node scripts/verify.mjs"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.10",
-    "astro": "^7.3.2",
+    "astro": "7.3.2",
     "gsap": "^3.13.0",
     "typescript": "^5.9.2"
   },
   "devDependencies": {
+    "@astrojs/compiler-binding-wasm32-wasi": "0.4.1",
+    "@bruits/satteri-wasm32-wasi": "0.10.5",
     "playwright-core": "^1.63.0"
   }
 }
