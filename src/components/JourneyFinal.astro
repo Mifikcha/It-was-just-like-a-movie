@@ -1,0 +1,62 @@
+---
+import { links, messageTemplates, quotes } from "../data/content";
+---
+
+<!-- Scene 10: flight back to the hero framing — the megastructure complete — then contact. -->
+<section class="track track--final" id="contact" data-track="build" data-scene-index="9">
+  <div class="track__stage">
+    <div class="decision-ui" data-decision-ui>
+      <div class="decision-ui__left">
+      <h2 class="display display--final">Следующий шаг<br />не обязан быть большим.</h2>
+      <p class="lead">
+        Расскажите, с чего начинаете и какая цель. Первый контакт — только имя и удобный способ связи.
+      </p>
+      <div class="cta-row">
+        <a class="cta cta--primary" href={links.telegram} target="_blank" rel="noreferrer">
+          Написать в Телеграм
+          <svg viewBox="0 0 20 12" aria-hidden="true"><path d="M1 6h17M13 1l5 5-5 5" /></svg>
+        </a>
+      </div>
+      <figure class="final-quote" lang="en">
+        <blockquote>“{quotes.decision.text}”</blockquote>
+        <figcaption>— {quotes.decision.author}</figcaption>
+      </figure>
+      </div>
+      <div class="decision-ui__right">
+      <div class="templates">
+        <p class="templates__title">Готовые сообщения <span>нажмите — текст скопируется и откроется Телеграм</span></p>
+        <ul>
+          {messageTemplates.map((m) => (
+            <li>
+              <button type="button" class="template" data-template={m.text}>
+                <b>{m.label}</b>
+                <span>{m.text}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+        <p class="templates__status" data-template-status role="status"></p>
+      </div>
+      <form class="contact-line" data-contact-form novalidate>
+        <label>
+          <span>Имя</span>
+          <input name="name" autocomplete="name" required />
+        </label>
+        <label>
+          <span>Телеграм или телефон</span>
+          <input name="contact" autocomplete="tel" required />
+        </label>
+        <button class="cta cta--quiet" type="submit">Оставить контакт</button>
+        <p class="contact-line__status" data-contact-status role="status"></p>
+      </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="journey-footer">
+  <span class="wordmark-mini">Hopes <i>and</i> Dreams</span>
+  <a href={links.telegram} target="_blank" rel="noreferrer">Телеграм</a>
+  <a href={links.vk} target="_blank" rel="noreferrer">ВКонтакте</a>
+  <a href={links.phone}>+7 939 705-06-42</a>
+</footer>

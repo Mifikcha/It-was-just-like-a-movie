@@ -1,0 +1,72 @@
+---
+import { constellation } from "../data/content";
+const c = constellation.centreXY;
+const R = constellation.shellRadius;
+const byId = Object.fromEntries(constellation.nodes.map((n) => [n.id, n]));
+// links are gentle orbital arcs; the ones from the centre start on the shell contour
+const arc = (a: { x: number; y: number }, b: { x: number; y: number }, bend = 0.16) => {
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  return `M${a.x},${a.y} Q${mx - dy * bend},${my + dx * bend} ${b.x},${b.y}`;
+};
+const fromShell = (n: { x: number; y: number }) => {
+  const dx = n.x - c.x;
+  const dy = n.y - c.y;
+  const l = Math.hypot(dx, dy);
+  return { x: c.x + (dx / l) * (R + 6), y: c.y + (dy / l) * (R + 6) };
+};
+const label = (n: { x: number; y: number; anchor: string }) =>
+  n.anchor === "l" ? { x: n.x - 16, y: n.y + 6, a: "end" }
+  : n.anchor === "r" ? { x: n.x + 16, y: n.y + 6, a: "start" }
+  : n.anchor === "t" ? { x: n.x, y: n.y - 18, a: "middle" }
+  : { x: n.x, y: n.y + 32, a: "middle" };
+---
+
+<!-- Scene 06: the knowledge system as a constellation around the structure. -->
+<section class="track track--still" id="knowledge" data-track="knowledge" data-still data-scene-index="5">
+  <div class="track__stage still" data-still-stage>
+    <div class="still__shade still__shade--light" aria-hidden="true"></div>
+
+    <svg class="constellation" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" aria-hidden="true" data-constellation>
+      <circle class="constellation__shell" cx={c.x} cy={c.y} r={R} pathLength="1" />
+      <circle class="constellation__shell constellation__shell--outer" cx={c.x} cy={c.y} r={R + 14} />
+      {constellation.nodes.map((n) => (
+        <path class:list={["constellation__link", `is-${n.group}`]} d={arc(fromShell(n), n, 0.1)} pathLength="1" data-link />
+      ))}
+      {constellation.links.map(([a, b]) => (
+        <path class:list={["constellation__link", `is-${byId[a].group}`, { "is-loop": byId[a].group === "feedback" || byId[b].group === "feedback" }]} d={arc(byId[a], byId[b])} pathLength="1" data-link />
+      ))}
+      <g class="constellation__centre">
+        <rect x={c.x - 128} y={c.y - 22} width="256" height="44" rx="22" />
+        <text x={c.x} y={c.y + 9} text-anchor="middle">{constellation.centre}</text>
+      </g>
+      {constellation.nodes.map((n) => {
+        const t = label(n);
+        return (
+          <g class:list={["constellation__node", `is-${n.group}`]} data-node={n.group}>
+            <circle cx={n.x} cy={n.y} r={n.group === "subject" ? 6 : 4.5} />
+            <text x={t.x} y={t.y} text-anchor={t.a}>{n.label}</text>
+          </g>
+        );
+      })}
+    </svg>
+
+    <div class="still__content knowledge" data-still-content>
+      <p class="eyebrow"><span>06 / 10</span>Созвездие знаний</p>
+      <h2 class="headline">Не набор тем,<br />а связанная система.</h2>
+      <p class="knowledge__lead">
+        Предметы, практика и решения связаны между собой. В центре — маршрут конкретного ученика.
+      </p>
+      <div class="knowledge__loop" data-knowledge-loop>
+        <p class="knowledge__loop-title">Контур обратной связи</p>
+        <ol>
+          <li>Автоматизированный отчёт после каждого занятия</li>
+          <li>Анализ статистики: где ошибки повторяются</li>
+          <li>Обратная связь ученику и родителю</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>

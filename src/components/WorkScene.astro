@@ -1,0 +1,31 @@
+---
+import { quotes, workSteps } from "../data/content";
+---
+
+<!-- Scene 05: the assembly zone. Construction through repeated work (Edison). -->
+<section class="track track--still" id="work" data-track="work" data-still data-scene-index="4">
+  <div class="track__stage still" data-still-stage>
+    <div class="still__shade" aria-hidden="true"></div>
+
+    <div class="still__content work" data-still-content>
+      <p class="eyebrow"><span>05 / 10</span>Сектор сборки · работа</p>
+      <figure class="work__quote" lang="en">
+        <blockquote>“{quotes.work.text}”</blockquote>
+        <figcaption>— {quotes.work.author}</figcaption>
+      </figure>
+      <p class="work__lead">
+        Результат собирается как эта конструкция: не из вдохновения, а из сотен одинаково важных
+        соединений. Поэтому в подготовке важнее всего ритм, а не рывки перед экзаменом.
+      </p>
+      <ol class="work__steps">
+        {workSteps.map((s) => (
+          <li data-work-step>
+            <span>{s.n}</span>
+            <b>{s.title}</b>
+            <p>{s.text}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </div>
+</section>

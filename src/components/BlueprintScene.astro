@@ -1,0 +1,142 @@
+---
+import { reviewShots, trajectories } from "../data/content";
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const src = (name: string) => `${base}/blueprint/${name}.webp`;
+
+// Callout anchors in drawing space (section render 1600×1000, star centre at 50% / 50%).
+// Rough placement for the preview — final anchors will be exported from Blender (object → camera space).
+const callouts = [
+  { id: "shell", label: "Внешняя оболочка коллекторов", note: "R = 2,6 R★", x: 36.7, y: 32.2, side: "left", pass: "pass_shell" },
+  { id: "logistics", label: "Логистический коридор", note: "транспортное кольцо", x: 29.9, y: 41.4, side: "left", pass: "pass_logistics" },
+  { id: "frame", label: "Вторичный несущий каркас", note: "сетка 6 × 7 × 7", x: 35.2, y: 61.1, side: "left", pass: "pass_frame" },
+  { id: "construction", label: "Сектор сборки", note: "сектор Д", x: 44.1, y: 76, side: "left", pass: "pass_shell" },
+  { id: "dock", label: "Узел стыковки и обслуживания", note: "станции, доки", x: 46.7, y: 20.5, side: "right", pass: "pass_modules" },
+  { id: "thermal", label: "Массивы теплоотвода", note: "ребром к звезде", x: 57.5, y: 27.5, side: "right", pass: "pass_thermal" },
+  { id: "power", label: "Слой распределения энергии", note: "R = 2,05 R★", x: 60.5, y: 35.9, side: "right", pass: "pass_energy" },
+  { id: "spine", label: "Опорный хребет", note: "радиальные опоры", x: 66.5, y: 44.0, side: "right", pass: "pass_frame" },
+  { id: "ring", label: "Сервисное кольцо", note: "R = 3,4 R★", x: 71.9, y: 59.4, side: "right", pass: "pass_rings" },
+];
+const passes = ["pass_shell", "pass_frame", "pass_energy", "pass_thermal", "pass_rings", "pass_logistics", "pass_modules"];
+const tints: Record<string, string> = {
+  pass_thermal: "#ffb070",
+  pass_energy: "#b69cff",
+  pass_logistics: "#7dffd4",
+};
+const left = callouts.filter((c) => c.side === "left").sort((a, b) => a.y - b.y);
+const right = callouts.filter((c) => c.side === "right").sort((a, b) => a.y - b.y);
+const rowY = (i: number, n: number) => 12 + (i * 62) / Math.max(1, n - 1);
+---
+
+<!-- Scene 03: engineering layer. Beauty cutaway → blueprint section → subsystem highlights + archive of trajectories → exposed view. -->
+<section class="track track--blueprint" id="evidence" data-track="blueprint" data-scene-index="2">
+  <div class="track__stage blueprint" data-blueprint>
+    <div class="blueprint__grid" aria-hidden="true"></div>
+
+    <header class="blueprint__head">
+      <p class="eyebrow"><span>03 / 10</span>Инженерный слой · разрез А–А</p>
+      <h2 class="headline">Доказательства —<br />в конструкции.</h2>
+    </header>
+
+    <figure class="drawing" aria-label="Поперечный разрез мегаструктуры">
+      <img class="drawing__layer drawing__ghost" src={src("section_blueprint")} alt="" />
+      <img class="drawing__layer drawing__slab" src={src("section_slab")} alt="" />
+      {passes.map((p) => (
+        <span class="drawing__pass" data-bp-pass={p} style={`--mask: url(${src(p)}); --tint: ${tints[p] ?? "#7dcfff"}`}></span>
+      ))}
+      <img class="drawing__layer drawing__exposed" src={src("exposed_blueprint")} alt="" />
+
+      <svg class="drawing__leaders" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
+        {left.map((c, i) => {
+          const y = rowY(i, left.length) * 10;
+          return (
+            <g data-bp-callout={c.id} data-pass={c.pass}>
+              <polyline points={`${c.x * 16},${c.y * 10} ${c.x * 16 - 90},${y} 60,${y}`} />
+              <circle cx={c.x * 16} cy={c.y * 10} r="5" />
+            </g>
+          );
+        })}
+        {right.map((c, i) => {
+          const y = rowY(i, right.length) * 10;
+          return (
+            <g data-bp-callout={c.id} data-pass={c.pass}>
+              <polyline points={`${c.x * 16},${c.y * 10} ${c.x * 16 + 90},${y} 1540,${y}`} />
+              <circle cx={c.x * 16} cy={c.y * 10} r="5" />
+            </g>
+          );
+        })}
+      </svg>
+      {left.map((c, i) => (
+        <p class="callout callout--left" data-bp-label={c.id} style={`top: ${rowY(i, left.length)}%`}>
+          {c.label}<small>{c.note}</small>
+        </p>
+      ))}
+      {right.map((c, i) => (
+        <p class="callout callout--right" data-bp-label={c.id} style={`top: ${rowY(i, right.length)}%`}>
+          {c.label}<small>{c.note}</small>
+        </p>
+      ))}
+
+      <ol class="exposed-legend" aria-label="Слои в разнесённом виде">
+        <li data-n="С1">Внешняя оболочка</li>
+        <li data-n="С2">Вторичный каркас</li>
+        <li data-n="С3">Слой энергии</li>
+        <li data-n="С4">Несущее ядро</li>
+        <li data-n="★">Звезда</li>
+      </ol>
+
+      <div class="scale-bar" aria-label="Шкала масштаба">
+        <div class="scale-bar__ticks"><i></i><i></i></div>
+        <p><span>0</span><span>1 R★</span><span>5 R★</span></p>
+        <small>R★ — радиус звезды · при R★ ≈ 696 000 км: 5 R★ ≈ 3,5 млн км [допущение]</small>
+        <small class="scale-bar__earth"><b></b> Земля в том же масштабе</small>
+      </div>
+    </figure>
+
+    <aside class="dossier" data-bp-dossier aria-label="Архив траекторий">
+      <div class="archive">
+        <p class="dossier__title">Архив траекторий <span>· {String(trajectories.length).padStart(2, "0")} модулей</span></p>
+        <div class="archive__viewport">
+          <ol class="archive__list" data-archive-list>
+            {trajectories.map((t) => (
+              <li class="case" data-case>
+                <p class="case__head">
+                  <b>Модуль {t.unit}</b>
+                  <span>{t.exam} · {t.subjects}</span>
+                </p>
+                <p class="case__start">{t.brief}</p>
+                <p class="case__highlight"><i aria-hidden="true">→</i> {t.highlight}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+
+      <div class="reviews" data-reviews>
+        <p class="dossier__title">
+          Отзывы · документы <span data-review-count>01 / {String(reviewShots.length).padStart(2, "0")}</span>
+        </p>
+        <div class="reviews__frame">
+          {reviewShots.map((shot, i) => (
+            <button class="reviews__shot" type="button" data-review={i} aria-label={`Открыть отзыв ${i + 1}`}>
+              <img src={`${base}/${shot}`} alt={`Сообщение от ученика или родителя, ${i + 1}`} loading="lazy" decoding="async" />
+            </button>
+          ))}
+        </div>
+        <div class="reviews__nav">
+          <button type="button" data-review-prev aria-label="Предыдущий отзыв">←</button>
+          <small>Имена скрыты. Нажмите, чтобы увеличить.</small>
+          <button type="button" data-review-next aria-label="Следующий отзыв">→</button>
+        </div>
+      </div>
+    </aside>
+
+    <footer class="title-block" aria-hidden="true">
+      <span>Hopes and Dreams</span>
+      <span>Лист 01 · разрез А–А</span>
+      <span>Масштаб по шкале</span>
+      <span>Редакция 3</span>
+    </footer>
+  </div>
+
+</section>

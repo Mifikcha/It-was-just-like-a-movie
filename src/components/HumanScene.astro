@@ -1,0 +1,57 @@
+---
+import { author } from "../data/content";
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<!-- Scene 08: the camera flies to the observation pod and inside it. First the work — now the person. -->
+<section class="track track--still track--human" id="author" data-track="human" data-still data-scene-index="7">
+  <div class="track__stage still" data-still-stage>
+    <div class="human__layers" aria-hidden="true">
+      <img class="human__layer" data-human-layer="inside" src={`${base}/scenes/pod_interior_comp.webp`} alt="" />
+    </div>
+    <div class="still__shade still__shade--sides" aria-hidden="true"></div>
+
+    <div class="human__dark" data-human-dark aria-hidden="true"></div>
+    <p class="human__intro" data-human-intro>Сначала — работа.<br />Теперь — человек.</p>
+
+    <div class="still__content human" data-still-content>
+      <div class="human__left">
+        <p class="eyebrow"><span>08 / 10</span>Наблюдательный модуль</p>
+        <div class="human__photos">
+          {Array.from({ length: author.photos }, (_, i) => (
+            <div class="photo-slot" aria-label={`Место для фотографии ${i + 1}`}>
+              <span>Фото {i + 1}</span>
+            </div>
+          ))}
+        </div>
+        <h2 class="headline human__name">{author.name}</h2>
+        <p class="human__role">{author.role}</p>
+        {author.bio.map((p) => <p class="human__bio">{p}</p>)}
+        <ul class="human__facts">
+          {author.facts.map((f) => <li>{f}</li>)}
+        </ul>
+      </div>
+
+      <div class="human__right">
+        {author.diplomas.map((d) => (
+          <button type="button" class="diploma" data-zoom={`${base}/${d.src}`} aria-label={`Увеличить: ${d.title}`}>
+            <img src={`${base}/${d.src}`} alt={d.title} loading="lazy" />
+            <span><b>{d.title}</b>{d.note}</span>
+          </button>
+        ))}
+      </div>
+
+      <div class="human__papers">
+        <p class="human__papers-title">Статьи и научные публикации</p>
+        <ul>
+          {author.publications.map((p) => (
+            <li>
+              {p.href ? <a href={p.href} target="_blank" rel="noreferrer">{p.title}</a> : <span>{p.title}</span>}
+              <small>{p.venue}</small>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>

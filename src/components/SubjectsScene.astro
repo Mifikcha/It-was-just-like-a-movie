@@ -1,0 +1,54 @@
+---
+import { links, platformFacts, programLadder, subjectModes, subjectTools } from "../data/content";
+---
+
+<!-- Scene 07: one wide view; a technical passport of each subject in Hopes and Dreams. -->
+<section class="track track--still track--subjects" id="subjects" data-track="subjects" data-still data-scene-index="6">
+  <div class="track__stage still" data-still-stage>
+    <div class="still__shade still__shade--wide" aria-hidden="true"></div>
+
+    <div class="still__content subjects" data-still-content>
+      <div class="subjects__main">
+        <p class="eyebrow"><span>07 / 10</span>Предметы на конструкции</p>
+        <div class="subjects__tabs" role="tablist" aria-label="Предмет">
+          {subjectModes.map((m, i) => (
+            <button type="button" role="tab" data-subject-tab={m.id} aria-selected={i === 0 ? "true" : "false"} style={`--tint: ${m.tint}`}>
+              {m.title}
+            </button>
+          ))}
+        </div>
+        <ol class="subjects__ladder" aria-label="Уровни программ">
+          {programLadder.map((p, i) => <li><span>{String(i + 1).padStart(2, "0")}</span>{p}</li>)}
+        </ol>
+
+        {subjectModes.map((m) => (
+          <div class="subjects__panel passport" data-subject-panel={m.id} role="tabpanel" style={`--tint: ${m.tint}`}>
+            <p class="passport__id">{m.title} / {m.exam}</p>
+            <dl class="passport__grid">
+              {m.specs.map((s) => (
+                <div>
+                  <dt>{s.value}</dt>
+                  <dd>{s.label}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        ))}
+        <p class="passport__tools">{subjectTools.join(" · ")}</p>
+      </div>
+
+      <aside class="platform-strip" aria-label="Hopes and Dreams в цифрах">
+        <p class="platform-strip__title">Hopes and Dreams в цифрах</p>
+        <dl>
+          {platformFacts.map((f) => (
+            <div>
+              <dt>{f.value}</dt>
+              <dd>{f.label}</dd>
+            </div>
+          ))}
+        </dl>
+        <a class="text-link" href={links.hnd} target="_blank" rel="noreferrer">Открыть Hopes and Dreams ↗</a>
+      </aside>
+    </div>
+  </div>
+</section>

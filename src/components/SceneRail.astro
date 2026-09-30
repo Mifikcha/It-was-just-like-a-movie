@@ -1,0 +1,15 @@
+---
+import { journey } from "../data/content";
+---
+
+<nav class="scene-rail" aria-label="Сцены" data-scene-rail>
+  <span class="scene-rail__num">01</span>
+  <ol>
+    {journey.map((scene, i) => (
+      <li data-rail-dot={i}>
+        <span class="visually-hidden">{scene.index} {scene.title}</span>
+      </li>
+    ))}
+  </ol>
+  <span class="scene-rail__num">10</span>
+</nav>

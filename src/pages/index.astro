@@ -1,30 +1,51 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
-import StructureProgress from "../components/StructureProgress.astro";
-import HeroScene from "../components/HeroScene.astro";
-import ProofScene from "../components/ProofScene.astro";
-import SystemScene from "../components/SystemScene.astro";
-import CredentialsScene from "../components/CredentialsScene.astro";
+import SceneRail from "../components/SceneRail.astro";
+import JourneyOpening from "../components/JourneyOpening.astro";
+import BlueprintScene from "../components/BlueprintScene.astro";
+import StoriesScene from "../components/StoriesScene.astro";
+import WorkScene from "../components/WorkScene.astro";
+import KnowledgeScene from "../components/KnowledgeScene.astro";
+import SubjectsScene from "../components/SubjectsScene.astro";
+import HumanScene from "../components/HumanScene.astro";
 import FormatsScene from "../components/FormatsScene.astro";
-import DecisionScene from "../components/DecisionScene.astro";
+import JourneyFinal from "../components/JourneyFinal.astro";
+import "../styles/journey.css";
+import "../styles/blueprint.css";
+import "../styles/scenes.css";
+import "../styles/extras.css";
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
 <BaseLayout
   title="Hopes and Dreams — образовательная среда"
   description="Физика, математика и информатика в связанной образовательной среде. Подготовка к ОГЭ и ЕГЭ с Сергеем."
 >
+  <canvas class="stage-canvas" data-stage-canvas data-base={base} aria-hidden="true"></canvas>
+  <noscript>
+    <img class="stage-canvas" src={`${base}/seq/approach/1920/0001.webp`} alt="" />
+  </noscript>
+  <div class="stage-shade" aria-hidden="true"></div>
   <SiteHeader />
-  <StructureProgress />
-  <main>
-    <HeroScene />
-    <ProofScene />
-    <SystemScene />
-    <CredentialsScene />
+  <SceneRail />
+  <main class="journey">
+    <JourneyOpening />
+    <BlueprintScene />
+    <StoriesScene />
+    <WorkScene />
+    <KnowledgeScene />
+    <SubjectsScene />
+    <HumanScene />
     <FormatsScene />
-    <DecisionScene />
+    <JourneyFinal />
   </main>
+  <dialog class="lightbox" data-lightbox aria-label="Увеличенное изображение">
+    <form method="dialog"><button class="lightbox__close" aria-label="Закрыть">×</button></form>
+    <img data-lightbox-img alt="" />
+  </dialog>
   <script>
-    import "../scripts/motion";
+    import "../scripts/journey";
   </script>
 </BaseLayout>

@@ -1,21 +1,54 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 
 const html = await readFile("dist/index.html", "utf8");
 
 for (const marker of [
   'lang="ru"',
-  'id="proof"',
-  'id="system"',
+  'id="top"',
+  'id="approach"',
+  'id="evidence"',
+  'id="stories"',
+  'id="work"',
+  'id="knowledge"',
+  'id="subjects"',
   'id="author"',
   'id="formats"',
   'id="contact"',
+  "data-stage-canvas",
+  "data-quad=",
   "https://t.me/Skifcha",
-  "[REAL REVIEW REQUIRED]",
-  "[RESULT DATA REQUIRED]",
+  "степень",
 ]) {
   assert(html.includes(marker), `Missing production marker: ${marker}`);
 }
 
 assert(!html.includes("Гарантирую результат"), "Unverifiable promise reached production markup");
+
+// Students stay anonymous: no first names from the case notes may reach the page.
+for (const name of ["Ева", "Максим", "Никита", "Стёпа", "Степан", "Полина", "Саша", "Руслан"]) {
+  assert(!new RegExp(`(^|[^А-Яа-яЁё])${name}([^А-Яа-яЁё]|$)`).test(html.replace(/<[^>]+>/g, " ")), `Student name on the page: ${name}`);
+}
+
+// No English words in visible text or accessible names — only the brand "Hopes and Dreams".
+const visible = html
+  // quotes are kept in the original English and marked lang="en"
+  .replace(/<(figure|blockquote|p|span)[^>]*\blang="en"[^>]*>[\s\S]*?<\/\1>/g, " ")
+  .replace(/<script[\s\S]*?<\/script>/g, " ")
+  .replace(/<style[\s\S]*?<\/style>/g, " ")
+  .replace(/<!--[\s\S]*?-->/g, " ")
+  .replace(/&[a-z]+;/g, " ");
+const attrs = [...visible.matchAll(/\s(?:alt|aria-label|title|placeholder)="([^"]*)"/g)].map((m) => m[1]);
+const text = visible.replace(/<[^>]+>/g, " ");
+const words = [...`${text} ${attrs.join(" ")}`.replace(/Hopes\s+and\s+Dreams|Desmos|Python/g, " ").matchAll(/[A-Za-z]{2,}/g)].map((m) => m[0]);
+assert.deepEqual([...new Set(words)], [], `English words on the page: ${[...new Set(words)].join(", ")}`);
+
+// every scroll sequence ships complete in both resolutions
+const sequences = { approach: 90, f_blueprint: 72, f_stories: 72, f_work: 72, f_knowledge: 72, f_subjects: 72, f_formats: 72, f_final: 72 };
+for (const [name, count] of Object.entries(sequences)) {
+  for (const size of ["1920", "960"]) {
+    const frames = (await readdir(`dist/seq/${name}/${size}`)).filter((f) => f.endsWith(".webp"));
+    assert.equal(frames.length, count, `seq/${name}/${size} has ${frames.length} frames`);
+  }
+}
 console.log("Static site contract verified.");

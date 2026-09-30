@@ -1,0 +1,50 @@
+---
+import { stories } from "../data/content";
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<!-- Scene 04: three full stories, continuing the blueprint / dossier language. -->
+<section class="track track--still track--stories" id="stories" data-track="stories" data-still data-scene-index="3">
+  <div class="track__stage still" data-still-stage>
+    <div class="still__bg still__bg--blueprint" data-still-bg>
+      <img src={`${base}/scenes/stories_bp.webp`} alt="" />
+    </div>
+    <div class="still__shade still__shade--heavy" aria-hidden="true"></div>
+
+    <div class="still__content stories" data-still-content>
+      <header class="stories__head">
+        <p class="eyebrow"><span>04 / 10</span>Архив · развёрнутые истории</p>
+        <p class="stories__counter"><span data-story-index>1</span> / {stories.length}</p>
+      </header>
+
+      {stories.map((story, i) => (
+        <article class="story" data-story={i}>
+          <div class="story__figure">
+            <p class="story__unit">Модуль {story.unit} · {story.exam}</p>
+            <h2 class="headline">{story.title}</h2>
+            <p class="story__span">{story.span}</p>
+            <p class="story__value">{story.figure.value}</p>
+            <p class="story__caption">{story.figure.caption}</p>
+          </div>
+          <div class="story__body">
+            <p class="story__lead">{story.lead}</p>
+            <ol class="story__chapters">
+              {story.chapters.map((c) => (
+                <li>
+                  <span>{c.label}</span>
+                  <p>{c.text}</p>
+                </li>
+              ))}
+            </ol>
+            {story.quote && (
+              <figure class="story__quote">
+                <blockquote>«{story.quote.text}»</blockquote>
+                <figcaption>— {story.quote.source}</figcaption>
+              </figure>
+            )}
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

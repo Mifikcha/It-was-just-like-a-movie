@@ -1,38 +1,44 @@
 ---
-import { formats, subjects } from "../data/content";
+import { formats, links } from "../data/content";
 ---
 
-<section class="formats scene" id="formats" data-scene="formats">
-  <div class="formats__intro page-grid">
-    <h2>Не тариф.<br />Степень сопровождения.</h2>
-    <p>
-      Формат выбирается под задачу: от самостоятельной работы в среде до персонального
-      маршрута. Стоимость появляется после выбора формата — без выдуманных цифр.
-    </p>
-  </div>
+<!-- Scene 09: formats as degrees of support. Calm grazing view along the finished sector. -->
+<section class="track track--still" id="formats" data-track="formats" data-still data-scene-index="8">
+  <div class="track__stage still" data-still-stage>
+    <div class="still__shade still__shade--right" aria-hidden="true"></div>
 
-  <div class="guidance-scale page-grid" data-guidance-scale>
-    <div class="guidance-scale__axis" aria-hidden="true">
-      <span>меньше участия</span><i></i><span>больше участия</span>
+    <div class="still__content formats" data-still-content>
+      <header class="formats__head">
+        <p class="eyebrow"><span>09 / 10</span>Форматы</p>
+        <h2 class="headline">Формат — это степень<br />сопровождения.</h2>
+        <p class="formats__lead">
+          Не уровень доступа к материалам. Форматы различаются тем, насколько плотно преподаватель
+          ведёт подготовку: от навигации раз в две недели до полностью индивидуального маршрута.
+        </p>
+      </header>
+      <p class="platform-note">
+        <span aria-hidden="true">◆</span>
+        <b>Доступ к платформе Hopes and Dreams — на каждом уровне.</b>
+        Программы, материалы и инструменты среды доступны в любом формате — уровни отличаются только участием преподавателя.
+      </p>
+      <ol class="formats__list">
+        {formats.map((f) => (
+          <li class="format" data-format>
+            <p class="format__level">Уровень {f.level}</p>
+            <h3>{f.title}</h3>
+            <p class="format__price">{f.price} <small class:list={{ "is-month": f.unit === "в месяц" }}>{f.unit}</small></p>
+            {f.fine && <p class="format__fine">{f.fine}</p>}
+            <ul>
+              {f.includes.map((x) => <li>{x}</li>)}
+            </ul>
+            <p class="format__note">{f.note}</p>
+          </li>
+        ))}
+      </ol>
+      <a class="cta cta--primary" href={links.telegram} target="_blank" rel="noreferrer">
+        Подобрать формат
+        <svg viewBox="0 0 20 12" aria-hidden="true"><path d="M1 6h17M13 1l5 5-5 5" /></svg>
+      </a>
     </div>
-    <ol>
-      {formats.map((format, index) => (
-        <li>
-          <span class="guidance-scale__mark">{String(index + 1).padStart(2, "0")}</span>
-          <h3>{format.level}</h3>
-          <p>{format.description}</p>
-          <ul>
-            {format.includes.map((item) => <li>{item}</li>)}
-          </ul>
-          <small>Стоимость: [DATA REQUIRED]</small>
-        </li>
-      ))}
-    </ol>
-  </div>
-
-  <div class="subjects page-grid">
-    <p>Основные направления</p>
-    <ul>{subjects.map((subject) => <li>{subject}</li>)}</ul>
-    <p>ОГЭ · ЕГЭ · углублённая подготовка · олимпиады · СУНЦ</p>
   </div>
 </section>
