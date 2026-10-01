@@ -5,23 +5,22 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const src = (name: string) => `${base}/blueprint/${name}.webp`;
 
 // Callout anchors in drawing space (section render 1600×1000, star centre at 50% / 50%).
-// Rough placement for the preview — final anchors will be exported from Blender (object → camera space).
+// Projected from the v6 scene objects into the section camera (Blender: scripts/render_blueprint_v6.py → callouts.json).
 const callouts = [
-  { id: "shell", label: "Внешняя оболочка коллекторов", note: "R = 2,6 R★", x: 36.7, y: 32.2, side: "left", pass: "pass_shell" },
-  { id: "logistics", label: "Логистический коридор", note: "транспортное кольцо", x: 29.9, y: 41.4, side: "left", pass: "pass_logistics" },
-  { id: "frame", label: "Вторичный несущий каркас", note: "сетка 6 × 7 × 7", x: 35.2, y: 61.1, side: "left", pass: "pass_frame" },
-  { id: "construction", label: "Сектор сборки", note: "сектор Д", x: 44.1, y: 76, side: "left", pass: "pass_shell" },
-  { id: "dock", label: "Узел стыковки и обслуживания", note: "станции, доки", x: 46.7, y: 20.5, side: "right", pass: "pass_modules" },
-  { id: "thermal", label: "Массивы теплоотвода", note: "ребром к звезде", x: 57.5, y: 27.5, side: "right", pass: "pass_thermal" },
-  { id: "power", label: "Слой распределения энергии", note: "R = 2,05 R★", x: 60.5, y: 35.9, side: "right", pass: "pass_energy" },
-  { id: "spine", label: "Опорный хребет", note: "радиальные опоры", x: 66.5, y: 44.0, side: "right", pass: "pass_frame" },
-  { id: "ring", label: "Сервисное кольцо", note: "R = 3,4 R★", x: 71.9, y: 59.4, side: "right", pass: "pass_rings" },
+  { id: "shell", label: "Внешняя оболочка коллекторов", note: "R = 2,6 R★", x: 35.9, y: 37.0, side: "left", pass: "pass_shell" },
+  { id: "frame", label: "Вторичный несущий каркас", note: "сетка 6 × 7 × 7", x: 35.1, y: 61.2, side: "left", pass: "pass_frame" },
+  { id: "collector", label: "Полярный сборщик плазмы", note: "отвод массы в оболочку", x: 50.0, y: 65.1, side: "left", pass: "pass_core" },
+  { id: "thermal", label: "Сервисный хребет", note: "радиаторы ребром к звезде", x: 46.8, y: 78.4, side: "left", pass: "pass_thermal" },
+  { id: "modules", label: "Станции на стрелах", note: "3 эксплуатационные станции", x: 69.9, y: 12.9, side: "right", pass: "pass_modules" },
+  { id: "ring", label: "Сервисные кольца", note: "R = 3,4 · 4,2 · 4,9 R★", x: 72.4, y: 45.5, side: "right", pass: "pass_rings" },
+  { id: "mirrors", label: "Кольцо статитов-зеркал", note: "R = 1,85 R★", x: 60.0, y: 48.8, side: "right", pass: "pass_mirrors" },
+  { id: "coil", label: "Контур звёздного подъёма", note: "катушки, R ≈ 1,6 R★", x: 58.3, y: 60.0, side: "right", pass: "pass_core" },
 ];
-const passes = ["pass_shell", "pass_frame", "pass_energy", "pass_thermal", "pass_rings", "pass_logistics", "pass_modules"];
+const passes = ["pass_shell", "pass_frame", "pass_core", "pass_mirrors", "pass_thermal", "pass_rings", "pass_modules"];
 const tints: Record<string, string> = {
   pass_thermal: "#ffb070",
-  pass_energy: "#b69cff",
-  pass_logistics: "#7dffd4",
+  pass_core: "#ff8f6b",
+  pass_mirrors: "#b69cff",
 };
 const left = callouts.filter((c) => c.side === "left").sort((a, b) => a.y - b.y);
 const right = callouts.filter((c) => c.side === "right").sort((a, b) => a.y - b.y);
@@ -80,8 +79,8 @@ const rowY = (i: number, n: number) => 12 + (i * 62) / Math.max(1, n - 1);
       <ol class="exposed-legend" aria-label="Слои в разнесённом виде">
         <li data-n="С1">Внешняя оболочка</li>
         <li data-n="С2">Вторичный каркас</li>
-        <li data-n="С3">Слой энергии</li>
-        <li data-n="С4">Несущее ядро</li>
+        <li data-n="С3">Статиты-зеркала</li>
+        <li data-n="С4">Контур звёздного подъёма</li>
         <li data-n="★">Звезда</li>
       </ol>
 
@@ -135,7 +134,7 @@ const rowY = (i: number, n: number) => 12 + (i * 62) / Math.max(1, n - 1);
       <span>Hopes and Dreams</span>
       <span>Лист 01 · разрез А–А</span>
       <span>Масштаб по шкале</span>
-      <span>Редакция 3</span>
+      <span>Редакция 6</span>
     </footer>
   </div>
 

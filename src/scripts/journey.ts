@@ -293,7 +293,7 @@ const setupJourney = () => {
   const bpPasses = $$("[data-bp-pass]");
   const bpCallouts = $$("[data-bp-callout]");
   const bpLabels = $$("[data-bp-label]");
-  const bpOrder = ["pass_shell", "pass_frame", "pass_energy", "pass_thermal", "pass_rings", "pass_logistics", "pass_modules"];
+  const bpOrder = ["pass_shell", "pass_frame", "pass_core", "pass_mirrors", "pass_thermal", "pass_rings", "pass_modules"];
   const bpDossier = $("[data-bp-dossier]");
   const archive = $("[data-archive-list]");
   const cases = $$("[data-case]");
