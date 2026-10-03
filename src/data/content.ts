@@ -189,36 +189,22 @@ export const stories: Story[] = [
   },
 ];
 
-// ---------------------------------------------------------------- scene 05: work (Edison) — the control loop
-// Five stages of one learning cycle. The loop is drawn in frame space of the work flight's last frame (1920×1080)
-// as a tilted orbit across the service sector; stages sit at even fractions of it, starting top-left.
-export const controlLoop = {
-  centre: { x: 1335, y: 545 },
-  rx: 395,
-  ry: 290,
-  tilt: -14,
-  stages: [
-    { id: "diag", n: "01", label: "Диагностика", verb: "измерить" },
-    { id: "plan", n: "02", label: "План", verb: "выбрать шаг" },
-    { id: "practice", n: "03", label: "Практика", verb: "сделать" },
-    { id: "check", n: "04", label: "Проверка", verb: "сравнить" },
-    { id: "fix", n: "05", label: "Коррекция", verb: "перестроить" },
-  ],
-};
-
-// What the system reacts to over seven cycles. `cycle` is 1-based; the signal is measured at `from`
-// and answered at `to` (a lower `to` than `from` means the answer lands on the next cycle's stage).
-export const controlEvents = [
-  { cycle: 1, from: 0, to: 1, signal: "Входная диагностика", response: "маршрут собран" },
-  { cycle: 1, from: 2, to: 3, signal: "Занятие завершено", response: "отчёт ученику и родителю" },
-  { cycle: 2, from: 3, to: 4, signal: "Ошибка повторилась 3 раза", response: "тема возвращена в маршрут" },
-  { cycle: 3, from: 0, to: 1, signal: "Пробник просел по теме", response: "маршрут перестроен" },
-  { cycle: 4, from: 2, to: 3, signal: "ДЗ не сдано в срок", response: "напоминание ученику и родителю" },
-  { cycle: 5, from: 3, to: 4, signal: "ДЗ стабильно закрывается", response: "сложность повышена" },
-  { cycle: 6, from: 3, to: 4, signal: "Тема решена без ошибок", response: "узел закрыт" },
-  { cycle: 7, from: 0, to: 1, signal: "Повторный пробник", response: "фокус сдвинут дальше" },
+// ---------------------------------------------------------------- scene 05: work (Edison) — how the system reacts
+// General rules: what happens after which event.
+export const controlRules = [
+  "После входной диагностики собирается стартовый маршрут: что уже устойчиво, где пробелы, с чего начинать.",
+  "После серии домашних работ система повышает сложность, если тема закрывается стабильно.",
+  "Если ошибка повторяется, тема возвращается в активный контур до закрепления.",
+  "После каждого занятия ученик и родитель получают короткий отчёт: что сделали, что просело, что дальше.",
 ];
-export const controlCycles = 7;
+
+// One route as an example: a measurement (signal) and what the system does about it.
+export const controlTrace = [
+  { stage: "Диагностика", kind: "signal", text: "Дроби и отрицательные числа проседают." },
+  { stage: "Решение системы", kind: "action", text: "Маршрут перестроен: базовая арифметика вынесена в приоритет." },
+  { stage: "Практика", kind: "action", text: "Домашняя работа упрощена по форме, но увеличена по частоте." },
+  { stage: "Проверка", kind: "signal", text: "Через 2 недели блок закрыт, сложность повышена." },
+] as const;
 
 // ---------------------------------------------------------------- scene 06: one knowledge map, personal routes
 // Frame space of the knowledge flight's last frame (1920×1080): the sphere is the student, the map surrounds it.

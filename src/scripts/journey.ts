@@ -1,7 +1,6 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SequenceStage } from "./sequence";
-import { controlCycles, controlEvents } from "../data/content";
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
@@ -231,108 +230,16 @@ function setMap(p: number, svg: SVGElement) {
   $$("[data-lit-line]").forEach((l) => l.style.setProperty("--o", lit[l.dataset.litLine as keyof typeof lit].toFixed(3)));
 }
 
-// ---------------------------------------------------------------- scene 05: the control loop
-// The packet runs seven laps; one lap is one cycle and stage i sits at i / 5 of a lap.
-// Scroll sets a target and the packet eases toward it every frame, so the loop glides instead of stepping.
-const STAGES = 5;
-const LOOP_DRAW = [0.33, 0.42];
-const LAPS_FROM = 0.42;
-const LAPS_TO = 0.95;
-const TAIL = 0.14;
-const loopMoments = controlEvents.map((e) => {
-  const signal = e.cycle - 1 + e.from / STAGES;
-  let answer = e.cycle - 1 + e.to / STAGES;
-  if (answer <= signal) answer += 1;
-  return { signal, answer };
-});
-const loopUi = (() => {
-  const svg = $<SVGSVGElement>("[data-loop]");
-  if (!svg) return null;
-  const orbit = svg.querySelector<SVGPathElement>("[data-loop-orbit]")!;
-  return {
-    svg,
-    orbit,
-    lap: orbit.getTotalLength() / 2,
-    trail: svg.querySelector<SVGPathElement>("[data-loop-trail]")!,
-    packet: svg.querySelector<SVGGElement>("[data-loop-packet]")!,
-    cycle: svg.querySelector<SVGTextElement>("[data-loop-cycle]")!,
-    status: svg.querySelector<SVGTextElement>("[data-loop-status]")!,
-    stages: Array.from(svg.querySelectorAll<SVGGElement>("[data-loop-stage]")),
-    log: $("[data-loop-log]"),
-    list: $("[data-loop-list]"),
-    events: $$("[data-loop-event]"),
-  };
-})();
-let loopTarget = 0;
-let loopPos = 0;
-let loopFrame = 0;
-let logShift = -1;
-
-function renderLoop(pos: number) {
-  if (!loopUi) return;
-  const { orbit, lap, trail, packet, cycle, status, stages, log, list, events } = loopUi;
-  const f = pos % 1;
-  const pt = orbit.getPointAtLength(f * lap);
-  packet.setAttribute("transform", `translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)})`);
-  const len = Math.min(TAIL, pos);
-  const start = f >= len ? f - len : f - len + 1;
-  trail.style.strokeDasharray = `${len.toFixed(4)} 4`;
-  trail.style.strokeDashoffset = (-start).toFixed(4);
-
-  // the event whose signal was measured most recently (if its answer is still fresh)
-  let k = -1;
-  loopMoments.forEach((m, i) => pos >= m.signal - 0.02 && (k = i));
-  const m = k >= 0 ? loopMoments[k] : null;
-  const answered = !!m && pos >= m.answer;
-  const live = !!m && pos < m.answer + 0.3;
-  stages.forEach((s, i) => {
-    const d = Math.abs((((pos - i / STAGES + 0.5) % 1) + 1) % 1 - 0.5);
-    s.style.setProperty("--hit", (1 - clamp(d / 0.06)).toFixed(3));
-    s.toggleAttribute("data-signal", live && !answered && i === controlEvents[k].from);
-    s.toggleAttribute("data-response", live && answered && i === controlEvents[k].to);
-  });
-  const n = String(Math.min(7, Math.floor(pos + 1e-4) + 1)).padStart(2, "0");
-  if (cycle.textContent !== n) cycle.textContent = n;
-  status.textContent = !live ? "измерение" : answered ? "ответ применён" : "сигнал получен";
-
-  events.forEach((e, i) => {
-    const mm = loopMoments[i];
-    e.dataset.state = pos >= mm.answer ? "done" : pos >= mm.signal - 0.02 ? "active" : "pending";
-    e.toggleAttribute("data-current", i === k);
-  });
-  // the journal rolls: the newest entry stays in view, older ones leave at the top
-  if (log?.hasAttribute("data-live") && list) {
-    const shift = Math.max(0, k - 3);
-    if (shift !== logShift) {
-      logShift = shift;
-      list.style.transform = `translate3d(0, ${-(events[shift]?.offsetTop ?? 0)}px, 0)`;
-    }
-  }
-}
-
-const tickLoop = () => {
-  loopPos += (loopTarget - loopPos) * 0.09;
-  if (Math.abs(loopTarget - loopPos) < 0.0005) loopPos = loopTarget;
-  renderLoop(loopPos);
-  loopFrame = loopPos === loopTarget ? 0 : requestAnimationFrame(tickLoop);
-};
-
-function setLoop(p: number, instant = false) {
-  if (!loopUi) return;
-  const draw = range(p, LOOP_DRAW[0], LOOP_DRAW[1]);
-  loopUi.svg.style.setProperty("--draw", (1 - draw).toFixed(3));
-  loopUi.stages.forEach((s, i) => s.style.setProperty("--o", range(draw, i / STAGES, i / STAGES + 0.35).toFixed(3)));
-  loopUi.packet.style.opacity = String(draw);
-  loopUi.trail.style.opacity = String(range(p, LAPS_FROM - 0.01, LAPS_FROM + 0.01));
-  // a gentle start and stop; constant speed in between
-  const t = range(p, LAPS_FROM, LAPS_TO);
-  const a = 0.08;
-  const eased = t < a ? (t * t) / (2 * a * (1 - a)) : t > 1 - a ? 1 - ((1 - t) * (1 - t)) / (2 * a * (1 - a)) : (t - a / 2) / (1 - a);
-  loopTarget = Math.min(controlCycles - 0.001, eased * controlCycles);
-  if (instant) {
-    loopPos = loopTarget;
-    renderLoop(loopPos);
-  } else if (!loopFrame) loopFrame = requestAnimationFrame(tickLoop);
+// ---------------------------------------------------------------- scene 05: one route, signal by signal
+// The steps light up in order as the visitor scrolls; earlier ones stay lit, later ones wait.
+const trace = $("[data-trace]");
+const traceSteps = $$("[data-trace-step]");
+function setTrace(p: number) {
+  if (!trace) return;
+  const t = range(p, 0.36, 0.86);
+  trace.style.setProperty("--trace", t.toFixed(3));
+  const k = Math.min(traceSteps.length - 1, Math.floor(t * traceSteps.length));
+  traceSteps.forEach((s, i) => (s.dataset.state = i < k ? "done" : i === k ? "current" : "pending"));
 }
 
 // ---------------------------------------------------------------- scroll journey
@@ -379,8 +286,6 @@ const setupJourney = () => {
   setConstruction(0.42);
   setScene(0);
   const compact = window.matchMedia("(max-width: 900px)").matches;
-  // desktop: the reaction journal becomes a rolling window over the loop; phones show every entry
-  if (!compact) $("[data-loop-log]")?.setAttribute("data-live", "");
 
   ScrollTrigger.create({
     trigger: "[data-track='approach']",
@@ -490,7 +395,7 @@ const setupJourney = () => {
       const counter = el.querySelector("[data-story-index]");
       if (counter) counter.textContent = String(idx + 1);
     },
-    work: (p) => setLoop(p),
+    work: (p) => setTrace(p),
     knowledge: (p, el) => {
       const svg = el.querySelector<SVGElement>("[data-kmap]");
       if (!svg) return;
@@ -605,7 +510,7 @@ const setupStill = () => {
     { threshold: 0.3 },
   );
   $$("[data-track]").forEach((t) => io.observe(t));
-  setLoop(1, true);
+  setTrace(1);
   const kmap = $<SVGElement>("[data-kmap]");
   if (kmap) setMap(1, kmap);
 };

@@ -1,18 +1,36 @@
-/* Scenes 05–06: the control loop (how the system reacts) and the knowledge map (one student's route through it). */
+/* Scenes 05–06: how the system reacts and the knowledge map (one student's route through it). */
 
-/* ---------------------------------------------------------------- 05 work: the control loop */
-.work { display: grid; align-content: center; gap: 1.4rem; max-width: min(44vw, 46rem); }
+/* ---------------------------------------------------------------- 05 work: what the system measures and how it answers */
+.track--still[data-track="work"] { height: 420vh; }
+
+.still__shade--work {
+  background:
+    linear-gradient(90deg, rgba(4, 5, 11, 0.92) 0%, rgba(4, 5, 11, 0.7) 36%, rgba(4, 5, 11, 0.2) 58%, rgba(4, 5, 11, 0.5) 100%),
+    linear-gradient(0deg, rgba(4, 5, 11, 0.75) 0%, rgba(4, 5, 11, 0) 30%);
+  opacity: var(--content, 0);
+}
+
+.work {
+  display: grid;
+  grid-template-columns: minmax(0, 40rem) minmax(20rem, 31rem);
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem 4rem;
+}
+
+.work__text { display: grid; align-content: center; gap: 1.2rem; }
 
 .work__quote blockquote {
   color: var(--text-strong);
   font-family: var(--serif);
-  font-size: clamp(2rem, 3.3vw, 3.7rem);
+  font-size: clamp(1.9rem, 2.7vw, 3.1rem);
   line-height: 1.04;
   letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
 .work__quote figcaption {
-  margin-top: 0.9rem;
+  margin-top: 0.8rem;
   color: var(--muted);
   font-family: var(--mono);
   font-size: 0.72rem;
@@ -20,139 +38,137 @@
   text-transform: uppercase;
 }
 
-.work__lead { max-width: 30rem; color: var(--text); font-size: 1rem; }
+.work__lead { max-width: 32rem; color: var(--text); font-size: 1rem; }
 
-/* the loop as a line: only where the overlay is not drawn */
-.work__cycle {
-  display: none;
-  flex-wrap: wrap;
-  gap: 0.4rem 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.work__cycle li + li::before { content: "→"; margin: 0 0.6rem; color: var(--cyan-hud); }
-.work__cycle .is-again { color: var(--cyan-hud); }
-
-.loop-log { max-width: 34rem; border-top: 1px solid var(--line-strong); }
-.loop-log__title {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.7rem 0 0.3rem;
+/* the rules: plain sentences, one per event */
+.rules { border-top: 1px solid var(--line-strong); }
+.rules__title {
+  padding: 0.75rem 0 0.2rem;
   color: var(--cyan-hud);
   font-family: var(--mono);
   font-size: 0.66rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
-.loop-log__title span + span { color: var(--dim); }
-.loop-log ol { display: grid; margin: 0; padding: 0; list-style: none; }
-/* desktop: a rolling window of four entries; older ones scroll away under a soft top edge */
-.loop-log[data-live] .loop-log__window {
-  height: calc(4 * 3.55rem);
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 1.4rem, #000 100%);
-  mask-image: linear-gradient(180deg, transparent 0, #000 1.4rem, #000 100%);
+.rules ul { display: grid; margin: 0; padding: 0; list-style: none; }
+.rules li {
+  max-width: 36rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(169, 177, 214, 0.12);
+  color: var(--text);
+  font-size: 0.94rem;
+  line-height: 1.5;
 }
-.loop-log[data-live] li { height: 3.55rem; box-sizing: border-box; }
-.loop-log[data-live] ol { transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1); will-change: transform; }
-.loop-log li {
+
+/* one route: an instrument panel over the sunlit service sector */
+.trace {
+  --signal: #ffb36b;
+  --action: var(--cyan-hud);
+  align-self: center;
+  padding: 1.3rem 1.5rem 1.5rem;
+  border: 1px solid var(--line-strong);
+  background: rgba(5, 8, 18, 0.86);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.trace__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.4rem 1rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.trace__head > p:first-child { color: var(--text-strong); }
+.trace__head span { color: var(--dim); }
+.trace__legend { display: flex; gap: 1rem; }
+.trace__legend span::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 0.45rem;
+  border-radius: 50%;
+  vertical-align: 0.05em;
+}
+.trace__legend .is-signal::before { background: var(--signal); }
+.trace__legend .is-action::before { background: var(--action); }
+
+.trace__steps {
   position: relative;
   display: grid;
-  gap: 0.15rem;
-  padding: 0.55rem 0 0.55rem 1.1rem;
-  border-bottom: 1px solid rgba(169, 177, 214, 0.12);
-  transition: opacity 0.35s ease;
+  margin: 1.3rem 0 0;
+  padding: 0 0 0 2rem;
+  list-style: none;
 }
-.loop-log li::before {
+
+/* the spine: a quiet track, and the lit part that has already been walked */
+.trace__steps::before,
+.trace__steps::after {
   content: "";
   position: absolute;
-  left: 0;
-  top: 0.9rem;
-  width: 6px;
-  height: 6px;
+  left: 0.42rem;
+  top: 0.55rem;
+  bottom: 0.9rem;
+  width: 1px;
+  background: var(--line-strong);
+}
+.trace__steps::after {
+  background: linear-gradient(180deg, var(--signal), var(--action) 35%, var(--action) 70%, var(--signal));
+  transform: scaleY(var(--trace, 1));
+  transform-origin: top;
+}
+
+.trace__step {
+  position: relative;
+  display: grid;
+  gap: 0.3rem;
+  padding-bottom: 1.35rem;
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.trace__step:last-child { padding-bottom: 0; }
+.trace__step[data-state="pending"] { opacity: 0.28; transform: translateX(6px); }
+.trace__step[data-state="done"] { opacity: 0.78; }
+
+.trace__step::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  left: calc(-2rem + 0.42rem - 5px);
+  top: 0.3rem;
+  width: 11px;
+  height: 11px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--kind);
   border-radius: 50%;
-  background: var(--dim);
-  transition: background 0.3s ease, box-shadow 0.3s ease;
+  background: var(--kind);
+  transition: background 0.4s ease, box-shadow 0.4s ease;
 }
-.loop-log__route { color: var(--dim); font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; }
-.loop-log p { display: flex; flex-wrap: wrap; gap: 0 0.5rem; margin: 0; font-size: 0.98rem; line-height: 1.4; }
-.loop-log__signal { color: var(--text); transition: color 0.3s ease; }
-.loop-log__arrow { align-self: center; width: 0.9em; height: 0.9em; color: var(--cyan-hud); }
-.loop-log__response { color: var(--text-strong); transition: opacity 0.3s ease, color 0.3s ease; }
+.trace__step[data-kind="signal"] { --kind: var(--signal); }
+.trace__step[data-kind="action"] { --kind: var(--action); }
+.trace__step[data-state="pending"]::before { background: #05080f; }
+.trace__step[data-state="current"]::before { box-shadow: 0 0 0 5px color-mix(in srgb, var(--kind) 22%, transparent); }
 
-.loop-log li[data-state="pending"] { opacity: 0.3; }
-.loop-log li[data-state="done"] { opacity: 0.66; }
-.loop-log li[data-state="done"]::before { background: var(--cyan-hud); }
-.loop-log li[data-state="active"] .loop-log__response { opacity: 0.3; }
-.loop-log li[data-current] { opacity: 1; }
-.loop-log li[data-current]::before { background: #ffb36b; box-shadow: 0 0 10px rgba(255, 179, 107, 0.9); }
-.loop-log li[data-current] .loop-log__signal { color: #ffd2a3; }
-.loop-log li[data-current][data-state="done"]::before { background: #bfe8ff; box-shadow: 0 0 10px rgba(111, 200, 255, 0.9); }
-.loop-log li[data-current][data-state="done"] .loop-log__response { color: #bfe8ff; }
-
-/* seven laps need room to breathe */
-.track--still[data-track="work"] { height: 560vh; }
-
-/* overlay in frame space of the held frame */
-.loop { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: var(--content, 0); }
-.loop__dim { opacity: calc(1 - var(--draw, 1) * 0.6); }
-.loop__ticks line { stroke: rgba(169, 177, 214, 0.28); stroke-width: 1; vector-effect: non-scaling-stroke; opacity: calc(1 - var(--draw, 1)); }
-.loop__ticks .is-major { stroke: rgba(111, 200, 255, 0.55); }
-.loop__track {
-  fill: none;
-  stroke: rgba(111, 200, 255, 0.55);
-  stroke-width: 1.5;
-  stroke-dasharray: 1;
-  stroke-dashoffset: var(--draw, 1);
-  vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 4px rgba(111, 200, 255, 0.5));
-}
-.loop__track--ghost { stroke: rgba(169, 177, 214, 0.22); stroke-dasharray: 2 6; stroke-dashoffset: 0; filter: none; opacity: calc(1 - var(--draw, 1)); }
-.loop__orbit { fill: none; stroke: none; }
-.loop__chevron { fill: none; stroke: rgba(111, 200, 255, 0.8); stroke-width: 1.5; vector-effect: non-scaling-stroke; opacity: calc(1 - var(--draw, 1)); }
-.loop__trail {
-  fill: none;
-  stroke: #bfe8ff;
-  stroke-width: 3.5;
-  stroke-linecap: round;
-  stroke-dasharray: 0 4;
-  vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 8px rgba(111, 200, 255, 0.95));
+.trace__stage {
+  color: var(--kind);
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
-.loop__stage { opacity: var(--o, 0); color: rgba(169, 177, 214, 0.55); }
-.loop__flare { opacity: calc(var(--hit, 0) * 0.9); }
-.loop__flare--warm { opacity: 0; transition: opacity 0.3s ease; }
-.loop__stage[data-signal] { color: #ffb36b; }
-.loop__stage[data-signal] .loop__flare--warm { opacity: 0.85; }
-.loop__stage[data-response] { color: #bfe8ff; }
-.loop__stage[data-response] .loop__flare:not(.loop__flare--warm) { opacity: 0.9; }
-.loop__brackets { fill: none; stroke: currentColor; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
-.loop__ring { fill: rgba(4, 5, 11, 0.85); stroke: rgba(111, 200, 255, 0.7); stroke-width: 1.2; vector-effect: non-scaling-stroke; }
-.loop__dot { fill: #bfe8ff; filter: drop-shadow(0 0 5px rgba(111, 200, 255, 0.9)); }
-.loop__stage[data-signal] .loop__ring { stroke: #ffb36b; stroke-width: 2; }
-.loop__stage[data-signal] .loop__dot { fill: #ffd2a3; filter: drop-shadow(0 0 6px rgba(255, 179, 107, 1)); }
-.loop__stage[data-response] .loop__ring { stroke: #bfe8ff; stroke-width: 2; }
-
-.loop__label { paint-order: stroke; stroke: rgba(4, 5, 11, 0.9); stroke-width: 7px; stroke-linejoin: round; }
-.loop__name { fill: var(--text-strong); font-family: var(--serif); font-size: 30px; }
-.loop__n { fill: var(--cyan-hud); font-family: var(--mono); font-size: 15px; letter-spacing: 0.1em; }
-.loop__verb { fill: var(--muted); font-family: var(--mono); font-size: 14px; letter-spacing: 0.16em; text-transform: uppercase; }
-.loop__stage[data-signal] .loop__verb { fill: #ffd2a3; }
-.loop__stage[data-response] .loop__verb { fill: #bfe8ff; }
-
-.loop__packet-core { fill: #fff; }
-.loop__readout { opacity: calc(1 - var(--draw, 1)); }
-.loop__readout-k,
-.loop__readout-s { fill: var(--muted); font-family: var(--mono); font-size: 15px; letter-spacing: 0.24em; text-transform: uppercase; }
-.loop__readout-s { fill: var(--cyan-hud); }
-.loop__readout-n { fill: var(--text-strong); font-family: var(--mono); font-size: 58px; letter-spacing: 0.06em; }
+.trace__text {
+  color: var(--text-strong);
+  font-family: var(--serif);
+  font-size: clamp(1.15rem, 1.35vw, 1.45rem);
+  line-height: 1.22;
+  text-wrap: pretty;
+}
 
 /* ---------------------------------------------------------------- 06 knowledge: one large map, one student's path */
 .kmap { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
@@ -247,11 +263,8 @@
 
 /* ---------------------------------------------------------------- phones and reduced motion */
 @media (max-width: 900px) {
-  .loop, .kmap { display: none; }
-  .work { max-width: none; }
-  .work__cycle { display: flex; }
+  .kmap { display: none; }
+  .work { grid-template-columns: 1fr; }
   .knowledge { margin-left: 0; max-width: none; }
 }
-.is-still .loop { display: none; }
-.is-still .work__cycle { display: flex; }
 .is-still .kmap { opacity: 1; }
