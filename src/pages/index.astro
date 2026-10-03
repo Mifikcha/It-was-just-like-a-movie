@@ -11,10 +11,12 @@ import SubjectsScene from "../components/SubjectsScene.astro";
 import HumanScene from "../components/HumanScene.astro";
 import FormatsScene from "../components/FormatsScene.astro";
 import JourneyFinal from "../components/JourneyFinal.astro";
+import Icon from "../components/Icon.astro";
 import "../styles/journey.css";
 import "../styles/blueprint.css";
 import "../styles/scenes.css";
 import "../styles/extras.css";
+import "../styles/loop-map.css";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
@@ -42,7 +44,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     <JourneyFinal />
   </main>
   <dialog class="lightbox" data-lightbox aria-label="Увеличенное изображение">
-    <form method="dialog"><button class="lightbox__close" aria-label="Закрыть">×</button></form>
+    <form method="dialog"><button class="lightbox__close" aria-label="Закрыть"><Icon name="close" /></button></form>
     <img data-lightbox-img alt="" />
   </dialog>
   <script>

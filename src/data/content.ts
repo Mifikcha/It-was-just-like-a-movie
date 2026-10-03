@@ -189,42 +189,88 @@ export const stories: Story[] = [
   },
 ];
 
-// ---------------------------------------------------------------- scene 05: work (Edison)
-export const workSteps = [
-  { n: "01", title: "Диагностика", text: "Сначала — где именно разваливаются задачи, а не общий «уровень»." },
-  { n: "02", title: "Маршрут", text: "Порядок тем, при котором новое опирается на уже построенное." },
-  { n: "03", title: "Регулярная практика", text: "Ритм вместо рывков: домашняя работа — часть конструкции, а не формальность." },
-  { n: "04", title: "Разбор ошибок", text: "Каждая ошибка возвращается в маршрут, пока не перестанет повторяться." },
-];
+// ---------------------------------------------------------------- scene 05: work (Edison) — the control loop
+// Five stages of one learning cycle. The loop is drawn in frame space of the work flight's last frame (1920×1080)
+// as a tilted orbit across the service sector; stages sit at even fractions of it, starting top-left.
+export const controlLoop = {
+  centre: { x: 1335, y: 545 },
+  rx: 395,
+  ry: 290,
+  tilt: -14,
+  stages: [
+    { id: "diag", n: "01", label: "Диагностика", verb: "измерить" },
+    { id: "plan", n: "02", label: "План", verb: "выбрать шаг" },
+    { id: "practice", n: "03", label: "Практика", verb: "сделать" },
+    { id: "check", n: "04", label: "Проверка", verb: "сравнить" },
+    { id: "fix", n: "05", label: "Коррекция", verb: "перестроить" },
+  ],
+};
 
-// ---------------------------------------------------------------- scene 06: knowledge constellation
-export const constellation = {
-  centre: "Маршрут обучения",
-  // frame space of the constellation flight's last frame (1920×1080): sphere centre and shell radius
+// What the system reacts to over seven cycles. `cycle` is 1-based; the signal is measured at `from`
+// and answered at `to` (a lower `to` than `from` means the answer lands on the next cycle's stage).
+export const controlEvents = [
+  { cycle: 1, from: 0, to: 1, signal: "Входная диагностика", response: "маршрут собран" },
+  { cycle: 1, from: 2, to: 3, signal: "Занятие завершено", response: "отчёт ученику и родителю" },
+  { cycle: 2, from: 3, to: 4, signal: "Ошибка повторилась 3 раза", response: "тема возвращена в маршрут" },
+  { cycle: 3, from: 0, to: 1, signal: "Пробник просел по теме", response: "маршрут перестроен" },
+  { cycle: 4, from: 2, to: 3, signal: "ДЗ не сдано в срок", response: "напоминание ученику и родителю" },
+  { cycle: 5, from: 3, to: 4, signal: "ДЗ стабильно закрывается", response: "сложность повышена" },
+  { cycle: 6, from: 3, to: 4, signal: "Тема решена без ошибок", response: "узел закрыт" },
+  { cycle: 7, from: 0, to: 1, signal: "Повторный пробник", response: "фокус сдвинут дальше" },
+];
+export const controlCycles = 7;
+
+// ---------------------------------------------------------------- scene 06: one knowledge map, personal routes
+// Frame space of the knowledge flight's last frame (1920×1080): the sphere is the student, the map surrounds it.
+export type MapNode = { id: string; label: string; x: number; y: number; kind: "hub" | "topic" | "work"; anchor: "l" | "r" | "t" | "b" };
+export const knowledgeMap = {
   centreXY: { x: 742, y: 510 },
   shellRadius: 160,
   nodes: [
-    // anchor: l = label left of the node, r = right, t = above, b = below
-    { id: "math", label: "Математика", x: 742, y: 150, group: "subject", anchor: "t" },
-    { id: "phys", label: "Физика", x: 500, y: 215, group: "subject", anchor: "l" },
-    { id: "cs", label: "Информатика", x: 985, y: 215, group: "subject", anchor: "r" },
-    { id: "models", label: "Модели", x: 360, y: 370, group: "subject", anchor: "l" },
-    { id: "research", label: "Исследования", x: 990, y: 380, group: "subject", anchor: "r" },
-    { id: "prog", label: "Программирование", x: 1000, y: 520, group: "subject", anchor: "r" },
-    { id: "diag", label: "Диагностика", x: 345, y: 560, group: "process", anchor: "l" },
-    { id: "practice", label: "Практика", x: 395, y: 735, group: "process", anchor: "l" },
-    { id: "solve", label: "Решение задач", x: 990, y: 650, group: "process", anchor: "r" },
-    { id: "home", label: "Домашняя работа", x: 520, y: 875, group: "process", anchor: "l" },
-    { id: "reports", label: "Автоматизированные отчёты", x: 742, y: 925, group: "feedback", anchor: "b" },
-    { id: "stats", label: "Анализ статистики", x: 975, y: 835, group: "feedback", anchor: "r" },
-    { id: "feedback", label: "Обратная связь", x: 1000, y: 745, group: "feedback", anchor: "r" },
-    { id: "student", label: "Ученик", x: 590, y: 1000, group: "people", anchor: "l" },
-    { id: "parents", label: "Родители", x: 900, y: 1000, group: "people", anchor: "r" },
-  ],
+    { id: "M", label: "Математика", x: 742, y: 262, kind: "hub", anchor: "t" },
+    { id: "P", label: "Физика", x: 470, y: 612, kind: "hub", anchor: "l" },
+    { id: "C", label: "Информатика", x: 1012, y: 612, kind: "hub", anchor: "r" },
+    { id: "m1", label: "Выражения", x: 560, y: 318, kind: "topic", anchor: "l" },
+    { id: "m2", label: "Уравнения", x: 470, y: 222, kind: "topic", anchor: "l" },
+    { id: "m3", label: "Функции и графики", x: 625, y: 168, kind: "topic", anchor: "t" },
+    { id: "m4", label: "Производная", x: 850, y: 168, kind: "topic", anchor: "t" },
+    { id: "m5", label: "Геометрия", x: 1015, y: 222, kind: "topic", anchor: "r" },
+    { id: "m6", label: "Вероятность", x: 935, y: 318, kind: "topic", anchor: "r" },
+    { id: "p1", label: "Кинематика", x: 365, y: 400, kind: "topic", anchor: "l" },
+    { id: "p2", label: "Динамика", x: 305, y: 540, kind: "topic", anchor: "l" },
+    { id: "p3", label: "Законы сохранения", x: 320, y: 690, kind: "topic", anchor: "b" },
+    { id: "p4", label: "Электричество", x: 395, y: 820, kind: "topic", anchor: "l" },
+    { id: "p5", label: "Магнетизм", x: 525, y: 895, kind: "topic", anchor: "b" },
+    { id: "p6", label: "Оптика", x: 660, y: 948, kind: "topic", anchor: "b" },
+    { id: "c1", label: "Системы счисления", x: 1150, y: 418, kind: "topic", anchor: "t" },
+    { id: "c2", label: "Логика", x: 1225, y: 560, kind: "topic", anchor: "r" },
+    { id: "c3", label: "Python", x: 1205, y: 712, kind: "topic", anchor: "r" },
+    { id: "c4", label: "Алгоритмы", x: 1115, y: 840, kind: "topic", anchor: "r" },
+    { id: "c5", label: "Рекурсия и ДП", x: 985, y: 905, kind: "topic", anchor: "b" },
+    { id: "w1", label: "Исследовательский проект", x: 830, y: 958, kind: "work", anchor: "b" },
+  ] as MapNode[],
+  // hub → topic belongs to the subject; cross links are where subjects lean on each other
   links: [
-    ["phys", "models"], ["math", "phys"], ["math", "cs"], ["cs", "research"], ["cs", "prog"], ["research", "prog"],
-    ["diag", "practice"], ["practice", "home"], ["solve", "prog"], ["home", "reports"],
-    ["reports", "stats"], ["stats", "feedback"], ["feedback", "solve"], ["reports", "student"], ["reports", "parents"],
+    ["M", "m1"], ["M", "m2"], ["M", "m3"], ["M", "m4"], ["M", "m5"], ["M", "m6"],
+    ["P", "p1"], ["P", "p2"], ["P", "p3"], ["P", "p4"], ["P", "p5"], ["P", "p6"],
+    ["C", "c1"], ["C", "c2"], ["C", "c3"], ["C", "c4"], ["C", "c5"],
+    ["m2", "m1"], ["m3", "m2"], ["m4", "m3"], ["m6", "m5"], ["p1", "p2"], ["p2", "p3"], ["p4", "p5"], ["p5", "p6"],
+    ["c1", "c2"], ["c3", "c4"], ["c4", "c5"],
+    ["m4", "p1"], ["m3", "p1"], ["m2", "p2"], ["m1", "c1"], ["m6", "c4"], ["c3", "w1"], ["p3", "w1"], ["c5", "w1"],
+  ] as [string, string][],
+};
+
+// One example student (not a real one). Only three things are lit on the map: what is studied now,
+// where errors repeat, and what comes next. `route` is the faint path already walked through the map.
+export const studentRoute = {
+  route: ["c1", "c2", "c3", "c4"],
+  focus: "c4",
+  weak: "c2",
+  next: "c5",
+  lines: [
+    { key: "focus", term: "Сейчас", value: "алгоритмы" },
+    { key: "weak", term: "Слабое место", value: "логика" },
+    { key: "next", term: "Дальше", value: "рекурсия и ДП" },
   ],
 };
 
@@ -266,8 +312,8 @@ export const subjectModes = [
     exam: "ЕГЭ",
     // Unique images embedded in Публичный сайт/Информатика: 326.
     specs: [
-      { value: "64", label: "урока курса «Истинный фундамент»" },
-      { value: "100", label: "задач-«звёзд» с автопроверкой" },
+      { value: "64", label: "урока авторского курса по информатике «Истинный фундамент»" },
+      { value: "100", label: "задач-«звёзд»: творческие задачи для закрепления навыков, с автопроверкой" },
       { value: "26", label: "разборов экзаменационных задач" },
       { value: "320+", label: "схем, диаграмм и иллюстраций" },
     ],
@@ -288,23 +334,32 @@ export const author = {
   name: "Сергей Беззубин",
   role: "Преподаватель физики, математики и информатики, автор среды Hopes and Dreams",
   bio: [
-    "Физик по первому образованию и инженер по второму. Строю подготовку так же, как строят сложные системы: от диагностики и маршрута до регулярной проверки результата.",
-    "Hopes and Dreams выросла из этой работы: программы по трём предметам, граф знаний, интерактивные инструменты и поддержка между занятиями.",
+    "Физик по первому образованию, инженер машинного обучения по второму. Сейчас учусь в аспирантуре, экономика.",
+    "Строю подготовку так же, как строят сложные системы: от диагностики начального состояния и исследования проблемы до разработки полного маршрута решения и достижения результата.",
+    "Hopes and Dreams являет собой место, где 3 технических предмета объединяются в единую, стройную систему, которая позволяет не только подготовиться к экзаменам, но и сформировать целостное техническое мышление: понимать закономерности, строить модели и переносить методы из одной области в другую.",
   ],
   facts: [
     "Бакалавриат, физика — УрФУ, 2024",
     "Магистратура с отличием, информатика и вычислительная техника — УрФУ, 2026",
-    "Научная деятельность и преподавание",
+    "Научная деятельность и преподавание (аспирантура)",
   ],
-  photos: 3,
+  // in the order the author chose: lecture, lobby, podium; `pos` keeps the face inside the portrait crop
+  photos: [
+    { src: "author/photo-1.webp", alt: "Сергей Беззубин объясняет задачу о движении тела, брошенного под углом", pos: "40% 30%" },
+    { src: "author/photo-2.webp", alt: "Сергей Беззубин в лобби университета", pos: "40% 30%" },
+    { src: "author/photo-3.webp", alt: "Сергей Беззубин выступает с докладом", pos: "60% 30%" },
+  ],
   diplomas: [
     { src: "author/diploma-bachelor.webp", title: "Диплом бакалавра", note: "Физика · УрФУ · 2024" },
     { src: "author/diploma-master.webp", title: "Диплом магистра с отличием", note: "Информатика и вычислительная техника · УрФУ · 2026" },
   ],
   publications: [
-    { title: "[Название статьи]", venue: "[журнал или сборник, год]", href: "" },
-    { title: "[Название публикации]", venue: "[конференция, год]", href: "" },
-    { title: "[Научная работа или доклад]", venue: "[где опубликовано]", href: "" },
+    {
+      title: "Predicting parameters of a model cuprate superconductor using machine learning",
+      topic: "Машинное обучение (U-Net) восстанавливает параметры модели купратного высокотемпературного сверхпроводника по его фазовой диаграмме",
+      venue: "Computational Materials Science, т. 268, 114621 · Elsevier, 2026 · соавтор",
+      href: "https://doi.org/10.1016/j.commatsci.2026.114621",
+    },
   ],
 };
 
@@ -347,12 +402,12 @@ export const messageTemplates = [
 
 // Scroll journey through the megastructure. `progress` = construction_progress shown in that scene.
 export const journey = [
-  { id: "hero", index: "01", title: "Возможность", progress: 0.35 },
+  { id: "hero", index: "01", title: "Возможность", progress: 0.42 },
   { id: "approach", index: "02", title: "Модуль среды", progress: 0.45 },
   { id: "evidence", index: "03", title: "Доказательства", progress: 0.5 },
   { id: "stories", index: "04", title: "Истории", progress: 0.55 },
   { id: "work", index: "05", title: "Работа", progress: 0.62 },
-  { id: "knowledge", index: "06", title: "Созвездие знаний", progress: 0.72 },
+  { id: "knowledge", index: "06", title: "Карта знаний", progress: 0.72 },
   { id: "subjects", index: "07", title: "Предметы", progress: 0.8 },
   { id: "human", index: "08", title: "Человек", progress: 0.88 },
   { id: "formats", index: "09", title: "Форматы", progress: 0.95 },

@@ -134,7 +134,7 @@
   font-size: 0.88rem;
 }
 
-.platform-note span { grid-row: span 2; color: var(--cyan-hud); }
+.platform-note .node-mark { grid-row: span 2; margin-top: 0.45em; }
 .platform-note b { color: var(--text-strong); font-weight: 600; }
 
 /* ---------------------------------------------------------------- 10 Telegram templates */
@@ -269,23 +269,7 @@
   .decision-ui .contact-line { grid-template-columns: 1fr; }
 }
 
-/* ---------------------------------------------------------------- 06 constellation around the shell */
-.constellation__shell {
-  fill: none;
-  stroke: rgba(125, 207, 255, 0.75);
-  stroke-width: 1.5;
-  stroke-dasharray: 1;
-  stroke-dashoffset: var(--draw, 1);
-  vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 6px rgba(125, 207, 255, 0.6));
-}
-.constellation__shell--outer { stroke: rgba(125, 207, 255, 0.22); stroke-dasharray: 3 7; stroke-dashoffset: 0; filter: none; opacity: calc(1 - var(--draw, 1)); }
-.constellation__centre rect { fill: rgba(4, 5, 11, 0.72); stroke: rgba(125, 207, 255, 0.6); stroke-width: 1; vector-effect: non-scaling-stroke; }
-.constellation__centre text { fill: var(--text-strong); font-family: var(--serif); font-size: 24px; }
-.knowledge { margin-left: auto; max-width: 23rem; }
 .still__shade--light { background: linear-gradient(270deg, rgba(4, 5, 11, 0.9) 0%, rgba(4, 5, 11, 0.45) 30%, rgba(4, 5, 11, 0) 50%); }
 
 /* ---------------------------------------------------------------- 10: two templates side by side */
 .templates ul { grid-template-columns: 1fr 1fr; }
-.knowledge { max-width: 27rem; }
-.knowledge .headline { font-size: clamp(2rem, 2.8vw, 3.1rem); }

@@ -1,31 +1,148 @@
 ---
-import { quotes, workSteps } from "../data/content";
+import Icon from "./Icon.astro";
+import { quotes, controlLoop, controlEvents } from "../data/content";
+
+// The control loop: a tilted orbit across the service sector, in frame space of the work flight's last frame.
+const { centre: c, rx, ry, tilt } = controlLoop;
+const rad = (d: number) => (d * Math.PI) / 180;
+const T = rad(tilt);
+const START = -150;
+const at = (deg: number, grow = 0) => {
+  const a = rad(deg);
+  const x0 = (rx + grow) * Math.cos(a);
+  const y0 = (ry + grow) * Math.sin(a);
+  return { x: c.x + x0 * Math.cos(T) - y0 * Math.sin(T), y: c.y + x0 * Math.sin(T) + y0 * Math.cos(T) };
+};
+const pt = (p: { x: number; y: number }) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+// one lap = three 120° arcs (half-ellipse arcs are ambiguous); `laps` lets the trail run past the start without wrapping maths
+const orbit = (laps: number, grow = 0) => {
+  let d = `M${pt(at(START, grow))}`;
+  for (let i = 1; i <= laps * 3; i++) d += ` A${rx + grow},${ry + grow} ${tilt} 0 1 ${pt(at(START + i * 120, grow))}`;
+  return d;
+};
+const stages = controlLoop.stages.map((s, i) => {
+  const deg = START + i * 72;
+  const p = at(deg);
+  const o = at(deg, 58);
+  // the stages at the far ends keep their captions inside the loop, under the node: clear of the frame edge and the quote
+  if (o.x > 1600) return { ...s, i, p, tag: { x: p.x - 4, y: p.y + 58, side: "end" } };
+  if (o.x < 1000) return { ...s, i, p, tag: { x: p.x + 4, y: p.y + 58, side: "start" } };
+  const side = o.x < c.x - 60 ? "end" : o.x > c.x + 60 ? "start" : "middle";
+  return { ...s, i, p, tag: { x: o.x, y: o.y + (o.y < c.y ? -6 : 18), side } };
+});
+// small ticks along the outer track: the structure's service ring read as an instrument
+const ticks = Array.from({ length: 60 }, (_, i) => {
+  const deg = START + i * 6;
+  return { a: at(deg, 22), b: at(deg, i % 5 === 0 ? 34 : 28), major: i % 5 === 0 };
+});
+// flow direction: a chevron halfway between neighbouring stages, turned along the orbit
+const chevrons = controlLoop.stages.map((_, i) => {
+  const deg = START + i * 72 + 36;
+  const a = at(deg);
+  const b = at(deg + 1);
+  return { ...a, rot: (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI };
+});
+const stageName = (i: number) => controlLoop.stages[i].label;
 ---
 
-<!-- Scene 05: the assembly zone. Construction through repeated work (Edison). -->
+<!-- Scene 05: the assembly zone. The result is built in cycles: measure, choose the next step, check, correct. -->
 <section class="track track--still" id="work" data-track="work" data-still data-scene-index="4">
   <div class="track__stage still" data-still-stage>
     <div class="still__shade" aria-hidden="true"></div>
 
+    <svg class="loop" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" aria-hidden="true" data-loop>
+      <defs>
+        <radialGradient id="loop-dim" cx="50%" cy="50%" r="50%">
+          <stop offset="0" stop-color="#04050b" stop-opacity="0.78" />
+          <stop offset="0.62" stop-color="#04050b" stop-opacity="0.5" />
+          <stop offset="1" stop-color="#04050b" stop-opacity="0" />
+        </radialGradient>
+        <radialGradient id="loop-glow">
+          <stop offset="0" stop-color="#bfe8ff" stop-opacity="0.9" />
+          <stop offset="0.35" stop-color="#6fc8ff" stop-opacity="0.35" />
+          <stop offset="1" stop-color="#6fc8ff" stop-opacity="0" />
+        </radialGradient>
+        <radialGradient id="loop-glow-warm">
+          <stop offset="0" stop-color="#ffe0bd" stop-opacity="0.9" />
+          <stop offset="0.35" stop-color="#ffb36b" stop-opacity="0.35" />
+          <stop offset="1" stop-color="#ffb36b" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+
+      <!-- dims the sun-lit panels behind the instrument so it stays legible -->
+      <ellipse class="loop__dim" cx={c.x} cy={c.y} rx={rx + 260} ry={ry + 230} transform={`rotate(${tilt} ${c.x} ${c.y})`} fill="url(#loop-dim)" />
+
+      <g class="loop__ticks">
+        {ticks.map((t) => <line class:list={{ "is-major": t.major }} x1={t.a.x} y1={t.a.y} x2={t.b.x} y2={t.b.y} />)}
+      </g>
+      <path class="loop__track" d={orbit(1)} pathLength="1" data-loop-track />
+      <path class="loop__track loop__track--ghost" d={orbit(1, -16)} />
+      <!-- the lit segment behind the packet; two laps so it can run past the start -->
+      <path class="loop__trail" d={orbit(2)} pathLength="2" data-loop-trail />
+      {chevrons.map((v) => <path class="loop__chevron" d="M-6,-7 L3,0 L-6,7" transform={`translate(${v.x.toFixed(1)} ${v.y.toFixed(1)}) rotate(${v.rot.toFixed(1)})`} />)}
+      <path class="loop__orbit" d={orbit(2)} data-loop-orbit />
+
+      {stages.map((s) => (
+        <g class="loop__stage" data-loop-stage={s.i} style={`--i:${s.i}`}>
+          <circle class="loop__flare" cx={s.p.x} cy={s.p.y} r="70" fill="url(#loop-glow)" />
+          <circle class="loop__flare loop__flare--warm" cx={s.p.x} cy={s.p.y} r="70" fill="url(#loop-glow-warm)" />
+          <path class="loop__brackets" d={`M${s.p.x - 22},${s.p.y - 12} v-10 h10 M${s.p.x + 12},${s.p.y - 22} h10 v10 M${s.p.x + 22},${s.p.y + 12} v10 h-10 M${s.p.x - 12},${s.p.y + 22} h-10 v-10`} />
+          <circle class="loop__ring" cx={s.p.x} cy={s.p.y} r="13" />
+          <circle class="loop__dot" cx={s.p.x} cy={s.p.y} r="5" />
+          <g class="loop__label" text-anchor={s.tag.side}>
+            <text class="loop__name" x={s.tag.x} y={s.tag.y}><tspan class="loop__n">{s.n} </tspan>{s.label}</text>
+            <text class="loop__verb" x={s.tag.x} y={s.tag.y + 24}>{s.verb}</text>
+          </g>
+        </g>
+      ))}
+
+      <g class="loop__packet" data-loop-packet>
+        <circle r="26" fill="url(#loop-glow)" />
+        <circle class="loop__packet-core" r="5" />
+      </g>
+
+      <g class="loop__readout" text-anchor="middle">
+        <text class="loop__readout-k" x={c.x} y={c.y - 34}>Цикл</text>
+        <text class="loop__readout-n" x={c.x} y={c.y + 22} data-loop-cycle>01</text>
+        <text class="loop__readout-s" x={c.x} y={c.y + 58} data-loop-status>измерение</text>
+      </g>
+    </svg>
+
     <div class="still__content work" data-still-content>
-      <p class="eyebrow"><span>05 / 10</span>Сектор сборки · работа</p>
+      <p class="eyebrow"><span>05 / 10</span>Сектор сборки · контур управления</p>
+      <h2 class="visually-hidden">Контур управления обучением</h2>
       <figure class="work__quote" lang="en">
         <blockquote>“{quotes.work.text}”</blockquote>
         <figcaption>— {quotes.work.author}</figcaption>
       </figure>
       <p class="work__lead">
-        Результат собирается как эта конструкция: не из вдохновения, а из сотен одинаково важных
-        соединений. Поэтому в подготовке важнее всего ритм, а не рывки перед экзаменом.
+        Результат строится итерациями: измерить состояние, выбрать следующий шаг, проверить
+        и&nbsp;скорректировать маршрут.
       </p>
-      <ol class="work__steps">
-        {workSteps.map((s) => (
-          <li data-work-step>
-            <span>{s.n}</span>
-            <b>{s.title}</b>
-            <p>{s.text}</p>
-          </li>
-        ))}
+
+      <!-- phones and reduced motion: the loop as a line instead of the overlay -->
+      <ol class="work__cycle" aria-label="Цикл обучения">
+        {controlLoop.stages.map((s) => <li>{s.label}</li>)}
+        <li class="is-again">следующий цикл</li>
       </ol>
+
+      <div class="loop-log" data-loop-log>
+        <p class="loop-log__title"><span>Журнал реакций</span><span>сигнал → ответ</span></p>
+        <div class="loop-log__window">
+          <ol data-loop-list>
+            {controlEvents.map((e) => (
+              <li data-loop-event>
+                <span class="loop-log__route">Цикл {String(e.cycle).padStart(2, "0")} · {stageName(e.from)} → {stageName(e.to)}</span>
+                <p>
+                  <span class="loop-log__signal">{e.signal}</span>
+                  <Icon name="arrow-right" class="loop-log__arrow" />
+                  <span class="loop-log__response">{e.response}</span>
+                </p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
     </div>
   </div>
 </section>

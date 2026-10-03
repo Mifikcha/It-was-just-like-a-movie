@@ -18,10 +18,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
       <div class="human__left">
         <p class="eyebrow"><span>08 / 10</span>Наблюдательный модуль</p>
         <div class="human__photos">
-          {Array.from({ length: author.photos }, (_, i) => (
-            <div class="photo-slot" aria-label={`Место для фотографии ${i + 1}`}>
-              <span>Фото {i + 1}</span>
-            </div>
+          {author.photos.map((p) => (
+            <button type="button" class="photo-slot" data-zoom={`${base}/${p.src}`} aria-label={`Увеличить: ${p.alt}`}>
+              <img src={`${base}/${p.src}`} alt={p.alt} loading="lazy" decoding="async" style={`object-position: ${p.pos}`} />
+            </button>
           ))}
         </div>
         <h2 class="headline human__name">{author.name}</h2>
@@ -47,6 +47,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
           {author.publications.map((p) => (
             <li>
               {p.href ? <a href={p.href} target="_blank" rel="noreferrer">{p.title}</a> : <span>{p.title}</span>}
+              <p class="human__paper-topic">{p.topic}</p>
               <small>{p.venue}</small>
             </li>
           ))}

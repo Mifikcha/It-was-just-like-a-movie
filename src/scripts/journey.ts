@@ -1,6 +1,7 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SequenceStage } from "./sequence";
+import { controlCycles, controlEvents } from "../data/content";
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
@@ -25,12 +26,9 @@ const stage = new SequenceStage(canvas, canvas.dataset.base ?? "", {
 stage.setFocus(window.innerWidth < 760 ? 0.66 : 0.5);
 
 // ---------------------------------------------------------------- shared UI state
-const readouts = $$("[data-construction-readout]");
 const rail = $$("[data-rail-dot]");
 
 const setConstruction = (value: number) => {
-  const pct = `${Math.round(value * 100)}%`;
-  readouts.forEach((el) => (el.textContent = pct));
   document.documentElement.style.setProperty("--construction", value.toFixed(3));
 };
 
@@ -194,7 +192,10 @@ $$("[data-template]").forEach((button) =>
 // ---------------------------------------------------------------- subjects tabs
 let subjectManual = false;
 function setSubject(id: string) {
-  $$("[data-subject-tab]").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.subjectTab === id)));
+  $$("[data-subject-tab]").forEach((t) => {
+    t.setAttribute("aria-selected", String(t.dataset.subjectTab === id));
+    t.tabIndex = t.dataset.subjectTab === id ? 0 : -1;
+  });
   $$("[data-subject-panel]").forEach((t) => t.toggleAttribute("data-active", t.dataset.subjectPanel === id));
 }
 setSubject("physics");
@@ -204,6 +205,135 @@ $$("[data-subject-tab]").forEach((t) =>
     setSubject(t.dataset.subjectTab!);
   }),
 );
+$("[data-subject-tab]")?.parentElement?.addEventListener("keydown", (e) => {
+  const tabs = $$("[data-subject-tab]");
+  const i = tabs.indexOf(document.activeElement as HTMLElement);
+  const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+  if (i < 0 || !step) return;
+  e.preventDefault();
+  const next = tabs[(i + step + tabs.length) % tabs.length];
+  subjectManual = true;
+  setSubject(next.dataset.subjectTab!);
+  next.focus();
+});
+
+// ---------------------------------------------------------------- scene 06: one map, one student's path
+// The map is already there; scrolling walks the path through it, then names only three points.
+function setMap(p: number, svg: SVGElement) {
+  const set = (k: string, v: number) => svg.style.setProperty(k, v.toFixed(3));
+  set("--draw", 1 - range(p, 0.34, 0.48));
+  set("--sky", range(p, 0.36, 0.5));
+  set("--route", ease(range(p, 0.46, 0.66)));
+  const lit = { weak: range(p, 0.6, 0.66), focus: range(p, 0.66, 0.72), next: range(p, 0.72, 0.78) };
+  set("--weak", lit.weak);
+  set("--focus", lit.focus);
+  set("--next", lit.next);
+  $$("[data-lit-line]").forEach((l) => l.style.setProperty("--o", lit[l.dataset.litLine as keyof typeof lit].toFixed(3)));
+}
+
+// ---------------------------------------------------------------- scene 05: the control loop
+// The packet runs seven laps; one lap is one cycle and stage i sits at i / 5 of a lap.
+// Scroll sets a target and the packet eases toward it every frame, so the loop glides instead of stepping.
+const STAGES = 5;
+const LOOP_DRAW = [0.33, 0.42];
+const LAPS_FROM = 0.42;
+const LAPS_TO = 0.95;
+const TAIL = 0.14;
+const loopMoments = controlEvents.map((e) => {
+  const signal = e.cycle - 1 + e.from / STAGES;
+  let answer = e.cycle - 1 + e.to / STAGES;
+  if (answer <= signal) answer += 1;
+  return { signal, answer };
+});
+const loopUi = (() => {
+  const svg = $<SVGSVGElement>("[data-loop]");
+  if (!svg) return null;
+  const orbit = svg.querySelector<SVGPathElement>("[data-loop-orbit]")!;
+  return {
+    svg,
+    orbit,
+    lap: orbit.getTotalLength() / 2,
+    trail: svg.querySelector<SVGPathElement>("[data-loop-trail]")!,
+    packet: svg.querySelector<SVGGElement>("[data-loop-packet]")!,
+    cycle: svg.querySelector<SVGTextElement>("[data-loop-cycle]")!,
+    status: svg.querySelector<SVGTextElement>("[data-loop-status]")!,
+    stages: Array.from(svg.querySelectorAll<SVGGElement>("[data-loop-stage]")),
+    log: $("[data-loop-log]"),
+    list: $("[data-loop-list]"),
+    events: $$("[data-loop-event]"),
+  };
+})();
+let loopTarget = 0;
+let loopPos = 0;
+let loopFrame = 0;
+let logShift = -1;
+
+function renderLoop(pos: number) {
+  if (!loopUi) return;
+  const { orbit, lap, trail, packet, cycle, status, stages, log, list, events } = loopUi;
+  const f = pos % 1;
+  const pt = orbit.getPointAtLength(f * lap);
+  packet.setAttribute("transform", `translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)})`);
+  const len = Math.min(TAIL, pos);
+  const start = f >= len ? f - len : f - len + 1;
+  trail.style.strokeDasharray = `${len.toFixed(4)} 4`;
+  trail.style.strokeDashoffset = (-start).toFixed(4);
+
+  // the event whose signal was measured most recently (if its answer is still fresh)
+  let k = -1;
+  loopMoments.forEach((m, i) => pos >= m.signal - 0.02 && (k = i));
+  const m = k >= 0 ? loopMoments[k] : null;
+  const answered = !!m && pos >= m.answer;
+  const live = !!m && pos < m.answer + 0.3;
+  stages.forEach((s, i) => {
+    const d = Math.abs((((pos - i / STAGES + 0.5) % 1) + 1) % 1 - 0.5);
+    s.style.setProperty("--hit", (1 - clamp(d / 0.06)).toFixed(3));
+    s.toggleAttribute("data-signal", live && !answered && i === controlEvents[k].from);
+    s.toggleAttribute("data-response", live && answered && i === controlEvents[k].to);
+  });
+  const n = String(Math.min(7, Math.floor(pos + 1e-4) + 1)).padStart(2, "0");
+  if (cycle.textContent !== n) cycle.textContent = n;
+  status.textContent = !live ? "измерение" : answered ? "ответ применён" : "сигнал получен";
+
+  events.forEach((e, i) => {
+    const mm = loopMoments[i];
+    e.dataset.state = pos >= mm.answer ? "done" : pos >= mm.signal - 0.02 ? "active" : "pending";
+    e.toggleAttribute("data-current", i === k);
+  });
+  // the journal rolls: the newest entry stays in view, older ones leave at the top
+  if (log?.hasAttribute("data-live") && list) {
+    const shift = Math.max(0, k - 3);
+    if (shift !== logShift) {
+      logShift = shift;
+      list.style.transform = `translate3d(0, ${-(events[shift]?.offsetTop ?? 0)}px, 0)`;
+    }
+  }
+}
+
+const tickLoop = () => {
+  loopPos += (loopTarget - loopPos) * 0.09;
+  if (Math.abs(loopTarget - loopPos) < 0.0005) loopPos = loopTarget;
+  renderLoop(loopPos);
+  loopFrame = loopPos === loopTarget ? 0 : requestAnimationFrame(tickLoop);
+};
+
+function setLoop(p: number, instant = false) {
+  if (!loopUi) return;
+  const draw = range(p, LOOP_DRAW[0], LOOP_DRAW[1]);
+  loopUi.svg.style.setProperty("--draw", (1 - draw).toFixed(3));
+  loopUi.stages.forEach((s, i) => s.style.setProperty("--o", range(draw, i / STAGES, i / STAGES + 0.35).toFixed(3)));
+  loopUi.packet.style.opacity = String(draw);
+  loopUi.trail.style.opacity = String(range(p, LAPS_FROM - 0.01, LAPS_FROM + 0.01));
+  // a gentle start and stop; constant speed in between
+  const t = range(p, LAPS_FROM, LAPS_TO);
+  const a = 0.08;
+  const eased = t < a ? (t * t) / (2 * a * (1 - a)) : t > 1 - a ? 1 - ((1 - t) * (1 - t)) / (2 * a * (1 - a)) : (t - a / 2) / (1 - a);
+  loopTarget = Math.min(controlCycles - 0.001, eased * controlCycles);
+  if (instant) {
+    loopPos = loopTarget;
+    renderLoop(loopPos);
+  } else if (!loopFrame) loopFrame = requestAnimationFrame(tickLoop);
+}
 
 // ---------------------------------------------------------------- scroll journey
 // One continuous camera: every scene starts with a rendered flight from the previous scene's camera
@@ -246,9 +376,11 @@ const setupJourney = () => {
   gsap.registerPlugin(ScrollTrigger);
   stage.preload("approach");
   stage.show("approach", 0, true);
-  setConstruction(0.35);
+  setConstruction(0.42);
   setScene(0);
   const compact = window.matchMedia("(max-width: 900px)").matches;
+  // desktop: the reaction journal becomes a rolling window over the loop; phones show every entry
+  if (!compact) $("[data-loop-log]")?.setAttribute("data-live", "");
 
   ScrollTrigger.create({
     trigger: "[data-track='approach']",
@@ -261,12 +393,26 @@ const setupJourney = () => {
       const travel = ease(range(p, 0.08, 0.8));
       stage.show("approach", travel);
       stage.setFade(0);
-      setConstruction(0.35 + 0.1 * travel);
+      setConstruction(0.42 + 0.03 * travel);
       fadeIn(heroUi, 1 - range(p, 0.02, 0.1), -40);
       fadeIn(displayModule, range(p, 0.8, 0.88) * (1 - range(p, 0.95, 0.99)));
       setScene(p < 0.45 ? 0 : 1);
     },
   });
+
+  // in-page links land on the settled screen of a scene, not at the start of its flight
+  const READY: Record<string, number> = { approach: 0.9, blueprint: 0.24, human: 0.56, formats: 0.66 };
+  if (!compact) $$<HTMLAnchorElement>('a[href^="#"]').forEach((a) =>
+    a.addEventListener("click", (e) => {
+      const track = document.getElementById(a.hash.slice(1))?.closest<HTMLElement>("[data-track]");
+      const at = track ? READY[track.dataset.track!] : undefined;
+      if (!track || at === undefined) return;
+      e.preventDefault();
+      const top = track.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top: top + at * (track.offsetHeight - window.innerHeight), behavior: "instant" });
+      history.replaceState(null, "", a.hash);
+    }),
+  );
 
   // phones: scenes 03-09 are laid out in normal flow (see scenes.css); the canvas shows each scene's end frame
   if (compact) {
@@ -344,17 +490,12 @@ const setupJourney = () => {
       const counter = el.querySelector("[data-story-index]");
       if (counter) counter.textContent = String(idx + 1);
     },
-    work: (p) => {
-      $$("[data-work-step]").forEach((s, i) => s.style.setProperty("--o", range(p, 0.42 + i * 0.08, 0.5 + i * 0.08).toFixed(3)));
-    },
+    work: (p) => setLoop(p),
     knowledge: (p, el) => {
-      const svg = el.querySelector<SVGElement>("[data-constellation]");
+      const svg = el.querySelector<SVGElement>("[data-kmap]");
       if (!svg) return;
       svg.style.opacity = String(range(p, 0.3, 0.36) * (1 - range(p, 0.95, 1)));
-      svg.style.setProperty("--draw", (1 - range(p, 0.34, 0.66)).toFixed(3));
-      svg.style.setProperty("--tether", range(p, 0.34, 0.42).toFixed(3));
-      el.style.setProperty("--loop", range(p, 0.7, 0.8).toFixed(3));
-      svg.style.setProperty("--loop", range(p, 0.7, 0.8).toFixed(3));
+      setMap(p, svg);
     },
     subjects: (p) => {
       if (subjectManual) return;
@@ -443,7 +584,7 @@ const setupStill = () => {
   document.documentElement.classList.add("is-still");
   stage.preload("approach");
   stage.show("approach", 0, true);
-  setConstruction(0.35);
+  setConstruction(0.42);
   const io = new IntersectionObserver(
     (entries) =>
       entries.forEach((e) => {
@@ -452,7 +593,7 @@ const setupStill = () => {
         if (name === "approach") {
           stage.show("approach", 0, true);
           stage.setFade(0);
-          setConstruction(0.35);
+          setConstruction(0.42);
         } else {
           stage.preload(seqOf(name));
           stage.show(seqOf(name), 1, true);
@@ -464,6 +605,9 @@ const setupStill = () => {
     { threshold: 0.3 },
   );
   $$("[data-track]").forEach((t) => io.observe(t));
+  setLoop(1, true);
+  const kmap = $<SVGElement>("[data-kmap]");
+  if (kmap) setMap(1, kmap);
 };
 
 setupHeader();

@@ -5,4 +5,5 @@ export default defineConfig({
   base: "/It-was-just-like-a-movie",
   output: "static",
   build: { inlineStylesheets: "auto" },
+  devToolbar: { enabled: false },
 });

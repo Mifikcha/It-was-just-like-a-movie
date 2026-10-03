@@ -1,4 +1,5 @@
 ---
+import Icon from "./Icon.astro";
 import { reviewShots, trajectories } from "../data/content";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -25,6 +26,14 @@ const tints: Record<string, string> = {
 const left = callouts.filter((c) => c.side === "left").sort((a, b) => a.y - b.y);
 const right = callouts.filter((c) => c.side === "right").sort((a, b) => a.y - b.y);
 const rowY = (i: number, n: number) => 12 + (i * 62) / Math.max(1, n - 1);
+// Exposed view: radius of each layer in the exploded slab (1600×1000, star centre 800 / 500), measured on the render.
+const layers = [
+  { n: "С1", r: 425 },
+  { n: "С2", r: 372 },
+  { n: "С3", r: 243 },
+  { n: "С4", r: 125 },
+  { n: "★", r: 77 },
+];
 ---
 
 <!-- Scene 03: engineering layer. Beauty cutaway → blueprint section → subsystem highlights + archive of trajectories → exposed view. -->
@@ -76,6 +85,17 @@ const rowY = (i: number, n: number) => 12 + (i * 62) / Math.max(1, n - 1);
         </p>
       ))}
 
+      <svg class="drawing__marks" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
+        <line x1={800 - layers[0].r - 40} y1="500" x2={800 - layers[layers.length - 1].r} y2="500" />
+        {layers.map((l) => (
+          <g>
+            <line x1={800 - l.r} y1="486" x2={800 - l.r} y2="514" />
+            <circle cx={800 - l.r} cy="500" r="4" />
+            <text x={800 - l.r} y="474" text-anchor="middle">{l.n}</text>
+          </g>
+        ))}
+      </svg>
+
       <ol class="exposed-legend" aria-label="Слои в разнесённом виде">
         <li data-n="С1">Внешняя оболочка</li>
         <li data-n="С2">Вторичный каркас</li>
@@ -104,7 +124,7 @@ const rowY = (i: number, n: number) => 12 + (i * 62) / Math.max(1, n - 1);
                   <span>{t.exam} · {t.subjects}</span>
                 </p>
                 <p class="case__start">{t.brief}</p>
-                <p class="case__highlight"><i aria-hidden="true">→</i> {t.highlight}</p>
+                <p class="case__highlight"><Icon name="arrow-right" class="case__arrow" /> {t.highlight}</p>
               </li>
             ))}
           </ol>
@@ -123,9 +143,9 @@ const rowY = (i: number, n: number) => 12 + (i * 62) / Math.max(1, n - 1);
           ))}
         </div>
         <div class="reviews__nav">
-          <button type="button" data-review-prev aria-label="Предыдущий отзыв">←</button>
+          <button type="button" data-review-prev aria-label="Предыдущий отзыв"><Icon name="arrow-left" /></button>
           <small>Имена скрыты. Нажмите, чтобы увеличить.</small>
-          <button type="button" data-review-next aria-label="Следующий отзыв">→</button>
+          <button type="button" data-review-next aria-label="Следующий отзыв"><Icon name="arrow-right" /></button>
         </div>
       </div>
     </aside>

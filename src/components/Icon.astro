@@ -1,0 +1,16 @@
+---
+// One drawn icon set (18px grid, 1.4 stroke) instead of unicode arrows: same weight everywhere.
+interface Props {
+  name: "arrow-ne" | "arrow-left" | "arrow-right" | "close";
+  class?: string;
+}
+const { name, class: cls } = Astro.props;
+const paths: Record<Props["name"], string> = {
+  "arrow-ne": "M4 14 14 4M6 4h8v8",
+  "arrow-left": "M15 9H3m5-5L3 9l5 5",
+  "arrow-right": "M3 9h12m-5-5 5 5-5 5",
+  close: "M4 4l10 10M14 4 4 14",
+};
+---
+
+<svg class:list={["icon", cls]} viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path d={paths[name]} /></svg>

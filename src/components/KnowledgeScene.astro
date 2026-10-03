@@ -1,72 +1,119 @@
 ---
-import { constellation } from "../data/content";
-const c = constellation.centreXY;
-const R = constellation.shellRadius;
-const byId = Object.fromEntries(constellation.nodes.map((n) => [n.id, n]));
-// links are gentle orbital arcs; the ones from the centre start on the shell contour
-const arc = (a: { x: number; y: number }, b: { x: number; y: number }, bend = 0.16) => {
+import { knowledgeMap, studentRoute } from "../data/content";
+
+// A large, mostly silent map of knowledge around the sphere, and one student's path through it.
+// Frame space of the knowledge flight's last frame. Only what matters to the student right now is named.
+const c = knowledgeMap.centreXY;
+const R = knowledgeMap.shellRadius;
+const byId = Object.fromEntries(knowledgeMap.nodes.map((n) => [n.id, n]));
+type P = { x: number; y: number };
+
+// The silent part of the map: deterministic scatter in a ring around the sphere, kept left of the text column
+let seed = 7;
+const rnd = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+const stars: P[] = [];
+for (let i = 0; stars.length < 96 && i < 4000; i++) {
+  const a = rnd() * Math.PI * 2;
+  const r = R + 50 + Math.pow(rnd(), 0.8) * 360;
+  const p = { x: Math.round(c.x + Math.cos(a) * r * 1.22), y: Math.round(c.y + Math.sin(a) * r) };
+  if (p.x < 150 || p.x > 1330 || p.y < 130 || p.y > 990) continue;
+  if ([...stars, ...knowledgeMap.nodes].some((q) => Math.hypot(q.x - p.x, q.y - p.y) < 46)) continue;
+  stars.push(p);
+}
+const all: P[] = [...knowledgeMap.nodes, ...stars];
+// each point links to its two nearest neighbours: a constellation, not everything-to-everything
+const seen = new Set<string>();
+const links: [P, P][] = [];
+all.forEach((p, i) => {
+  all
+    .map((q, j) => ({ j, d: Math.hypot(q.x - p.x, q.y - p.y) }))
+    .filter((o) => o.j !== i)
+    .sort((a, b) => a.d - b.d)
+    .slice(0, 2)
+    .forEach(({ j }) => {
+      const key = [i, j].sort((a, b) => a - b).join("-");
+      if (!seen.has(key)) {
+        seen.add(key);
+        links.push([p, all[j]]);
+      }
+    });
+});
+
+const ctrl = (a: P, b: P, bend: number) => {
   const mx = (a.x + b.x) / 2;
   const my = (a.y + b.y) / 2;
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  return `M${a.x},${a.y} Q${mx - dy * bend},${my + dx * bend} ${b.x},${b.y}`;
+  return `${(mx - (b.y - a.y) * bend).toFixed(1)},${(my + (b.x - a.x) * bend).toFixed(1)}`;
 };
-const fromShell = (n: { x: number; y: number }) => {
+const fromShell = (n: P) => {
   const dx = n.x - c.x;
   const dy = n.y - c.y;
   const l = Math.hypot(dx, dy);
-  return { x: c.x + (dx / l) * (R + 6), y: c.y + (dy / l) * (R + 6) };
+  return { x: +(c.x + (dx / l) * (R + 8)).toFixed(1), y: +(c.y + (dy / l) * (R + 8)).toFixed(1) };
 };
-const label = (n: { x: number; y: number; anchor: string }) =>
-  n.anchor === "l" ? { x: n.x - 16, y: n.y + 6, a: "end" }
-  : n.anchor === "r" ? { x: n.x + 16, y: n.y + 6, a: "start" }
-  : n.anchor === "t" ? { x: n.x, y: n.y - 18, a: "middle" }
-  : { x: n.x, y: n.y + 32, a: "middle" };
+const pts = [fromShell(byId[studentRoute.route[0]]), ...studentRoute.route.map((id) => byId[id])];
+const routeD = pts.slice(1).reduce((d, p, i) => `${d} Q${ctrl(pts[i], p, 0.08)} ${p.x},${p.y}`, `M${pts[0].x},${pts[0].y}`);
+const last = byId[studentRoute.route[studentRoute.route.length - 1]];
+const nextN = byId[studentRoute.next];
+const nextD = `M${last.x},${last.y} Q${ctrl(last, nextN, 0.1)} ${nextN.x},${nextN.y}`;
+
+const lit = studentRoute.lines.map((l) => {
+  const n = byId[studentRoute[l.key as "focus" | "weak" | "next"]];
+  const side = n.x > c.x ? "start" : "end";
+  return { ...l, n, label: { x: n.x + (side === "start" ? 20 : -20), y: n.y + 6, side } };
+});
+const walked = studentRoute.route.filter((id) => id !== studentRoute.focus && id !== studentRoute.weak).map((id) => byId[id]);
 ---
 
-<!-- Scene 06: the knowledge system as a constellation around the structure. -->
+<!-- Scene 06: one large map of knowledge; one student's path through it. -->
 <section class="track track--still" id="knowledge" data-track="knowledge" data-still data-scene-index="5">
   <div class="track__stage still" data-still-stage>
     <div class="still__shade still__shade--light" aria-hidden="true"></div>
 
-    <svg class="constellation" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" aria-hidden="true" data-constellation>
-      <circle class="constellation__shell" cx={c.x} cy={c.y} r={R} pathLength="1" />
-      <circle class="constellation__shell constellation__shell--outer" cx={c.x} cy={c.y} r={R + 14} />
-      {constellation.nodes.map((n) => (
-        <path class:list={["constellation__link", `is-${n.group}`]} d={arc(fromShell(n), n, 0.1)} pathLength="1" data-link />
-      ))}
-      {constellation.links.map(([a, b]) => (
-        <path class:list={["constellation__link", `is-${byId[a].group}`, { "is-loop": byId[a].group === "feedback" || byId[b].group === "feedback" }]} d={arc(byId[a], byId[b])} pathLength="1" data-link />
-      ))}
-      <g class="constellation__centre">
-        <rect x={c.x - 128} y={c.y - 22} width="256" height="44" rx="22" />
-        <text x={c.x} y={c.y + 9} text-anchor="middle">{constellation.centre}</text>
+    <svg class="kmap" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" aria-hidden="true" data-kmap>
+      <defs>
+        <!-- the path fades in and out along its length instead of reading as one bright track -->
+        <linearGradient id="kmap-route-fade" gradientUnits="userSpaceOnUse" x1={pts[0].x} y1={pts[0].y} x2={last.x} y2={last.y}>
+          <stop offset="0" stop-color="#a9c8e6" stop-opacity="0.15" />
+          <stop offset="0.35" stop-color="#a9c8e6" stop-opacity="0.55" />
+          <stop offset="0.6" stop-color="#a9c8e6" stop-opacity="0.2" />
+          <stop offset="1" stop-color="#d7e6f5" stop-opacity="0.85" />
+        </linearGradient>
+      </defs>
+
+      <circle class="kmap__shell" cx={c.x} cy={c.y} r={R} pathLength="1" />
+
+      <g class="kmap__sky">
+        {links.map(([a, b]) => <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} />)}
+        {all.map((p) => <circle cx={p.x} cy={p.y} r="2.2" />)}
       </g>
-      {constellation.nodes.map((n) => {
-        const t = label(n);
-        return (
-          <g class:list={["constellation__node", `is-${n.group}`]} data-node={n.group}>
-            <circle cx={n.x} cy={n.y} r={n.group === "subject" ? 6 : 4.5} />
-            <text x={t.x} y={t.y} text-anchor={t.a}>{n.label}</text>
-          </g>
-        );
-      })}
+
+      <path class="kmap__route" d={routeD} pathLength="1" stroke="url(#kmap-route-fade)" />
+      {walked.map((n) => <circle class="kmap__walked" cx={n.x} cy={n.y} r="3.2" />)}
+      <path class="kmap__next-leg" d={nextD} />
+
+      {lit.map((l) => (
+        <g class:list={["kmap__lit", `is-${l.key}`]} data-lit={l.key}>
+          <circle class="kmap__ring" cx={l.n.x} cy={l.n.y} r={l.key === "focus" ? 14 : 11} />
+          <circle class="kmap__dot" cx={l.n.x} cy={l.n.y} r={l.key === "focus" ? 5.5 : 4.5} />
+          <text x={l.label.x} y={l.label.y} text-anchor={l.label.side}>{l.n.label}</text>
+        </g>
+      ))}
+
+      <text class="kmap__student" x={c.x} y={c.y + 9} text-anchor="middle">Ученик</text>
     </svg>
 
     <div class="still__content knowledge" data-still-content>
-      <p class="eyebrow"><span>06 / 10</span>Созвездие знаний</p>
-      <h2 class="headline">Не набор тем,<br />а связанная система.</h2>
-      <p class="knowledge__lead">
-        Предметы, практика и решения связаны между собой. В центре — маршрут конкретного ученика.
-      </p>
-      <div class="knowledge__loop" data-knowledge-loop>
-        <p class="knowledge__loop-title">Контур обратной связи</p>
-        <ol>
-          <li>Автоматизированный отчёт после каждого занятия</li>
-          <li>Анализ статистики: где ошибки повторяются</li>
-          <li>Обратная связь ученику и родителю</li>
-        </ol>
-      </div>
+      <p class="eyebrow"><span>06 / 10</span>Карта знаний</p>
+      <h2 class="headline">Общая карта одна.<br />Маршрут — персональный.</h2>
+      <dl class="route-lines">
+        {studentRoute.lines.map((l) => (
+          <div class={`is-${l.key}`} data-lit-line={l.key}>
+            <dt>{l.term}</dt>
+            <dd>{l.value}</dd>
+          </div>
+        ))}
+      </dl>
+      <p class="route-lines__note">Пример маршрута одного ученика.</p>
     </div>
   </div>
 </section>

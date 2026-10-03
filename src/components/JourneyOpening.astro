@@ -1,4 +1,5 @@
 ---
+import Icon from "./Icon.astro";
 import { links, quotes, subjects } from "../data/content";
 ---
 
@@ -25,15 +26,6 @@ import { links, quotes, subjects } from "../data/content";
         </ul>
       </div>
 
-      <div class="hud-target" data-anchor="0.785,0.255" aria-hidden="true">
-        <span class="hud-target__reticle"></span>
-        <span class="hud-target__leader"></span>
-        <p class="hud-target__label">
-          <b>Сектор 04</b>
-          Идёт строительство
-          <em data-construction-readout>35%</em>
-        </p>
-      </div>
 
       <p class="hero-ui__motto" aria-hidden="true">Знания<br />собирают<br />будущее</p>
 
@@ -59,7 +51,7 @@ import { links, quotes, subjects } from "../data/content";
           Программы, граф знаний, интерактивные инструменты и поддержка между занятиями
           работают как одна система.
         </p>
-        <a class="text-link" href={links.hnd} target="_blank" rel="noreferrer">Открыть демо Hopes and Dreams ↗</a>
+        <a class="text-link" href={links.hnd} target="_blank" rel="noreferrer">Открыть демо Hopes and Dreams <Icon name="arrow-ne" /></a>
       </div>
     </div>
   </div>
