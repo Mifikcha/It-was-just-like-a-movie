@@ -206,58 +206,96 @@ export const controlTrace = [
   { stage: "Проверка", kind: "signal", text: "Через 2 недели блок закрыт, сложность повышена." },
 ] as const;
 
-// ---------------------------------------------------------------- scene 06: one knowledge map, personal routes
-// Frame space of the knowledge flight's last frame (1920×1080): the sphere is the student, the map surrounds it.
-export type MapNode = { id: string; label: string; x: number; y: number; kind: "hub" | "topic" | "work"; anchor: "l" | "r" | "t" | "b" };
-export const knowledgeMap = {
-  centreXY: { x: 742, y: 510 },
-  shellRadius: 160,
-  nodes: [
-    { id: "M", label: "Математика", x: 742, y: 262, kind: "hub", anchor: "t" },
-    { id: "P", label: "Физика", x: 470, y: 612, kind: "hub", anchor: "l" },
-    { id: "C", label: "Информатика", x: 1012, y: 612, kind: "hub", anchor: "r" },
-    { id: "m1", label: "Выражения", x: 560, y: 318, kind: "topic", anchor: "l" },
-    { id: "m2", label: "Уравнения", x: 470, y: 222, kind: "topic", anchor: "l" },
-    { id: "m3", label: "Функции и графики", x: 625, y: 168, kind: "topic", anchor: "t" },
-    { id: "m4", label: "Производная", x: 850, y: 168, kind: "topic", anchor: "t" },
-    { id: "m5", label: "Геометрия", x: 1015, y: 222, kind: "topic", anchor: "r" },
-    { id: "m6", label: "Вероятность", x: 935, y: 318, kind: "topic", anchor: "r" },
-    { id: "p1", label: "Кинематика", x: 365, y: 400, kind: "topic", anchor: "l" },
-    { id: "p2", label: "Динамика", x: 305, y: 540, kind: "topic", anchor: "l" },
-    { id: "p3", label: "Законы сохранения", x: 320, y: 690, kind: "topic", anchor: "b" },
-    { id: "p4", label: "Электричество", x: 395, y: 820, kind: "topic", anchor: "l" },
-    { id: "p5", label: "Магнетизм", x: 525, y: 895, kind: "topic", anchor: "b" },
-    { id: "p6", label: "Оптика", x: 660, y: 948, kind: "topic", anchor: "b" },
-    { id: "c1", label: "Системы счисления", x: 1150, y: 418, kind: "topic", anchor: "t" },
-    { id: "c2", label: "Логика", x: 1225, y: 560, kind: "topic", anchor: "r" },
-    { id: "c3", label: "Python", x: 1205, y: 712, kind: "topic", anchor: "r" },
-    { id: "c4", label: "Алгоритмы", x: 1115, y: 840, kind: "topic", anchor: "r" },
-    { id: "c5", label: "Рекурсия и ДП", x: 985, y: 905, kind: "topic", anchor: "b" },
-    { id: "w1", label: "Исследовательский проект", x: 830, y: 958, kind: "work", anchor: "b" },
-  ] as MapNode[],
-  // hub → topic belongs to the subject; cross links are where subjects lean on each other
-  links: [
-    ["M", "m1"], ["M", "m2"], ["M", "m3"], ["M", "m4"], ["M", "m5"], ["M", "m6"],
-    ["P", "p1"], ["P", "p2"], ["P", "p3"], ["P", "p4"], ["P", "p5"], ["P", "p6"],
-    ["C", "c1"], ["C", "c2"], ["C", "c3"], ["C", "c4"], ["C", "c5"],
-    ["m2", "m1"], ["m3", "m2"], ["m4", "m3"], ["m6", "m5"], ["p1", "p2"], ["p2", "p3"], ["p4", "p5"], ["p5", "p6"],
-    ["c1", "c2"], ["c3", "c4"], ["c4", "c5"],
-    ["m4", "p1"], ["m3", "p1"], ["m2", "p2"], ["m1", "c1"], ["m6", "c4"], ["c3", "w1"], ["p3", "w1"], ["c5", "w1"],
-  ] as [string, string][],
-};
+// ---------------------------------------------------------------- scene 06: one knowledge map, one student's route
+// Real data from the Hopes and Dreams repository (github.com/Mifikcha/Acheba):
+// topics and order — programme "Джентельменский набор (11 класс ЕГЭ, до 80 баллов)" and Google Sheets Export/04_Темы.csv;
+// links — wikilinks between the physics theory notes (Физика/_Теория); statuses — topic_progress_status in 00_Настройки.csv.
+// The student is a demonstration: the states below are not a real person's progress.
+// Frame space of the knowledge flight's last frame (1920×1080); the sphere sits at (742, 510).
+export type TopicState = "done" | "current" | "returned" | "next" | "todo";
+export type MapTopic = { id: string; name: string; x: number; y: number; state: TopicState; label?: "s" | "n" | "e" | "w" | "l" | "dim" };
 
-// One example student (not a real one). Only three things are lit on the map: what is studied now,
-// where errors repeat, and what comes next. `route` is the faint path already walked through the map.
-export const studentRoute = {
-  route: ["c1", "c2", "c3", "c4"],
-  focus: "c4",
-  weak: "c2",
-  next: "c5",
-  lines: [
-    { key: "focus", term: "Сейчас", value: "алгоритмы" },
-    { key: "weak", term: "Слабое место", value: "логика" },
-    { key: "next", term: "Дальше", value: "рекурсия и ДП" },
-  ],
+export const physicsMap: MapTopic[] = [
+  // Модуль 2. Механика — closed, the quiet upper-left constellation
+  { id: "MECH-001", name: "Равномерное и равноускоренное движение", x: 260, y: 170, state: "done" },
+  { id: "MECH-002", name: "Законы Ньютона", x: 370, y: 120, state: "done" },
+  { id: "MECH-003", name: "Силы", x: 400, y: 250, state: "done" },
+  { id: "MECH-004", name: "Импульс", x: 500, y: 150, state: "done" },
+  { id: "MECH-005", name: "Энергия", x: 510, y: 300, state: "done" },
+  { id: "MECH-006", name: "Работа", x: 470, y: 410, state: "done" },
+  { id: "MECH-007", name: "Движение по окружности", x: 250, y: 300, state: "done" },
+  { id: "MECH-008", name: "Гравитация", x: 160, y: 230, state: "done" },
+  { id: "MECH-009", name: "Движение под углом к горизонту", x: 180, y: 390, state: "done" },
+  { id: "MECH-010", name: "Статика", x: 330, y: 370, state: "done" },
+  { id: "MECH-PMX", name: "Простые механизмы", x: 270, y: 470, state: "done" },
+  { id: "MECH-011", name: "Механические волны и колебания", x: 420, y: 620, state: "done", label: "dim" },
+  // Модуль 3. МКТ — closed, upper right
+  { id: "MKT-001", name: "Теория МКТ", x: 1080, y: 95, state: "done" },
+  { id: "MKT-002", name: "Газовые процессы", x: 1200, y: 75, state: "done" },
+  { id: "MKT-003", name: "Газовые циклы", x: 1310, y: 120, state: "done" },
+  { id: "MKT-004", name: "Фазовые переходы", x: 1170, y: 205, state: "done" },
+  { id: "MKT-005", name: "Пары", x: 1290, y: 230, state: "done" },
+  // Модуль 4. Электродинамика — where the student is now
+  { id: "EM-001", name: "Электростатика", x: 1060, y: 300, state: "done" },
+  { id: "EM-002", name: "Вещество в электрическом поле", x: 1095, y: 410, state: "done" },
+  { id: "EM-003", name: "Электрический ток", x: 1088, y: 520, state: "done" },
+  { id: "EM-004", name: "Конденсатор", x: 1112, y: 625, state: "returned", label: "l" },
+  { id: "EM-005", name: "Цепи", x: 1075, y: 730, state: "done" },
+  { id: "EM-006", name: "Магнитное поле", x: 960, y: 830, state: "done" },
+  { id: "EM-007", name: "Индукция и движение проводников", x: 815, y: 900, state: "current", label: "s" },
+  { id: "EM-008", name: "Самоиндукция", x: 650, y: 912, state: "next", label: "n" },
+  { id: "EM-009", name: "Колебательный контур", x: 485, y: 860, state: "next", label: "w" },
+  { id: "EM-010", name: "Геометрическая оптика", x: 330, y: 930, state: "todo" },
+  { id: "EM-011", name: "Линзы", x: 220, y: 870, state: "todo" },
+  { id: "EM-012", name: "Волновая оптика", x: 250, y: 740, state: "todo" },
+  // Модуль 5. Кванты — not started
+  { id: "QUANT-001", name: "Квантовая механика", x: 140, y: 520, state: "todo" },
+  { id: "QUANT-002", name: "Фотоэффект", x: 180, y: 630, state: "todo" },
+  { id: "QUANT-003", name: "Ядерные реакции", x: 250, y: 560, state: "todo" },
+];
+
+// Undirected: each pair is a wikilink between the two theory notes.
+export const physicsLinks: [string, string][] = [
+  ["MECH-008", "MECH-007"], ["MECH-008", "MECH-003"], ["MECH-008", "MECH-005"],
+  ["MECH-007", "MECH-001"], ["MECH-007", "MECH-003"], ["MECH-002", "MECH-007"],
+  ["MECH-009", "MECH-001"], ["MECH-009", "MECH-003"], ["MECH-009", "MECH-005"],
+  ["MECH-002", "MECH-001"], ["MECH-002", "MECH-003"], ["MECH-004", "MECH-002"],
+  ["MECH-004", "MECH-003"], ["MECH-004", "MECH-005"], ["MECH-011", "MECH-003"],
+  ["MECH-011", "MECH-005"], ["MECH-PMX", "MECH-010"], ["MECH-006", "MECH-003"],
+  ["MECH-006", "MECH-005"], ["MECH-003", "MECH-010"], ["MECH-010", "MECH-002"],
+  ["MECH-003", "MECH-005"],
+  ["MKT-002", "MKT-003"], ["MKT-002", "MKT-005"], ["MKT-002", "MKT-001"], ["MKT-003", "MKT-005"],
+  ["MKT-003", "MKT-001"], ["MKT-005", "MKT-001"], ["MKT-005", "MKT-004"], ["MKT-001", "MKT-004"],
+  ["EM-002", "EM-004"], ["EM-002", "EM-001"], ["EM-001", "EM-004"], ["EM-001", "EM-003"],
+  ["EM-003", "EM-006"], ["EM-003", "EM-005"], ["EM-004", "EM-009"], ["EM-004", "EM-005"],
+  ["EM-005", "EM-008"], ["EM-006", "EM-007"], ["EM-006", "EM-008"], ["EM-007", "EM-009"],
+  ["EM-007", "EM-008"], ["EM-008", "EM-009"], ["EM-012", "EM-010"], ["EM-012", "EM-011"],
+  ["EM-010", "EM-011"],
+  // across modules: oscillations lean on mechanics, the photoelectric effect on wave optics
+  ["MECH-011", "EM-009"], ["MECH-011", "EM-012"], ["QUANT-002", "EM-012"],
+  ["QUANT-001", "QUANT-002"], ["QUANT-001", "QUANT-003"],
+];
+
+// The trajectory: the programme's own order through module 4.
+export const routeWalked = ["EM-001", "EM-002", "EM-003", "EM-004", "EM-005", "EM-006", "EM-007"];
+export const routeAhead = ["EM-007", "EM-008", "EM-009"];
+
+// The whole programme in order, one mark per topic, for the progress strip.
+export const programmeStrip: { module: string; states: TopicState[] }[] = [
+  { module: "Математический аппарат", states: Array(13).fill("done") },
+  { module: "Механика", states: Array(12).fill("done") },
+  { module: "МКТ", states: Array(5).fill("done") },
+  { module: "Электродинамика", states: ["done", "done", "done", "returned", "done", "done", "current", "next", "next", "todo", "todo", "todo"] },
+  { module: "Кванты", states: Array(3).fill("todo") },
+];
+
+export const routePassport = {
+  route: "ЕГЭ по физике · до 80 баллов",
+  programme: "Джентельменский набор · модуль 4 из 5",
+  start: "Диагностика: механика на уровне первой части, МКТ и электродинамика с нуля.",
+  focus: { topic: "Индукция и движение проводников", meta: "PHYS-EM-007 · урок 2 из 3" },
+  returned: { topic: "Конденсатор", meta: "ошибки повторялись в заданиях 14, 15, 25" },
+  next: ["Самоиндукция", "Колебательный контур"],
 };
 
 // ---------------------------------------------------------------- scene 07: subjects mapped onto the structure

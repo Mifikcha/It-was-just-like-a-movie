@@ -170,101 +170,103 @@
   text-wrap: pretty;
 }
 
-/* ---------------------------------------------------------------- 06 knowledge: one large map, one student's path */
-.kmap { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
+/* ---------------------------------------------------------------- 06 knowledge: the real physics map, one student's route */
+.kmap { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; --returned-c: #e8b98a; }
+.kmap line, .kmap path, .kmap circle { vector-effect: non-scaling-stroke; }
 
-.kmap__shell {
-  fill: none;
-  stroke: rgba(125, 207, 255, 0.4);
-  stroke-width: 1;
-  stroke-dasharray: 1;
-  stroke-dashoffset: var(--draw, 1);
-  vector-effect: non-scaling-stroke;
-}
-
-/* the silent constellation: no labels, barely there */
+/* the whole map: every theory note and wikilink, barely there */
 .kmap__sky { opacity: var(--sky, 0); }
-.kmap__sky line { stroke: rgba(169, 177, 214, 0.11); stroke-width: 1; vector-effect: non-scaling-stroke; }
-.kmap__sky circle { fill: rgba(199, 206, 240, 0.42); }
+.kmap__sky line { stroke: rgba(169, 177, 214, 0.1); stroke-width: 1; }
+.kmap__links { opacity: var(--route, 0); }
+.kmap__links line { stroke: rgba(169, 177, 214, 0.2); stroke-width: 1; }
 
-/* the path already walked: thin, calm, fading in and out along its length */
-.kmap__route {
+.kmap__node { fill: rgba(199, 206, 240, 0.5); opacity: var(--sky, 0); }
+.kmap__node.is-todo { fill: rgba(169, 177, 214, 0.28); }
+.kmap__node.is-route { opacity: var(--route, 0); fill: rgba(227, 236, 250, 0.82); }
+.kmap__node.is-returned { fill: var(--returned-c); opacity: var(--returned, 0); }
+.kmap__node.is-current { fill: var(--cyan); opacity: var(--focus, 0); }
+.kmap__node.is-next { fill: var(--ink); stroke: rgba(215, 225, 245, 0.75); stroke-width: 1; opacity: var(--next, 0); }
+
+/* the trajectory: thin, calm, drawn in the programme's order */
+.kmap__walked {
   fill: none;
   stroke-width: 1.2;
   stroke-linecap: round;
   stroke-dasharray: 1;
   stroke-dashoffset: calc(1 - var(--route, 0));
-  vector-effect: non-scaling-stroke;
 }
-.kmap__walked { fill: rgba(215, 230, 245, 0.7); opacity: var(--route, 0); }
-.kmap__next-leg {
+.kmap__ahead {
   fill: none;
-  stroke: rgba(215, 230, 245, 0.55);
+  stroke: rgba(215, 225, 245, 0.5);
   stroke-width: 1;
-  stroke-dasharray: 2 6;
-  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 2 7;
   opacity: var(--next, 0);
 }
+.kmap__mark { fill: none; stroke-width: 1; }
+.kmap__mark.is-returned { stroke: var(--returned-c); stroke-dasharray: 2 3; opacity: calc(var(--returned, 0) * (0.55 + 0.45 * var(--returned-flash, 0))); }
+.kmap__mark.is-current { opacity: var(--focus, 0); }
+.kmap__halo { stroke: rgba(125, 207, 255, 0.16); }
+.kmap__lesson { stroke: rgba(125, 207, 255, 0.24); stroke-width: 1.5; stroke-linecap: round; }
+.kmap__lesson.is-done { stroke: var(--cyan); }
 
-/* three named points: now, the weak spot, next */
-.kmap__lit { opacity: var(--o, 0); }
-.kmap__lit.is-focus { --o: var(--focus, 0); }
-.kmap__lit.is-weak { --o: var(--weak, 0); }
-.kmap__lit.is-next { --o: var(--next, 0); }
-.kmap__ring { fill: none; stroke-width: 1; vector-effect: non-scaling-stroke; }
-.kmap__lit text {
+.kmap__label {
   font-family: var(--serif);
-  font-size: 26px;
+  font-size: 25px;
   paint-order: stroke;
   stroke: rgba(4, 5, 11, 0.85);
   stroke-width: 6px;
   stroke-linejoin: round;
 }
-.kmap__lit.is-focus .kmap__dot { fill: var(--text-strong); }
-.kmap__lit.is-focus .kmap__ring { stroke: rgba(241, 242, 255, 0.6); }
-.kmap__lit.is-focus text { fill: var(--text-strong); }
-.kmap__lit.is-weak .kmap__dot { fill: #e8b98a; }
-.kmap__lit.is-weak .kmap__ring { stroke: rgba(232, 185, 138, 0.45); stroke-dasharray: 2 3; }
-.kmap__lit.is-weak text { fill: #f0d2b2; }
-.kmap__lit.is-next .kmap__dot { fill: var(--ink); stroke: rgba(215, 230, 245, 0.8); stroke-width: 1; vector-effect: non-scaling-stroke; }
-.kmap__lit.is-next .kmap__ring { stroke: none; }
-.kmap__lit.is-next text { fill: var(--muted); }
+.kmap__label.is-current { fill: var(--text-strong); opacity: var(--focus, 0); }
+.kmap__label.is-returned { fill: #f0d2b2; opacity: var(--returned, 0); }
+.kmap__label.is-next { fill: var(--muted); font-size: 22px; opacity: var(--next, 0); }
+.kmap__label.is-aside { fill: var(--dim); font-size: 19px; opacity: var(--route, 0); }
 
-.kmap__student {
-  fill: var(--text-strong);
-  font-family: var(--serif);
-  font-size: 30px;
-  opacity: var(--sky, 0);
-  paint-order: stroke;
-  stroke: rgba(4, 5, 11, 0.7);
-  stroke-width: 8px;
-  stroke-linejoin: round;
-}
-
-.knowledge { display: grid; align-content: center; gap: 1.6rem; margin-left: auto; max-width: 29rem; }
+/* the passport of this one route */
+.knowledge { display: grid; align-content: center; gap: 1.25rem; margin-left: auto; max-width: 34rem; }
 .knowledge .headline { font-size: clamp(2rem, 2.5vw, 2.8rem); }
 
-.route-lines { display: grid; margin: 0; border-top: 1px solid var(--line); }
-.route-lines > div {
+.route-passport { display: grid; margin: 0; border-top: 1px solid var(--line); }
+.route-passport > div {
   display: grid;
-  grid-template-columns: 7.5rem 1fr;
+  grid-template-columns: 7.75rem 1fr;
   gap: 1rem;
   align-items: baseline;
-  padding: 0.85rem 0;
+  padding: 0.6rem 0;
   border-bottom: 1px solid var(--line);
-  opacity: calc(0.25 + 0.75 * var(--o, 1));
+  opacity: calc(0.3 + 0.7 * var(--o, 1));
   transition: opacity 0.4s ease;
 }
-.route-lines dt { color: var(--dim); font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; }
-.route-lines dd { margin: 0; color: var(--text-strong); font-family: var(--serif); font-size: 1.45rem; line-height: 1.1; }
-.route-lines .is-weak dd { color: #f0d2b2; }
-.route-lines .is-next dd { color: var(--muted); }
-.route-lines__note { color: var(--dim); font-size: 0.78rem; }
+.route-passport dt { color: var(--dim); font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; }
+.route-passport dd { margin: 0; color: var(--text-strong); font-family: var(--serif); font-size: 1.15rem; line-height: 1.2; text-wrap: balance; }
+.route-passport dd small { display: block; margin-top: 0.3rem; color: var(--dim); font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.04em; line-height: 1.45; }
+.route-passport dd.is-plain { color: var(--muted); font-family: var(--sans); font-size: 0.86rem; line-height: 1.5; }
+.route-passport .is-current dd { color: var(--text-strong); }
+.route-passport .is-current dt { color: var(--cyan); }
+.route-passport .is-returned dd { color: #f0d2b2; }
+.route-passport .is-next dd { color: var(--muted); }
+
+/* the whole programme, one mark per topic, grouped by module */
+.progress { display: grid; gap: 0.65rem; }
+.progress__strip { display: flex; gap: 7px; margin: 0; }
+.progress__strip span { display: flex; gap: 2px; }
+.progress__strip i { display: block; width: 4px; height: 12px; background: rgba(169, 177, 214, 0.22); }
+.progress__strip i.is-done { background: rgba(215, 225, 245, 0.62); }
+.progress__strip i.is-current { background: var(--cyan); }
+.progress__strip i.is-returned { background: #e8b98a; }
+.progress__strip i.is-next { background: transparent; box-shadow: inset 0 0 0 1px rgba(215, 225, 245, 0.55); }
+.progress__count { display: flex; flex-wrap: wrap; gap: 0.35rem 1.1rem; margin: 0; color: var(--muted); font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+.progress__count .is-current { color: var(--cyan); }
+.progress__count .is-returned { color: #f0d2b2; }
+
+.route-passport__note { margin: 0; color: var(--muted); font-size: 0.86rem; line-height: 1.55; max-width: 44ch; }
+.route-passport__source { margin: -0.6rem 0 0; color: var(--dim); font-size: 0.72rem; }
 
 /* ---------------------------------------------------------------- phones and reduced motion */
 @media (max-width: 900px) {
   .kmap { display: none; }
   .work { grid-template-columns: 1fr; }
   .knowledge { margin-left: 0; max-width: none; }
+  .route-passport > div { grid-template-columns: 1fr; gap: 0.35rem; padding: 0.8rem 0; }
 }
 .is-still .kmap { opacity: 1; }

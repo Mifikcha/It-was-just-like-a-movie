@@ -216,16 +216,17 @@ $("[data-subject-tab]")?.parentElement?.addEventListener("keydown", (e) => {
   next.focus();
 });
 
-// ---------------------------------------------------------------- scene 06: one map, one student's path
-// The map is already there; scrolling walks the path through it, then names only three points.
+// ---------------------------------------------------------------- scene 06: the physics map, one student's route
+// The map surfaces slowly; then the walked route, the current topic, the reopened one, and last what comes next.
 function setMap(p: number, svg: SVGElement) {
   const set = (k: string, v: number) => svg.style.setProperty(k, v.toFixed(3));
-  set("--draw", 1 - range(p, 0.34, 0.48));
-  set("--sky", range(p, 0.36, 0.5));
-  set("--route", ease(range(p, 0.46, 0.66)));
-  const lit = { weak: range(p, 0.6, 0.66), focus: range(p, 0.66, 0.72), next: range(p, 0.72, 0.78) };
-  set("--weak", lit.weak);
+  set("--sky", range(p, 0.32, 0.5));
+  set("--route", ease(range(p, 0.46, 0.64)));
+  const lit = { focus: range(p, 0.62, 0.68), returned: range(p, 0.68, 0.75), next: range(p, 0.77, 0.83) };
   set("--focus", lit.focus);
+  set("--returned", ease(lit.returned));
+  // the reopened topic stands out once, briefly, then settles back into the map
+  set("--returned-flash", range(p, 0.7, 0.75) * (1 - range(p, 0.77, 0.84)));
   set("--next", lit.next);
   $$("[data-lit-line]").forEach((l) => l.style.setProperty("--o", lit[l.dataset.litLine as keyof typeof lit].toFixed(3)));
 }
