@@ -3,6 +3,13 @@ import { readdir, readFile } from "node:fs/promises";
 
 const html = await readFile("dist/index.html", "utf8");
 
+// one sphere version everywhere: flights, blueprint drawings and the stills (author's pod window, stories)
+const sceneVersion = JSON.parse(await readFile("public/scene-version.json", "utf8"));
+const versions = new Set(["seq", "blueprint", "scenes"].map((k) => sceneVersion[k]));
+assert.equal(versions.size, 1, `Mixed sphere versions on the site: ${JSON.stringify(sceneVersion)}`);
+assert.ok([...versions][0]?.startsWith("hopes_dyson_v"), "scene-version.json: missing version");
+
+
 for (const marker of [
   'lang="ru"',
   'id="top"',
