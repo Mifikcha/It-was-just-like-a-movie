@@ -64,8 +64,9 @@ body {
 /* ---------------------------------------------------------------- header (reference: transparent) */
 .site-header,
 .site-header[data-condensed] {
-  border-color: transparent;
-  background: linear-gradient(180deg, rgba(4, 5, 11, 0.55), rgba(4, 5, 11, 0));
+  /* no bottom border: a transparent border still let the repeated gradient draw a dark hairline under the nav */
+  border-bottom: 0;
+  background: linear-gradient(180deg, rgba(4, 5, 11, 0.55), rgba(4, 5, 11, 0)) no-repeat;
 }
 
 .site-header {
