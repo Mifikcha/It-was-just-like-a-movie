@@ -1,6 +1,6 @@
 {
   "_rule": "Every view of the sphere on the site comes from the same scene version. Update all groups together (Blender project: CLAUDE.md -> Site release checklist).",
-  "seq": "hopes_dyson_v9",
-  "blueprint": "hopes_dyson_v9",
-  "scenes": "hopes_dyson_v9"
+  "seq": "hopes_dyson_v10",
+  "blueprint": "hopes_dyson_v10",
+  "scenes": "hopes_dyson_v10"
 }
