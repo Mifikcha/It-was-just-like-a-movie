@@ -1,6 +1,6 @@
 export const links = {
   telegram: "https://t.me/Skifcha",
-  hnd: "https://mifikcha.github.io/Acheba/",
+  hnd: "https://mifikcha.github.io/Acheba_demo/",
   vk: "https://vk.ru/mifikcha",
   phone: "tel:+79397050642",
 };

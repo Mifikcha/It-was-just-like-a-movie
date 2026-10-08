@@ -67,6 +67,8 @@ const total = programmeStrip.reduce((t, m) => t + m.states.length, 0);
       </g>
 
       <path class="kmap__walked" d={walkedD} pathLength="1" stroke="url(#kmap-walked)" />
+      <!-- a slow point of light runs the walked part toward the current topic: progress moves, the route is alive -->
+      <path class="kmap__pulse" d={walkedD} pathLength="1" />
       <path class="kmap__ahead" d={aheadD} />
 
       <g class="kmap__nodes">

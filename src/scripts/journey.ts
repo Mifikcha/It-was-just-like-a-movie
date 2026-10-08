@@ -228,6 +228,8 @@ function setMap(p: number, svg: SVGElement) {
   // the reopened topic stands out once, briefly, then settles back into the map
   set("--returned-flash", range(p, 0.7, 0.75) * (1 - range(p, 0.77, 0.84)));
   set("--next", lit.next);
+  // the calm loop on the route runs only while the drawn route is on screen
+  svg.toggleAttribute("data-live", p > 0.64 && p < 0.97);
   $$("[data-lit-line]").forEach((l) => l.style.setProperty("--o", lit[l.dataset.litLine as keyof typeof lit].toFixed(3)));
 }
 
