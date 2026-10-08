@@ -1,6 +1,8 @@
 ---
 import Icon from "./Icon.astro";
 import { links, quotes, subjects } from "../data/content";
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
 <!-- Scenes 01–02: hero hold → camera travel to Sector B → HTML video on the display module. -->
@@ -32,17 +34,18 @@ import { links, quotes, subjects } from "../data/content";
       <figure class="hero-ui__quote" lang="en">
         <blockquote>{quotes.possibility.text}</blockquote>
         <figcaption>— {quotes.possibility.author}</figcaption>
+        <p class="quote-ru" lang="ru">{quotes.possibility.ru}</p>
       </figure>
     </div>
 
     <div class="display-module" id="approach" data-display-module aria-labelledby="display-title">
       <div class="display-module__screen" data-video-screen data-quad="0.2995,0.3148 0.6849,0.3074 0.6979,0.6620 0.3010,0.6944">
-        <!-- Replace with a <video playsinline muted loop> element once the film exists. -->
-        <div class="placeholder placeholder--video">
-          <svg viewBox="0 0 82 82" aria-hidden="true"><circle cx="41" cy="41" r="39" /><path d="m34 28 22 13-22 13Z" /></svg>
-          <span>Здесь будет видео</span>
-          <small>Ролик о среде: задачи, интерфейс, процесс работы</small>
-        </div>
+        <!-- Live interface of the environment. When the film exists, swap the <img> for
+             <video playsinline muted loop autoplay> with the same class. -->
+        <a class="screen-live" href={links.hnd} target="_blank" rel="noreferrer" aria-label="Открыть демо Hopes and Dreams">
+          <img src={`${base}/assets/hnd-interface.webp`} alt="Главная страница среды Hopes and Dreams: программы обучения и граф знаний" />
+          <span class="screen-live__tag">Демо · открыть <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 14 14 4M6 4h8v8" /></svg></span>
+        </a>
       </div>
       <div class="display-module__caption">
         <p class="eyebrow"><span>02 / 10</span>Сектор Б · экранный модуль</p>

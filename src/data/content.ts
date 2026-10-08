@@ -10,14 +10,17 @@ export const quotes = {
   possibility: {
     text: "Things do not happen.\nThings are made to happen.",
     author: "John F. Kennedy",
+    ru: "Ничто не случается само — всё приходится делать.",
   },
   work: {
     text: "Genius is one percent inspiration and ninety-nine percent perspiration.",
     author: "Thomas Edison",
+    ru: "Гений — это один процент вдохновения и девяносто девять процентов труда.",
   },
   decision: {
     text: "However difficult life may seem, there is always something you can do and succeed at.",
     author: "Stephen Hawking",
+    ru: "Какой бы трудной ни казалась жизнь, всегда есть то, что вы можете сделать и в чём добиться успеха.",
   },
 };
 
@@ -293,7 +296,7 @@ export const routePassport = {
   route: "ЕГЭ по физике · до 80 баллов",
   programme: "Джентельменский набор · модуль 4 из 5",
   start: "Диагностика: механика на уровне первой части, МКТ и электродинамика с нуля.",
-  focus: { topic: "Индукция и движение проводников", meta: "PHYS-EM-007 · урок 2 из 3" },
+  focus: { topic: "Индукция и движение проводников", meta: "ФИЗ-ЭМ-007 · урок 2 из 3" },
   returned: { topic: "Конденсатор", meta: "ошибки повторялись в заданиях 14, 15, 25" },
   next: ["Самоиндукция", "Колебательный контур"],
 };

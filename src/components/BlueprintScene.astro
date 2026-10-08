@@ -19,7 +19,7 @@ const callouts = [
 ];
 const passes = ["pass_shell", "pass_frame", "pass_core", "pass_mirrors", "pass_thermal", "pass_rings", "pass_modules"];
 const tints: Record<string, string> = {
-  pass_thermal: "#ffb070",
+  pass_thermal: "#e8946a",   // ember: the radiators' glow (polish.css --ember)
   pass_core: "#ff8f6b",
   pass_mirrors: "#b69cff",
 };
@@ -59,7 +59,7 @@ const layers = [
           const y = rowY(i, left.length) * 10;
           return (
             <g data-bp-callout={c.id} data-pass={c.pass}>
-              <polyline points={`${c.x * 16},${c.y * 10} ${c.x * 16 - 90},${y} 60,${y}`} />
+              <polyline pathLength="1" points={`${c.x * 16},${c.y * 10} ${c.x * 16 - 90},${y} 60,${y}`} />
               <circle cx={c.x * 16} cy={c.y * 10} r="5" />
             </g>
           );
@@ -68,7 +68,7 @@ const layers = [
           const y = rowY(i, right.length) * 10;
           return (
             <g data-bp-callout={c.id} data-pass={c.pass}>
-              <polyline points={`${c.x * 16},${c.y * 10} ${c.x * 16 + 90},${y} 1540,${y}`} />
+              <polyline pathLength="1" points={`${c.x * 16},${c.y * 10} ${c.x * 16 + 90},${y} 1540,${y}`} />
               <circle cx={c.x * 16} cy={c.y * 10} r="5" />
             </g>
           );

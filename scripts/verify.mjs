@@ -39,15 +39,15 @@ for (const name of ["Ева", "Максим", "Никита", "Стёпа", "С�
 
 // No English words in visible text or accessible names — only the brand "Hopes and Dreams".
 const visible = html
-  // quotes are kept in the original English and marked lang="en"
-  .replace(/<(figure|blockquote|p|span)[^>]*\blang="en"[^>]*>[\s\S]*?<\/\1>/g, " ")
+  // quotes and publication titles are kept in the original English and marked lang="en"
+  .replace(/<(figure|blockquote|p|span|a|small)[^>]*\blang="en"[^>]*>[\s\S]*?<\/\1>/g, " ")
   .replace(/<script[\s\S]*?<\/script>/g, " ")
   .replace(/<style[\s\S]*?<\/style>/g, " ")
   .replace(/<!--[\s\S]*?-->/g, " ")
   .replace(/&[a-z]+;/g, " ");
 const attrs = [...visible.matchAll(/\s(?:alt|aria-label|title|placeholder)="([^"]*)"/g)].map((m) => m[1]);
 const text = visible.replace(/<[^>]+>/g, " ");
-const words = [...`${text} ${attrs.join(" ")}`.replace(/Hopes\s+and\s+Dreams|Desmos|Python/g, " ").matchAll(/[A-Za-z]{2,}/g)].map((m) => m[0]);
+const words = [...`${text} ${attrs.join(" ")}`.replace(/Hopes\s+and\s+Dreams|Desmos|Python|U-Net/g, " ").matchAll(/[A-Za-z]{2,}/g)].map((m) => m[0]);
 assert.deepEqual([...new Set(words)], [], `English words on the page: ${[...new Set(words)].join(", ")}`);
 
 // every scroll sequence ships complete in both resolutions
