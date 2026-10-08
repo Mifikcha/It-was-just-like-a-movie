@@ -1,4 +1,4 @@
-// Encode Blender PNG sequences into web frames: public/seq/<name>/{1920,960}/0001.webp
+// Encode Blender PNG sequences into web frames: public/seq/<name>/{2560,1920,960}/0001.webp
 //   node scripts/encode-frames.mjs "<blender renders/web folder>" approach build
 import { spawnSync } from "node:child_process";
 import { mkdirSync, readdirSync } from "node:fs";
@@ -11,8 +11,9 @@ if (!source || names.length === 0) {
 }
 
 const SIZES = [
-  { width: 1920, quality: 64 },
-  { width: 960, quality: 62 },
+  { width: 2560, quality: 80 },
+  { width: 1920, quality: 82 },
+  { width: 960, quality: 78 },
 ];
 
 for (const name of names) {

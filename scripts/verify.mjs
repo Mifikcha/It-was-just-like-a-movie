@@ -50,10 +50,10 @@ const text = visible.replace(/<[^>]+>/g, " ");
 const words = [...`${text} ${attrs.join(" ")}`.replace(/Hopes\s+and\s+Dreams|Desmos|Python|U-Net/g, " ").matchAll(/[A-Za-z]{2,}/g)].map((m) => m[0]);
 assert.deepEqual([...new Set(words)], [], `English words on the page: ${[...new Set(words)].join(", ")}`);
 
-// every scroll sequence ships complete in both resolutions
+// every scroll sequence ships complete in every resolution tier
 const sequences = { approach: 90, f_blueprint: 72, f_stories: 72, f_work: 72, f_knowledge: 72, f_subjects: 72, f_formats: 72, f_final: 72 };
 for (const [name, count] of Object.entries(sequences)) {
-  for (const size of ["1920", "960"]) {
+  for (const size of ["2560", "1920", "960"]) {
     const frames = (await readdir(`dist/seq/${name}/${size}`)).filter((f) => f.endsWith(".webp"));
     assert.equal(frames.length, count, `seq/${name}/${size} has ${frames.length} frames`);
   }

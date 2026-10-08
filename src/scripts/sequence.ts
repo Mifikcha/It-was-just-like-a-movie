@@ -25,7 +25,7 @@ export class SequenceStage {
   private raf = 0;
   private dirty = true;
   private focusX = 0.62;
-  private resolution: 1920 | 960;
+  private resolution: 2560 | 1920 | 960;
   private listeners: (() => void)[] = [];
 
   constructor(
@@ -37,7 +37,9 @@ export class SequenceStage {
     for (const [name, frames] of Object.entries(counts) as [SequenceName, number][]) {
       this.sequences.set(name, { name, frames, images: [], loaded: [] });
     }
-    this.resolution = window.innerWidth * Math.min(window.devicePixelRatio, 2) > 1400 ? 1920 : 960;
+    // device pixels across the viewport pick the tier: phones 960, laptops 1920, large and retina screens 2560
+    const px = window.innerWidth * Math.min(window.devicePixelRatio, 2);
+    this.resolution = px > 2200 ? 2560 : px > 1400 ? 1920 : 960;
     this.resize();
     window.addEventListener("resize", () => this.resize());
     this.tick = this.tick.bind(this);
