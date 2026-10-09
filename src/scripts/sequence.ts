@@ -9,7 +9,13 @@ type Sequence = {
   frames: number;
   images: (HTMLImageElement | undefined)[];
   loaded: boolean[];
+  /** remaining load order: key frames (every 8th), then every 4th, 2nd, the rest */
+  order: number[];
+  cursor: number;
 };
+
+// a few requests at a time, so the queue order holds instead of every frame sharing the line
+const MAX_IN_FLIGHT = 4;
 
 const FRAME_W = 1920;
 const FRAME_H = 1080;
@@ -17,7 +23,9 @@ const FRAME_H = 1080;
 export class SequenceStage {
   private ctx: CanvasRenderingContext2D;
   private sequences = new Map<SequenceName, Sequence>();
-  private preloading = new Set<SequenceName>();
+  /** sequences to load, most urgent first (the active one always goes ahead) */
+  private wanted: SequenceName[] = [];
+  private inFlight = 0;
   private active: SequenceName = "approach";
   private target = 0;
   private current = 0;
@@ -35,7 +43,11 @@ export class SequenceStage {
   ) {
     this.ctx = canvas.getContext("2d", { alpha: false })!;
     for (const [name, frames] of Object.entries(counts) as [SequenceName, number][]) {
-      this.sequences.set(name, { name, frames, images: [], loaded: [] });
+      const order: number[] = [];
+      for (const step of [8, 4, 2, 1]) {
+        for (let i = 0; i < frames; i += step) if (!order.includes(i)) order.push(i);
+      }
+      this.sequences.set(name, { name, frames, images: [], loaded: [], order, cursor: 0 });
     }
     // device pixels across the viewport pick the tier: phones 960, laptops 1920, large and retina screens 2560
     const px = window.innerWidth * Math.min(window.devicePixelRatio, 2);
@@ -52,34 +64,53 @@ export class SequenceStage {
 
   private load(name: SequenceName, index: number) {
     const seq = this.sequences.get(name)!;
-    if (seq.images[index]) return;
     const img = new Image();
     img.decoding = "async";
-    img.src = this.src(name, index);
     seq.images[index] = img;
-    img.onload = () => {
-      seq.loaded[index] = true;
-      this.dirty = true;
+    this.inFlight++;
+    const done = (ok: boolean) => {
+      this.inFlight--;
+      seq.loaded[index] = ok;
+      if (ok) this.dirty = true;
+      this.pump();
     };
+    img.onload = () => done(true);
+    img.onerror = () => done(false);
+    img.src = this.src(name, index);
   }
 
-  /** Load a sequence: key frames first (every 8th), then the rest, so scrubbing works early. */
-  preload(name: SequenceName) {
-    const seq = this.sequences.get(name);
-    if (!seq || this.preloading.has(name)) return;
-    this.preloading.add(name);
-    const order: number[] = [];
-    for (let step of [8, 4, 2, 1]) {
-      for (let i = 0; i < seq.frames; i += step) if (!order.includes(i)) order.push(i);
+  /** The next frame to fetch, or null when everything wanted is in. */
+  private nextJob(): [SequenceName, number] | null {
+    const pool = [this.active, ...this.wanted.filter((n) => n !== this.active)].filter((n) => this.wanted.includes(n));
+    // ends first: a scene's backdrop is the last frame of its flight, and the first frame continues the previous one
+    for (const name of pool) {
+      const seq = this.sequences.get(name)!;
+      for (const i of [seq.frames - 1, 0]) if (!seq.images[i]) return [name, i];
     }
-    let cursor = 0;
-    const next = () => {
-      const batch = order.slice(cursor, cursor + 6);
-      cursor += 6;
-      batch.forEach((i) => this.load(name, i));
-      if (cursor < order.length) setTimeout(next, 60);
-    };
-    next();
+    for (const name of pool) {
+      const seq = this.sequences.get(name)!;
+      while (seq.cursor < seq.order.length) {
+        const i = seq.order[seq.cursor++];
+        if (!seq.images[i]) return [name, i];
+      }
+    }
+    return null;
+  }
+
+  private pump() {
+    while (this.inFlight < MAX_IN_FLIGHT) {
+      const job = this.nextJob();
+      if (!job) return;
+      this.load(...job);
+    }
+  }
+
+  /** Queue sequences for loading; later calls jump ahead of earlier ones, in the order given. */
+  preload(...names: SequenceName[]) {
+    const known = names.filter((n) => this.sequences.has(n));
+    if (known.length === 0) return;
+    this.wanted = [...known, ...this.wanted.filter((n) => !known.includes(n))];
+    this.pump();
   }
 
   /** progress 0..1 inside the named sequence. */
@@ -90,6 +121,9 @@ export class SequenceStage {
     if (name !== this.active) {
       this.active = name;
       this.current = index;
+      // the visible flight takes the head of the queue
+      if (!this.wanted.includes(name)) this.wanted.unshift(name);
+      this.pump();
     }
     this.target = index;
     if (immediate) this.current = index;

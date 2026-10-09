@@ -268,7 +268,7 @@ const seqOf = (track: string) => (track === "approach" ? "approach" : track === 
 // load the flight of this scene and the next one while the visitor is here
 const preloadAround = (track: string) => {
   const i = ORDER.indexOf(track);
-  [ORDER[i], ORDER[i + 1]].filter(Boolean).forEach((t) => stage.preload(seqOf(t!)));
+  stage.preload(...[ORDER[i], ORDER[i + 1]].filter(Boolean).map((t) => seqOf(t!)));
 };
 const flight = (track: string, t: number) => {
   const f = FLIGHT[track];
