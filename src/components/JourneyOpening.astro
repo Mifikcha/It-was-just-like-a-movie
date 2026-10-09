@@ -40,12 +40,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
     <div class="display-module" id="approach" data-display-module aria-labelledby="display-title">
       <div class="display-module__screen" data-video-screen data-quad="0.2995,0.3148 0.6849,0.3074 0.6979,0.6620 0.3010,0.6944">
-        <!-- Live interface of the environment. When the film exists, swap the <img> for
-             <video playsinline muted loop autoplay> with the same class. -->
-        <a class="screen-live" href={links.hnd} target="_blank" rel="noreferrer" aria-label="Открыть демо Hopes and Dreams">
-          <img src={`${base}/assets/hnd-interface.webp`} alt="Главная страница среды Hopes and Dreams: программы обучения и граф знаний" />
-          <span class="screen-live__tag">Демо · открыть <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 14 14 4M6 4h8v8" /></svg></span>
-        </a>
+        <!-- Blank screen for now. When the film exists, put <video playsinline muted loop autoplay> inside. -->
+        <div class="screen-live" aria-hidden="true"></div>
       </div>
       <div class="display-module__caption">
         <p class="eyebrow"><span>02 / 10</span>Сектор Б · экранный модуль</p>
