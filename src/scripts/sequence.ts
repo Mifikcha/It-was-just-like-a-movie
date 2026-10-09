@@ -4,14 +4,25 @@
 
 export type SequenceName = string;
 
+type Width = 2560 | 1920 | 960;
+
+/** One resolution of a sequence. */
+type Tier = {
+  width: Width;
+  images: (HTMLImageElement | undefined)[];
+  loaded: boolean[];
+  cursor: number;
+};
+
 type Sequence = {
   name: SequenceName;
   frames: number;
-  images: (HTMLImageElement | undefined)[];
-  loaded: boolean[];
-  /** remaining load order: key frames (every 8th), then every 4th, 2nd, the rest */
+  /** body load order: key frames (every 8th), then every 4th, 2nd, the rest */
   order: number[];
-  cursor: number;
+  /** 960 for everyone first: light enough that whole flights arrive quickly */
+  lo: Tier;
+  /** the screen's own resolution, swapped in frame by frame once the light frames are in */
+  hi: Tier | null;
 };
 
 // a few requests at a time, so the queue order holds instead of every frame sharing the line
@@ -19,6 +30,8 @@ const MAX_IN_FLIGHT = 4;
 
 const FRAME_W = 1920;
 const FRAME_H = 1080;
+
+const tier = (width: Width): Tier => ({ width, images: [], loaded: [], cursor: 0 });
 
 export class SequenceStage {
   private ctx: CanvasRenderingContext2D;
@@ -33,7 +46,6 @@ export class SequenceStage {
   private raf = 0;
   private dirty = true;
   private focusX = 0.62;
-  private resolution: 2560 | 1920 | 960;
   private listeners: (() => void)[] = [];
 
   constructor(
@@ -42,57 +54,78 @@ export class SequenceStage {
     counts: Record<SequenceName, number>,
   ) {
     this.ctx = canvas.getContext("2d", { alpha: false })!;
+    // device pixels across the viewport pick the sharp tier: laptops 1920, large and retina screens 2560;
+    // phones and data saver stay on the light tier
+    const px = window.innerWidth * Math.min(window.devicePixelRatio, 2);
+    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+    const sharp: Width | null = saveData ? null : px > 2200 ? 2560 : px > 1400 ? 1920 : null;
     for (const [name, frames] of Object.entries(counts) as [SequenceName, number][]) {
       const order: number[] = [];
       for (const step of [8, 4, 2, 1]) {
         for (let i = 0; i < frames; i += step) if (!order.includes(i)) order.push(i);
       }
-      this.sequences.set(name, { name, frames, images: [], loaded: [], order, cursor: 0 });
+      this.sequences.set(name, { name, frames, order, lo: tier(960), hi: sharp ? tier(sharp) : null });
     }
-    // device pixels across the viewport pick the tier: phones 960, laptops 1920, large and retina screens 2560
-    const px = window.innerWidth * Math.min(window.devicePixelRatio, 2);
-    this.resolution = px > 2200 ? 2560 : px > 1400 ? 1920 : 960;
     this.resize();
     window.addEventListener("resize", () => this.resize());
     this.tick = this.tick.bind(this);
     this.raf = requestAnimationFrame(this.tick);
   }
 
-  src(name: SequenceName, index: number) {
-    return `${this.base}/seq/${name}/${this.resolution}/${String(index + 1).padStart(4, "0")}.webp`;
+  src(name: SequenceName, index: number, width: Width = 960) {
+    return `${this.base}/seq/${name}/${width}/${String(index + 1).padStart(4, "0")}.webp`;
   }
 
-  private load(name: SequenceName, index: number) {
-    const seq = this.sequences.get(name)!;
+  private load(name: SequenceName, t: Tier, index: number) {
     const img = new Image();
     img.decoding = "async";
-    seq.images[index] = img;
+    t.images[index] = img;
     this.inFlight++;
     const done = (ok: boolean) => {
       this.inFlight--;
-      seq.loaded[index] = ok;
-      if (ok) this.dirty = true;
+      t.loaded[index] = ok;
+      if (ok && name === this.active) this.dirty = true;
       this.pump();
     };
     img.onload = () => done(true);
     img.onerror = () => done(false);
-    img.src = this.src(name, index);
+    img.src = this.src(name, index, t.width);
   }
 
   /** The next frame to fetch, or null when everything wanted is in. */
-  private nextJob(): [SequenceName, number] | null {
-    const pool = [this.active, ...this.wanted.filter((n) => n !== this.active)].filter((n) => this.wanted.includes(n));
-    // ends first: a scene's backdrop is the last frame of its flight, and the first frame continues the previous one
-    for (const name of pool) {
-      const seq = this.sequences.get(name)!;
-      for (const i of [seq.frames - 1, 0]) if (!seq.images[i]) return [name, i];
-    }
-    for (const name of pool) {
-      const seq = this.sequences.get(name)!;
-      while (seq.cursor < seq.order.length) {
-        const i = seq.order[seq.cursor++];
-        if (!seq.images[i]) return [name, i];
+  private nextJob(): [SequenceName, Tier, number] | null {
+    const pool = [this.active, ...this.wanted.filter((n) => n !== this.active)]
+      .filter((n) => this.wanted.includes(n))
+      .map((n) => this.sequences.get(n)!);
+    // the frame on screen right now goes ahead of the ends of the visible flight
+    const ends = (seq: Sequence) =>
+      seq.name === this.active ? [Math.round(this.target), seq.frames - 1, 0] : [seq.frames - 1, 0];
+    const body = (t: Tier, seq: Sequence) => {
+      while (t.cursor < seq.order.length) {
+        const i = seq.order[t.cursor++];
+        if (!t.images[i]) return i;
       }
+      return -1;
+    };
+    // 1. ends of the flights in play: a scene's backdrop is the last frame of its flight,
+    //    and the first frame continues the previous one
+    for (const seq of pool) for (const i of ends(seq)) if (!seq.lo.images[i]) return [seq.name, seq.lo, i];
+    // 2. every scene's backdrop, so no scene is ever reached with an empty sky
+    for (const seq of this.sequences.values()) {
+      const i = seq.frames - 1;
+      if (!seq.lo.images[i]) return [seq.name, seq.lo, i];
+    }
+    // 3. the light frames of the flights in play, so scrubbing is smooth early
+    for (const seq of pool) {
+      const i = body(seq.lo, seq);
+      if (i >= 0) return [seq.name, seq.lo, i];
+    }
+    // 4. then sharpen: the same order at the screen's resolution
+    for (const seq of pool) {
+      if (!seq.hi) continue;
+      for (const i of ends(seq)) if (!seq.hi.images[i]) return [seq.name, seq.hi, i];
+      const i = body(seq.hi, seq);
+      if (i >= 0) return [seq.name, seq.hi, i];
     }
     return null;
   }
@@ -176,10 +209,19 @@ export class SequenceStage {
     this.listeners.forEach((fn) => fn());
   }
 
+  private has(seq: Sequence, i: number) {
+    return !!(seq.hi?.loaded[i] || seq.lo.loaded[i]);
+  }
+
+  /** The sharpest loaded image of a frame. */
+  private image(seq: Sequence, i: number) {
+    return seq.hi?.loaded[i] ? seq.hi.images[i]! : seq.lo.images[i]!;
+  }
+
   private nearestLoaded(seq: Sequence, index: number) {
     for (let d = 0; d < seq.frames; d++) {
-      if (seq.loaded[index - d]) return index - d;
-      if (seq.loaded[index + d]) return index + d;
+      if (this.has(seq, index - d)) return index - d;
+      if (this.has(seq, index + d)) return index + d;
     }
     return -1;
   }
@@ -205,17 +247,17 @@ export class SequenceStage {
     const lo = Math.floor(this.current);
     const hi = Math.min(seq.frames - 1, lo + 1);
     const frac = this.current - lo;
-    const a = seq.loaded[lo] ? lo : this.nearestLoaded(seq, lo);
+    const a = this.has(seq, lo) ? lo : this.nearestLoaded(seq, lo);
     if (a < 0) {
       ctx.fillStyle = "#04050b";
       ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
       return;
     }
     ctx.globalAlpha = 1;
-    ctx.drawImage(seq.images[a]!, ox, oy, w, h);
-    if (a === lo && frac > 0.02 && seq.loaded[hi]) {
+    ctx.drawImage(this.image(seq, a), ox, oy, w, h);
+    if (a === lo && frac > 0.02 && this.has(seq, hi)) {
       ctx.globalAlpha = frac;
-      ctx.drawImage(seq.images[hi]!, ox, oy, w, h);
+      ctx.drawImage(this.image(seq, hi), ox, oy, w, h);
       ctx.globalAlpha = 1;
     }
     if (this.fade > 0) {
