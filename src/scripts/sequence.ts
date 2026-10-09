@@ -31,6 +31,10 @@ const MAX_IN_FLIGHT = 4;
 const FRAME_W = 1920;
 const FRAME_H = 1080;
 
+// 2×2 10-bit AVIF, the same profile as the frames: if it decodes, the frames will
+const AVIF_PROBE =
+  "data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAAD5bWV0YQAAAAAAAAAvaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAFBpY3R1cmVIYW5kbGVyAAAAAA5waXRtAAAAAAABAAAAHmlsb2MAAAAARAAAAQABAAAAAQAAASEAAAAWAAAAKGlpbmYAAAAAAAEAAAAaaW5mZQIAAAAAAQAAYXYwMUNvbG9yAAAAAGppcHJwAAAAS2lwY28AAAAUaXNwZQAAAAAAAAACAAAAAgAAABBwaXhpAAAAAAMKCgoAAAAMYXYxQ4EATAAAAAATY29scm5jbHgAAgACAAIAAAAAF2lwbWEAAAAAAAAAAQABBAECgwQAAAAebWRhdAoFGAA24CAyDRgAAABQAAAAALATSyg=";
+
 const tier = (width: Width): Tier => ({ width, images: [], loaded: [], cursor: 0 });
 
 export class SequenceStage {
@@ -39,6 +43,8 @@ export class SequenceStage {
   /** sequences to load, most urgent first (the active one always goes ahead) */
   private wanted: SequenceName[] = [];
   private inFlight = 0;
+  /** frame format, known once the AVIF probe settles; nothing loads before that */
+  private ext: "avif" | "webp" | null = null;
   private active: SequenceName = "approach";
   private target = 0;
   private current = 0;
@@ -66,6 +72,17 @@ export class SequenceStage {
       }
       this.sequences.set(name, { name, frames, order, lo: tier(960), hi: sharp ? tier(sharp) : null });
     }
+    const probe = new Image();
+    const settle = (avif: boolean) => {
+      if (this.ext) return;
+      this.ext = avif ? "avif" : "webp";
+      // without AVIF only the light WebP frames exist
+      if (!avif) this.sequences.forEach((seq) => (seq.hi = null));
+      this.pump();
+    };
+    probe.onload = () => settle(probe.width === 2);
+    probe.onerror = () => settle(false);
+    probe.src = AVIF_PROBE;
     this.resize();
     window.addEventListener("resize", () => this.resize());
     this.tick = this.tick.bind(this);
@@ -73,7 +90,7 @@ export class SequenceStage {
   }
 
   src(name: SequenceName, index: number, width: Width = 960) {
-    return `${this.base}/seq/${name}/${width}/${String(index + 1).padStart(4, "0")}.webp`;
+    return `${this.base}/seq/${name}/${width}/${String(index + 1).padStart(4, "0")}.${this.ext ?? "webp"}`;
   }
 
   private load(name: SequenceName, t: Tier, index: number) {
@@ -131,6 +148,7 @@ export class SequenceStage {
   }
 
   private pump() {
+    if (!this.ext) return;
     while (this.inFlight < MAX_IN_FLIGHT) {
       const job = this.nextJob();
       if (!job) return;
