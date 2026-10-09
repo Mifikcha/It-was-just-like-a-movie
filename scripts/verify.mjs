@@ -52,7 +52,7 @@ assert.deepEqual([...new Set(words)], [], `English words on the page: ${[...new 
 
 // every scroll sequence ships complete: AVIF in every resolution tier, WebP at 960 for browsers without AVIF
 const sequences = { approach: 90, f_blueprint: 72, f_stories: 72, f_work: 72, f_knowledge: 72, f_subjects: 72, f_formats: 72, f_final: 72 };
-const tiers = { 2560: ["avif"], 1920: ["avif"], 960: ["avif", "webp"] };
+const tiers = { 1920: ["avif"], 960: ["avif", "webp"] };
 for (const [name, count] of Object.entries(sequences)) {
   for (const [size, exts] of Object.entries(tiers)) {
     const files = await readdir(`dist/seq/${name}/${size}`);

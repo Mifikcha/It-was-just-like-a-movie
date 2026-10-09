@@ -4,7 +4,7 @@
 
 export type SequenceName = string;
 
-type Width = 2560 | 1920 | 960;
+type Width = 1920 | 960;
 
 /** One resolution of a sequence. */
 type Tier = {
@@ -60,11 +60,11 @@ export class SequenceStage {
     counts: Record<SequenceName, number>,
   ) {
     this.ctx = canvas.getContext("2d", { alpha: false })!;
-    // device pixels across the viewport pick the sharp tier: laptops 1920, large and retina screens 2560;
+    // screens wider than a phone sharpen to 1920 (1080p, downscaled from the 1440p renders);
     // phones and data saver stay on the light tier
     const px = window.innerWidth * Math.min(window.devicePixelRatio, 2);
     const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
-    const sharp: Width | null = saveData ? null : px > 2200 ? 2560 : px > 1400 ? 1920 : null;
+    const sharp: Width | null = !saveData && px > 1400 ? 1920 : null;
     for (const [name, frames] of Object.entries(counts) as [SequenceName, number][]) {
       const order: number[] = [];
       for (const step of [8, 4, 2, 1]) {
