@@ -1,5 +1,13 @@
 ---
 import { formats, links } from "../data/content";
+
+// The degree of support as an orbit: the teacher is a satellite around the student(s).
+// Deeper support = a tighter, faster orbit; the mini-group shares one orbit between three students.
+const orbits = [
+  { r: 21, period: "11s", students: [[0, 0]] },
+  { r: 17, period: "7s", students: [[-4.5, 2.5], [4.5, 2.5], [0, -5]] },
+  { r: 12, period: "4.2s", students: [[0, 0]] },
+];
 ---
 
 <!-- Scene 09: formats as degrees of support. Calm grazing view along the finished sector. -->
@@ -22,8 +30,13 @@ import { formats, links } from "../data/content";
         Программы, материалы и инструменты среды доступны в любом формате — уровни отличаются только участием преподавателя.
       </p>
       <ol class="formats__list">
-        {formats.map((f) => (
+        {formats.map((f, i) => (
           <li class="format" data-format>
+            <svg class="format__orbit" viewBox="-28 -28 56 56" aria-hidden="true" style={`--period: ${orbits[i % 3].period}`}>
+              <circle class="format__track" r={orbits[i % 3].r} />
+              {orbits[i % 3].students.map(([x, y]) => <circle class="format__student" cx={x} cy={y} r="2.6" />)}
+              <g class="format__sat"><circle cx="0" cy={-orbits[i % 3].r} r="3" /></g>
+            </svg>
             <p class="format__level">Уровень {f.level}</p>
             <h3>{f.title}</h3>
             <p class="format__price">{f.price} <small class:list={{ "is-month": f.unit === "в месяц" }}>{f.unit}</small></p>

@@ -398,6 +398,16 @@ button.photo-slot:focus-visible { border-color: var(--cyan-hud); }
 .format ul li::before { content: "— "; color: var(--cyan-hud); }
 .format__note { color: var(--dim); font-size: 0.82rem; line-height: 1.5; }
 
+/* degree of support as an orbit: the teacher circles the student(s); deeper support = tighter, faster */
+.format { position: relative; }
+.format__orbit { position: absolute; top: 0.9rem; right: 0.9rem; width: 3.6rem; height: 3.6rem; overflow: visible; }
+.format__track { fill: none; stroke: rgba(125, 207, 255, 0.5); stroke-width: 1; stroke-dasharray: 2 2; }
+.format__student { fill: var(--text-strong); }
+.format__sat { animation: format-orbit var(--period, 8s) linear infinite; }
+.format__sat circle { fill: var(--cyan-hud); filter: drop-shadow(0 0 2px rgba(125, 207, 255, 0.8)); }
+@keyframes format-orbit { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .format__sat { animation: none; } }
+
 /* ---------------------------------------------------------------- responsive + still mode */
 @media (max-width: 900px) {
   .still__content { overflow-y: auto; }
