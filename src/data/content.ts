@@ -3,6 +3,8 @@ export const links = {
   hnd: "https://mifikcha.github.io/Acheba_demo/",
   vk: "https://vk.ru/mifikcha",
   phone: "tel:+79397050642",
+  // the contact form posts here (worker/lead-relay -> Telegram); empty until the worker is deployed
+  leadEndpoint: "",
 };
 
 export const quotes = {
@@ -259,13 +261,6 @@ export const controlRules = [
   "После каждого занятия ученик и родитель получают короткий отчёт: что сделали, что просело, что дальше.",
 ];
 
-// One route as an example: a measurement (signal) and what the system does about it.
-export const controlTrace = [
-  { stage: "Диагностика", kind: "signal", text: "Дроби и отрицательные числа проседают." },
-  { stage: "Решение системы", kind: "action", text: "Маршрут перестроен: базовая арифметика вынесена в приоритет." },
-  { stage: "Практика", kind: "action", text: "Домашняя работа упрощена по форме, но увеличена по частоте." },
-  { stage: "Проверка", kind: "signal", text: "Через 2 недели блок закрыт, сложность повышена." },
-] as const;
 
 // ---------------------------------------------------------------- scene 06: one knowledge map, one student's route
 // Real data from the Hopes and Dreams repository (github.com/Mifikcha/Acheba):
@@ -489,12 +484,11 @@ export const messageTemplates = [
 export const journey = [
   { id: "hero", index: "01", title: "Возможность", progress: 0.42 },
   { id: "evidence", index: "02", title: "Доказательства", progress: 0.5 },
-  { id: "work", index: "03", title: "Работа", progress: 0.62 },
-  { id: "knowledge", index: "04", title: "Карта знаний", progress: 0.72 },
-  { id: "subjects", index: "05", title: "Предметы", progress: 0.8 },
-  { id: "human", index: "06", title: "Человек", progress: 0.88 },
-  { id: "formats", index: "07", title: "Форматы", progress: 0.95 },
-  { id: "final", index: "08", title: "Следующий шаг", progress: 1 },
+  { id: "work", index: "03", title: "Маршрут", progress: 0.62 },
+  { id: "subjects", index: "04", title: "Предметы", progress: 0.8 },
+  { id: "human", index: "05", title: "Человек", progress: 0.88 },
+  { id: "formats", index: "06", title: "Форматы", progress: 0.95 },
+  { id: "final", index: "07", title: "Следующий шаг", progress: 1 },
 ] as const;
 
 // What the final sequence shows between construction_progress 0.45 and 1.0.

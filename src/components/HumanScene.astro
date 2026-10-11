@@ -4,7 +4,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
 <!-- Scene 08: the camera flies to the observation pod and inside it. First the work — now the person. -->
-<section class="track track--still track--human" id="author" data-track="human" data-still data-scene-index="5">
+<section class="track track--still track--human" id="author" data-track="human" data-still data-scene-index="4">
   <div class="track__stage still" data-still-stage>
     <div class="human__layers" aria-hidden="true">
       <img class="human__layer" data-human-layer="inside" src={`${base}/scenes/pod_interior_comp.webp`} alt="" />
@@ -16,7 +16,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 
     <div class="still__content human" data-still-content>
       <div class="human__left">
-        <p class="eyebrow"><span>06 / 08</span>Наблюдательный модуль</p>
+        <p class="eyebrow"><span>05 / 07</span>Наблюдательный модуль</p>
         <div class="human__photos">
           {author.photos.map((p) => (
             <button type="button" class="photo-slot" data-zoom={`${base}/${p.src}`} aria-label={`Увеличить: ${p.alt}`}>

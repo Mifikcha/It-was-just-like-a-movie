@@ -1,0 +1,10 @@
+name = "hnd-lead-relay"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://mifikcha.github.io,http://127.0.0.1:4321,http://localhost:4321"
+
+# secrets (not in this file):
+#   npx wrangler secret put TELEGRAM_BOT_TOKEN
+#   npx wrangler secret put TEACHER_CHAT_ID

@@ -301,8 +301,9 @@ button.photo-slot:focus-visible { border-color: var(--cyan-hud); }
 
 /* degree of support as an orbit: the teacher circles the student(s); deeper support = tighter, faster */
 .format { position: relative; }
-.format__orbit { position: absolute; top: 0.9rem; right: 0.9rem; width: 3.6rem; height: 3.6rem; overflow: visible; }
-.format__track { fill: none; stroke: rgba(125, 207, 255, 0.5); stroke-width: 1; stroke-dasharray: 2 2; }
+/* wide enough to read as an orbit; it may reach over the card text a little */
+.format__orbit { position: absolute; top: -0.5rem; right: -0.5rem; width: 8.2rem; height: 8.2rem; overflow: visible; pointer-events: none; }
+.format__track { fill: none; stroke: rgba(125, 207, 255, 0.72); stroke-width: 1.4; stroke-dasharray: 3 4; vector-effect: non-scaling-stroke; }
 .format__student { fill: var(--text-strong); }
 .format__sat { animation: format-orbit var(--period, 8s) linear infinite; }
 .format__sat circle { fill: var(--cyan-hud); filter: drop-shadow(0 0 2px rgba(125, 207, 255, 0.8)); }

@@ -43,7 +43,7 @@ const layers = [
     <div class="blueprint__grid" aria-hidden="true"></div>
 
     <header class="blueprint__head">
-      <p class="eyebrow"><span>02 / 08</span>Инженерный слой · разрез А–А</p>
+      <p class="eyebrow"><span>02 / 07</span>Инженерный слой · разрез А–А</p>
       <h2 class="headline">Доказательства —<br />в конструкции.</h2>
     </header>
 
@@ -86,15 +86,21 @@ const layers = [
         </p>
       ))}
 
-      <svg class="drawing__marks" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
-        <line x1={800 - layers[0].r - 40} y1="500" x2={800 - layers[layers.length - 1].r} y2="500" />
-        {layers.map((l) => (
-          <g>
-            <line x1={800 - l.r} y1="486" x2={800 - l.r} y2="514" />
-            <circle cx={800 - l.r} cy="500" r="4" />
-            <text x={800 - l.r} y="474" text-anchor="middle">{l.n}</text>
-          </g>
-        ))}
+<svg class="drawing__marks" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
+        <!-- a radius from the star, up and to the right: the free corner between the header and the review -->
+        <line x1={800 + layers[layers.length - 1].r * Math.SQRT1_2} y1={500 - layers[layers.length - 1].r * Math.SQRT1_2}
+              x2={800 + (layers[0].r + 30) * Math.SQRT1_2} y2={500 - (layers[0].r + 30) * Math.SQRT1_2} />
+        {layers.map((l) => {
+          const x = 800 + l.r * Math.SQRT1_2;
+          const y = 500 - l.r * Math.SQRT1_2;
+          return (
+            <g>
+              <line x1={x - 10} y1={y - 10} x2={x + 10} y2={y + 10} />
+              <circle cx={x} cy={y} r="4" />
+              <text x={x + 18} y={y + 24} text-anchor="start">{l.n}</text>
+            </g>
+          );
+        })}
       </svg>
 
       <ol class="exposed-legend" aria-label="Слои в разнесённом виде">
@@ -117,9 +123,11 @@ const layers = [
       <header class="evidence__head">
         <h3 class="evidence__title">Истории учеников</h3>
         <p class="evidence__sub">Семь маршрутов: с чего начинали, как вели и чем закончилось.</p>
-        <ol class="evidence__ticks" aria-hidden="true">
-          {evidenceCases.map((c, i) => <li data-ev-tick={i}>{c.unit}</li>)}
-          <li data-ev-tick={evidenceCases.length}>ещё</li>
+        <ol class="evidence__ticks" aria-label="Истории">
+          {evidenceCases.map((c, i) => (
+            <li data-ev-tick={i}><button type="button" data-ev-go={i} aria-label={`История ${c.unit}`}>{c.unit}</button></li>
+          ))}
+          <li data-ev-tick={evidenceCases.length}><button type="button" data-ev-go={evidenceCases.length} aria-label="Ещё отзывы">ещё</button></li>
         </ol>
       </header>
 

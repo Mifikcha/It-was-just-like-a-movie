@@ -506,3 +506,36 @@
 .drawing__marks text { fill: #7dcfff; stroke: #1a1b26; font-size: 26px; }
 .drawing__marks line { stroke: rgba(125, 207, 255, 0.75); }
 .drawing__marks circle { fill: #1a1b26; stroke: #7dcfff; }
+
+/* 1:1 with the cutaway the hero flight ends on: the backdrop is cover-fitted 1920x1080 (scale s = max(vw/1920,
+   vh/1080)), its shell has r = 0.258 H at the centre; the drawing's shell has r = 0.28 of its height ->
+   drawing height = 0.258 * 1080 * s / 0.28 = max(52vw, 92.4vh), centred like the backdrop */
+.track__stage.blueprint .drawing {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(83.2vw, 147.9vh);
+  max-width: none;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  filter: none;
+  opacity: 0.86;
+}
+.track__stage.blueprint .drawing__marks text { font-size: 36px; font-weight: 600; fill: #c0caf5; stroke: #16161e; stroke-width: 9px; letter-spacing: 0.08em; }
+.track__stage.blueprint .drawing__marks line { stroke: #7dcfff; stroke-width: 1.6; }
+.track__stage.blueprint .drawing__marks circle { fill: #16161e; stroke: #7dcfff; stroke-width: 2; r: 6; }
+
+/* the ticks are controls: jump to a story */
+.evidence__ticks li { padding: 0; }
+.evidence__ticks button {
+  display: block;
+  width: 100%;
+  padding: 0.3rem 0.45rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+.evidence__ticks li:hover { border-color: var(--cyan-hud); color: var(--text-strong); }

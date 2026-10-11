@@ -16,7 +16,6 @@ const stage = new SequenceStage(canvas, canvas.dataset.base ?? "", {
   approach: 90,
   // scene 03 (work) arrives by the stories flight: the cutaway pulls back to the collector field
   f_stories: FLIGHT_FRAMES,
-  f_knowledge: FLIGHT_FRAMES,
   f_subjects: FLIGHT_FRAMES,
   f_formats: FLIGHT_FRAMES,
   f_final: FLIGHT_FRAMES,
@@ -101,15 +100,47 @@ placeAnchors();
 document.fonts?.ready.then(placeAnchors);
 
 // ---------------------------------------------------------------- contact form (no backend yet)
+// the contact form posts to the lead relay (worker/lead-relay), which sends the lead to the teacher's Telegram
 const setupContactForm = () => {
   const form = $<HTMLFormElement>("[data-contact-form]");
   const status = $("[data-contact-status]");
-  if (!form || !status) return;
-  form.addEventListener("submit", (event) => {
+  const submit = $<HTMLButtonElement>("[data-contact-submit]");
+  if (!form || !status || !submit) return;
+  const tgLink = '<a href="https://t.me/Skifcha" target="_blank" rel="noreferrer">@Skifcha</a>';
+  const say = (state: string, html: string) => {
+    form.dataset.state = state;
+    status.innerHTML = html;
+  };
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (form.dataset.state === "sending" || form.dataset.state === "sent") return;
     if (!form.reportValidity()) return;
-    status.innerHTML =
-      'Форма ещё не подключена к отправке. Напишите напрямую в <a href="https://t.me/Skifcha" target="_blank" rel="noreferrer">Телеграм</a> — данные никуда не отправлены.';
+    const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
+    const endpoint = form.dataset.endpoint ?? "";
+    if (!endpoint) {
+      say("error", `Отправка заявок ещё не подключена — напишите напрямую в Телеграм ${tgLink}. Данные никуда не отправлены.`);
+      return;
+    }
+    say("sending", "Отправляем…");
+    submit.disabled = true;
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...data, page: location.pathname }),
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok || !out.ok) throw new Error(out.error ?? String(res.status));
+      form.querySelectorAll("input").forEach((i) => (i.disabled = true));
+      submit.textContent = "Отправлено";
+      say("sent", `Заявка у Сергея: <b>${data.name.replace(/[<>&]/g, "")}</b>, ${data.contact.replace(/[<>&]/g, "")}. Он напишет вам в ближайшее время.`);
+    } catch (err) {
+      submit.disabled = false;
+      const msg = String((err as Error).message);
+      say("error", msg === "fields"
+        ? "Проверьте контакт: нужен телефон или ник в Телеграме."
+        : `Не получилось отправить. Попробуйте ещё раз или напишите в Телеграм ${tgLink}.`);
+    }
   });
 };
 
@@ -186,33 +217,95 @@ $("[data-subject-tab]")?.parentElement?.addEventListener("keydown", (e) => {
   next.focus();
 });
 
-// ---------------------------------------------------------------- scene 06: the physics map, one student's route
-// The map surfaces slowly; then the walked route, the current topic, the reopened one, and last what comes next.
+// ---------------------------------------------------------------- scene 03: the living constellation
+// The student's trajectory is fixed. Every other star wanders slowly on its own smooth random path, and the
+// links of the background graph fade in and out at their own pace, so the map keeps changing its shape.
+const skyLife = (() => {
+  const svg = $<SVGSVGElement>("[data-kmap]");
+  if (!svg || reducedMotion) return null;
+  const rnd = (seed: number) => () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+  const r = rnd(20261011);
+  const wave = () => ({ a: 10 + r() * 22, w: (2 * Math.PI) / (14 + r() * 26), p: r() * 6.28 });
+  const home = new Map<string, { x: number; y: number; wx: ReturnType<typeof wave>[]; wy: ReturnType<typeof wave>[] }>();
+  const stars = Array.from(svg.querySelectorAll<SVGCircleElement>("[data-star]"));
+  stars.forEach((c) => home.set(c.dataset.star!, { x: +c.getAttribute("cx")!, y: +c.getAttribute("cy")!, wx: [wave(), wave()], wy: [wave(), wave()] }));
+  const labels = Array.from(svg.querySelectorAll<SVGTextElement>("[data-star-label]"));
+  const lines = Array.from(svg.querySelectorAll<SVGLineElement>(".kmap__sky line")).map((l) => ({
+    el: l, a: l.dataset.a!, b: l.dataset.b!,
+    x1: +l.getAttribute("x1")!, y1: +l.getAttribute("y1")!, x2: +l.getAttribute("x2")!, y2: +l.getAttribute("y2")!,
+    fade: { w: (2 * Math.PI) / (18 + r() * 30), p: r() * 6.28 },
+  }));
+  const off = (id: string, t: number) => {
+    const h = home.get(id);
+    if (!h) return [0, 0];
+    return [h.wx.reduce((s, q) => s + q.a * Math.sin(q.w * t + q.p), 0), h.wy.reduce((s, q) => s + q.a * Math.sin(q.w * t + q.p), 0)];
+  };
+  let frame = 0;
+  let last = 0;
+  const tick = (now: number) => {
+    frame = requestAnimationFrame(tick);
+    if (now - last < 33) return; // ~30 fps is plenty for motion this slow
+    last = now;
+    const t = now / 1000;
+    stars.forEach((c) => {
+      const h = home.get(c.dataset.star!)!;
+      const [dx, dy] = off(c.dataset.star!, t);
+      c.setAttribute("cx", (h.x + dx).toFixed(1));
+      c.setAttribute("cy", (h.y + dy).toFixed(1));
+    });
+    labels.forEach((l) => {
+      const [dx, dy] = off(l.dataset.starLabel!, t);
+      l.setAttribute("transform", `translate(${dx.toFixed(1)} ${dy.toFixed(1)})`);
+    });
+    lines.forEach((l) => {
+      const [ax, ay] = off(l.a, t);
+      const [bx, by] = off(l.b, t);
+      l.el.setAttribute("x1", (l.x1 + ax).toFixed(1));
+      l.el.setAttribute("y1", (l.y1 + ay).toFixed(1));
+      l.el.setAttribute("x2", (l.x2 + bx).toFixed(1));
+      l.el.setAttribute("y2", (l.y2 + by).toFixed(1));
+      // a link dissolves and reappears: the graph's structure changes, not only its position
+      const v = 0.5 + 0.5 * Math.sin(l.fade.w * t + l.fade.p);
+      l.el.style.strokeOpacity = (v * v * 1.1).toFixed(3);
+    });
+  };
+  return (on: boolean) => {
+    if (on && !frame) frame = requestAnimationFrame(tick);
+    if (!on && frame) {
+      cancelAnimationFrame(frame);
+      frame = 0;
+    }
+  };
+})();
+
+// ---------------------------------------------------------------- scene 03: the four rules, answered on the map
+// 1 diagnostics -> the map and the mastered topics surface; 2 homework -> the route draws on to the focus;
+// 3 a repeated error -> the reopened topic returns to the route; 4 the report -> progress and the next step.
+const RULES = [0.34, 0.49, 0.64, 0.78, 0.93];
+const rules = $$("[data-rule]");
 function setMap(p: number, svg: SVGElement) {
   const set = (k: string, v: number) => svg.style.setProperty(k, v.toFixed(3));
-  set("--sky", range(p, 0.32, 0.5));
-  set("--route", ease(range(p, 0.46, 0.64)));
-  const lit = { focus: range(p, 0.62, 0.68), returned: range(p, 0.68, 0.75), next: range(p, 0.77, 0.83) };
+  const [r1, r2, r3, r4, end] = RULES;
+  set("--sky", range(p, r1, r1 + 0.08));
+  set("--route", ease(range(p, r2, r2 + 0.1)));
+  const lit = { focus: range(p, r2 + 0.06, r2 + 0.12), returned: range(p, r3, r3 + 0.05), next: range(p, r4, r4 + 0.05) };
   set("--focus", lit.focus);
   set("--returned", ease(lit.returned));
   // the reopened topic stands out once, briefly, then settles back into the map
-  set("--returned-flash", range(p, 0.7, 0.75) * (1 - range(p, 0.77, 0.84)));
+  set("--returned-flash", range(p, r3 + 0.02, r3 + 0.06) * (1 - range(p, r4 - 0.02, r4 + 0.04)));
   set("--next", lit.next);
-  // the calm loop on the route runs only while the drawn route is on screen
-  svg.toggleAttribute("data-live", p > 0.64 && p < 0.97);
+  // the calm idle motion (breathing sky, drift, pulse on the focus) runs only while the map is on screen
+  svg.toggleAttribute("data-live", p > 0.3 && p < 0.97);
+  skyLife?.(p > 0.3 && p < 0.97);
   $$("[data-lit-line]").forEach((l) => l.style.setProperty("--o", lit[l.dataset.litLine as keyof typeof lit].toFixed(3)));
-}
-
-// ---------------------------------------------------------------- scene 05: one route, signal by signal
-// The steps light up in order as the visitor scrolls; earlier ones stay lit, later ones wait.
-const trace = $("[data-trace]");
-const traceSteps = $$("[data-trace-step]");
-function setTrace(p: number) {
-  if (!trace) return;
-  const t = range(p, 0.36, 0.86);
-  trace.style.setProperty("--trace", t.toFixed(3));
-  const k = Math.min(traceSteps.length - 1, Math.floor(t * traceSteps.length));
-  traceSteps.forEach((s, i) => (s.dataset.state = i < k ? "done" : i === k ? "current" : "pending"));
+  const k = RULES.findIndex((r, i) => p >= r && p < RULES[i + 1]);
+  // desktop shows one rule at a time (the one the map is answering); before the first and after the last
+  // the nearest rule stays on screen
+  const shown = k >= 0 ? k : p >= end ? RULES.length - 2 : 0;
+  rules.forEach((r, i) => (r.dataset.state = i < shown ? "done" : i === shown ? "current" : "next"));
+  $$("[data-rule-tick]").forEach((t, i) => t.toggleAttribute("data-on", i <= shown));
+  $("[data-rules]")?.setAttribute("data-live", "");
+  $("[data-progress]")?.style.setProperty("--o", range(p, r4, r4 + 0.05).toFixed(3));
 }
 
 // ---------------------------------------------------------------- scroll journey
@@ -226,12 +319,11 @@ const FLIGHT: Record<string, { seq: string; from: number; to: number }> = {
   // scene 02 holds the last frame of the opening flight (the cutaway)
   blueprint: { seq: "approach", from: 0.42, to: 0.5 },
   work: { seq: "f_stories", from: 0.5, to: 0.62 },
-  knowledge: { seq: "f_knowledge", from: 0.62, to: 0.72 },
-  subjects: { seq: "f_subjects", from: 0.72, to: 0.8 },
+  subjects: { seq: "f_subjects", from: 0.62, to: 0.8 },
   formats: { seq: "f_formats", from: 0.88, to: 0.95 },
   build: { seq: "f_final", from: 0.95, to: 1 },
 };
-const ORDER = ["approach", "blueprint", "work", "knowledge", "subjects", "human", "formats", "build"];
+const ORDER = ["approach", "blueprint", "work", "subjects", "human", "formats", "build"];
 // the human layer has no flight of its own: it holds the subjects' last frame behind the black
 const seqOf = (track: string) => (track === "approach" ? "approach" : track === "human" ? "f_subjects" : FLIGHT[track].seq);
 // load the flight of this scene and the next one while the visitor is here
@@ -325,6 +417,16 @@ const setupJourney = () => {
   // straight from the hero into the stories; the drawing is their background from the first moment and
   // keeps working while the visitor reads: subsystems light up in turn, the section breathes into the
   // exposed view and back (one slow cycle per four stories)
+  // the 01–07 / «ещё» ticks jump to that story
+  const bpTrack = $("[data-track='blueprint']");
+  if (!compact && bpTrack) $$<HTMLButtonElement>("[data-ev-go]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const i = Number(b.dataset.evGo);
+      const at = EV[0] + ((i + 0.45) / evSteps.length) * (EV[1] - EV[0]);
+      const top = bpTrack.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top: top + at * (bpTrack.offsetHeight - window.innerHeight), behavior: "smooth" });
+    }),
+  );
   if (!compact) ScrollTrigger.create({
     trigger: "[data-track='blueprint']",
     start: "top top",
@@ -342,10 +444,12 @@ const setupJourney = () => {
       set("--bp-callouts", 0);
       set("--bp-recede", 1);
       const ev = range(p, EV[0], EV[1]) * evSteps.length;
-      const breathe = 0.5 - 0.5 * Math.cos((ev * Math.PI) / 2);
+      // one slow cycle over the whole archive: the section opens into the exposed view and closes again
+      const whole = range(p, EV[0], EV[1]);
+      const breathe = Math.sin(Math.PI * whole) ** 2;
       set("--bp-exposed", breathe);
       // colour from the very first story: a new subsystem every ~half story, the coloured ones first
-      const active = BG_ORDER[Math.floor(ev * 2) % BG_ORDER.length];
+      const active = BG_ORDER[Math.min(BG_ORDER.length - 1, Math.floor(whole * BG_ORDER.length))];
       bpPasses.forEach((el) => el.toggleAttribute("data-active", el.dataset.bpPass === active));
       bpCallouts.forEach((el) => el.removeAttribute("data-active"));
       bpLabels.forEach((el) => el.removeAttribute("data-active"));
@@ -370,8 +474,7 @@ const setupJourney = () => {
 
   // scenes 04-09: flight in, hold the last frame, content on top
   const stillHandlers: Record<string, (p: number, el: HTMLElement) => void> = {
-    work: (p) => setTrace(p),
-    knowledge: (p, el) => {
+    work: (p, el) => {
       const svg = el.querySelector<SVGElement>("[data-kmap]");
       if (!svg) return;
       svg.style.opacity = String(range(p, 0.3, 0.36) * (1 - range(p, 0.95, 1)));
@@ -439,7 +542,7 @@ const setupJourney = () => {
         const shown = range(p, 0.42, 0.5) * (1 - range(p, 0.86, 0.9));
         el.style.setProperty("--shade", String(shown));
         fadeIn(content, shown, 20);
-        setScene(5);
+        setScene(4);
       },
     });
   }
@@ -454,7 +557,7 @@ const setupJourney = () => {
       flight("build", range(p, 0, 0.45));
       stage.setFade(0);
       fadeIn(decisionUi, range(p, 0.5, 0.6));
-      setScene(7);
+      setScene(6);
     },
   });
 };
@@ -485,7 +588,6 @@ const setupStill = () => {
     { threshold: 0.3 },
   );
   $$("[data-track]").forEach((t) => io.observe(t));
-  setTrace(1);
   const kmap = $<SVGElement>("[data-kmap]");
   if (kmap) setMap(1, kmap);
 };

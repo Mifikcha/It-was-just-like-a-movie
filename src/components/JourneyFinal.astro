@@ -3,7 +3,7 @@ import { links, messageTemplates, quotes } from "../data/content";
 ---
 
 <!-- Scene 10: flight back to the hero framing — the megastructure complete — then contact. -->
-<section class="track track--final" id="contact" data-track="build" data-scene-index="7">
+<section class="track track--final" id="contact" data-track="build" data-scene-index="6">
   <div class="track__stage">
     <div class="decision-ui" data-decision-ui>
       <div class="decision-ui__left">
@@ -38,7 +38,11 @@ import { links, messageTemplates, quotes } from "../data/content";
         </ul>
         <p class="templates__status" data-template-status role="status"></p>
       </div>
-      <form class="contact-line" data-contact-form novalidate>
+      <form class="contact-line" data-contact-form data-endpoint={links.leadEndpoint} novalidate>
+        <label class="contact-line__trap" aria-hidden="true">
+          <span>Сайт</span>
+          <input name="website" tabindex="-1" autocomplete="off" />
+        </label>
         <label>
           <span>Имя</span>
           <input name="name" autocomplete="name" required />
@@ -47,7 +51,7 @@ import { links, messageTemplates, quotes } from "../data/content";
           <span>Телеграм или телефон</span>
           <input name="contact" autocomplete="tel" required />
         </label>
-        <button class="cta cta--quiet" type="submit">Оставить контакт</button>
+        <button class="cta cta--quiet" type="submit" data-contact-submit>Оставить контакт</button>
         <p class="contact-line__status" data-contact-status role="status"></p>
       </form>
       </div>
