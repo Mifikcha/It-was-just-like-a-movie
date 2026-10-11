@@ -26,7 +26,7 @@ type Sequence = {
 };
 
 // a few requests at a time, so the queue order holds instead of every frame sharing the line
-const MAX_IN_FLIGHT = 8;
+const MAX_IN_FLIGHT = 12;
 
 const FRAME_W = 1920;
 const FRAME_H = 1080;
