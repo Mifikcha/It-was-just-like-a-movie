@@ -14,8 +14,8 @@ const FLIGHT_FRAMES = 72;
 const stage = new SequenceStage(canvas, canvas.dataset.base ?? "", {
   // the opening flight: first screen straight into the cutaway of scene 02
   approach: 90,
+  // scene 03 (work) arrives by the stories flight: the cutaway pulls back to the collector field
   f_stories: FLIGHT_FRAMES,
-  f_work: FLIGHT_FRAMES,
   f_knowledge: FLIGHT_FRAMES,
   f_subjects: FLIGHT_FRAMES,
   f_formats: FLIGHT_FRAMES,
@@ -122,30 +122,6 @@ const setupHeader = () => {
 };
 
 
-// ---------------------------------------------------------------- review screenshots viewer
-const reviewShots = $$("[data-review]");
-const reviewCount = $("[data-review-count]");
-let reviewIndex = -1;
-let reviewManual = false;
-let reviewTimer = 0;
-function showReview(i: number) {
-  if (!reviewShots.length) return;
-  const next = (i + reviewShots.length) % reviewShots.length;
-  if (next === reviewIndex) return;
-  reviewIndex = next;
-  reviewShots.forEach((el, k) => el.toggleAttribute("data-active", k === reviewIndex));
-  if (reviewCount) reviewCount.textContent = `${String(reviewIndex + 1).padStart(2, "0")} / ${String(reviewShots.length).padStart(2, "0")}`;
-}
-showReview(0);
-const manualReview = (d: number) => {
-  reviewManual = true;
-  showReview(reviewIndex + d);
-  window.clearTimeout(reviewTimer);
-  reviewTimer = window.setTimeout(() => (reviewManual = false), 6000);
-};
-$("[data-review-prev]")?.addEventListener("click", () => manualReview(-1));
-$("[data-review-next]")?.addEventListener("click", () => manualReview(1));
-
 // ---------------------------------------------------------------- lightbox (reviews, diplomas)
 const lightbox = $<HTMLDialogElement>("[data-lightbox]");
 const lightboxImg = $<HTMLImageElement>("[data-lightbox-img]");
@@ -155,12 +131,6 @@ const openLightbox = (src: string, alt: string) => {
   lightboxImg.alt = alt;
   lightbox.showModal();
 };
-reviewShots.forEach((b) =>
-  b.addEventListener("click", () => {
-    const img = b.querySelector("img")!;
-    openLightbox(img.src, img.alt);
-  }),
-);
 $$("[data-zoom]").forEach((b) => b.addEventListener("click", () => openLightbox(b.dataset.zoom!, b.getAttribute("aria-label") ?? "")));
 lightbox?.addEventListener("click", (e) => {
   if (e.target === lightbox) lightbox.close();
@@ -255,14 +225,13 @@ const decisionUi = $("[data-decision-ui]");
 const FLIGHT: Record<string, { seq: string; from: number; to: number }> = {
   // scene 02 holds the last frame of the opening flight (the cutaway)
   blueprint: { seq: "approach", from: 0.42, to: 0.5 },
-  stories: { seq: "f_stories", from: 0.5, to: 0.55 },
-  work: { seq: "f_work", from: 0.55, to: 0.62 },
+  work: { seq: "f_stories", from: 0.5, to: 0.62 },
   knowledge: { seq: "f_knowledge", from: 0.62, to: 0.72 },
   subjects: { seq: "f_subjects", from: 0.72, to: 0.8 },
   formats: { seq: "f_formats", from: 0.88, to: 0.95 },
   build: { seq: "f_final", from: 0.95, to: 1 },
 };
-const ORDER = ["approach", "blueprint", "stories", "work", "knowledge", "subjects", "human", "formats", "build"];
+const ORDER = ["approach", "blueprint", "work", "knowledge", "subjects", "human", "formats", "build"];
 // the human layer has no flight of its own: it holds the subjects' last frame behind the black
 const seqOf = (track: string) => (track === "approach" ? "approach" : track === "human" ? "f_subjects" : FLIGHT[track].seq);
 // load the flight of this scene and the next one while the visitor is here
@@ -308,7 +277,7 @@ const setupJourney = () => {
   });
 
   // in-page links land on the settled screen of a scene, not at the start of its flight
-  const READY: Record<string, number> = { blueprint: 0.24, human: 0.56, formats: 0.66 };
+  const READY: Record<string, number> = { blueprint: 0.035, human: 0.56, formats: 0.66 };
   if (!compact) $$<HTMLAnchorElement>('a[href^="#"]').forEach((a) =>
     a.addEventListener("click", (e) => {
       const track = document.getElementById(a.hash.slice(1))?.closest<HTMLElement>("[data-track]");
@@ -341,15 +310,21 @@ const setupJourney = () => {
     );
   }
 
-  // scene 02: the cutaway (reached by the opening flight) -> blueprint overlay -> subsystem highlights + archive + reviews -> exposed view
+  // scene 02, two beats. The drawing: the cutaway becomes a blueprint, subsystems light up, the exposed view.
+  // Then it recedes into the background and the seven routes come forward one by one (+ more reviews).
   const bp = $("[data-blueprint]");
   const bpPasses = $$("[data-bp-pass]");
   const bpCallouts = $$("[data-bp-callout]");
   const bpLabels = $$("[data-bp-label]");
   const bpOrder = ["pass_shell", "pass_frame", "pass_core", "pass_mirrors", "pass_thermal", "pass_rings", "pass_modules"];
-  const bpDossier = $("[data-bp-dossier]");
-  const archive = $("[data-archive-list]");
-  const cases = $$("[data-case]");
+  const evidence = $("[data-evidence]");
+  const evSteps = $$("[data-ev-step]");
+  const evTicks = $$("[data-ev-tick]");
+  const EV = [0.03, 0.97];
+  const BG_ORDER = ["pass_mirrors", "pass_thermal", "pass_core", "pass_rings", "pass_modules", "pass_frame", "pass_shell"];
+  // straight from the hero into the stories; the drawing is their background from the first moment and
+  // keeps working while the visitor reads: subsystems light up in turn, the section breathes into the
+  // exposed view and back (one slow cycle per four stories)
   if (!compact) ScrollTrigger.create({
     trigger: "[data-track='blueprint']",
     start: "top top",
@@ -359,44 +334,42 @@ const setupJourney = () => {
       if (!bp) return;
       flight("blueprint", 1);
       stage.setFade(0);
-      fadeIn(bp, range(p, 0.1, 0.16) * (1 - range(p, 0.95, 1)), 0);
+      const shown = range(p, 0, 0.03) * (1 - range(p, 0.975, 1));
+      fadeIn(bp, shown, 0);
       const set = (k: string, v: number) => bp.style.setProperty(k, v.toFixed(3));
-      set("--bp-blue", range(p, 0.12, 0.18));
-      set("--bp-grid", range(p, 0.11, 0.17));
-      set("--bp-callouts", range(p, 0.17, 0.2));
-      set("--bp-exposed", range(p, 0.88, 0.93));
-      const active = p >= 0.2 && p < 0.88 ? bpOrder[Math.min(6, Math.floor(range(p, 0.2, 0.86) * 7))] : "";
+      set("--bp-blue", 1);
+      set("--bp-grid", 1);
+      set("--bp-callouts", 0);
+      set("--bp-recede", 1);
+      const ev = range(p, EV[0], EV[1]) * evSteps.length;
+      const breathe = 0.5 - 0.5 * Math.cos((ev * Math.PI) / 2);
+      set("--bp-exposed", breathe);
+      // colour from the very first story: a new subsystem every ~half story, the coloured ones first
+      const active = BG_ORDER[Math.floor(ev * 2) % BG_ORDER.length];
       bpPasses.forEach((el) => el.toggleAttribute("data-active", el.dataset.bpPass === active));
-      bpCallouts.forEach((el) => {
-        const on = el.dataset.pass === active;
-        el.toggleAttribute("data-active", on);
-        bpLabels.find((l) => l.dataset.bpLabel === el.dataset.bpCallout)?.toggleAttribute("data-active", on);
+      bpCallouts.forEach((el) => el.removeAttribute("data-active"));
+      bpLabels.forEach((el) => el.removeAttribute("data-active"));
+      // the routes: one case per step; inside a case its route lights up line by line
+      fadeIn(evidence, range(p, 0.005, 0.03), 16);
+      const t = ev;
+      const k = Math.min(evSteps.length - 1, Math.floor(t));
+      const local = t - k;
+      evSteps.forEach((s, i) => {
+        s.dataset.state = i < k ? "past" : i === k ? "current" : "next";
+        s.toggleAttribute("inert", i !== k);
+        if (i === k) s.querySelectorAll<HTMLElement>("[data-ev-line]").forEach((l, j, all) =>
+          l.style.setProperty("--o", range(local, 0.04 + (j * 0.5) / all.length, 0.1 + (j * 0.5) / all.length).toFixed(3)));
       });
-      fadeIn(bpDossier, range(p, 0.18, 0.23));
-      // the archive of trajectories scrolls with the page; the case at the reading line is active
-      const a = range(p, 0.22, 0.86);
-      if (archive && cases.length) {
-        const idx = Math.min(cases.length - 1, Math.floor(a * cases.length));
-        const target = cases[idx].offsetTop - 12;
-        const prev = idx > 0 ? cases[idx - 1].offsetTop - 12 : 0;
-        const local = a * cases.length - idx;
-        archive.style.transform = `translate3d(0, ${-(prev + (target - prev) * ease(Math.min(1, local * 3)))}px, 0)`;
-        cases.forEach((c, i) => c.toggleAttribute("data-active", i === idx));
-      }
-      if (!reviewManual) showReview(Math.min(reviewShots.length - 1, Math.floor(range(p, 0.22, 0.9) * reviewShots.length)));
+      evTicks.forEach((tk, i) => {
+        tk.toggleAttribute("data-done", i < k);
+        tk.toggleAttribute("data-current", i === k);
+      });
       setScene(1);
     },
   });
 
   // scenes 04-09: flight in, hold the last frame, content on top
   const stillHandlers: Record<string, (p: number, el: HTMLElement) => void> = {
-    stories: (p, el) => {
-      const stories = $$("[data-story]");
-      const idx = Math.min(stories.length - 1, Math.floor(range(p, 0.34, 0.95) * stories.length));
-      stories.forEach((s, i) => s.toggleAttribute("data-active", i === idx));
-      const counter = el.querySelector("[data-story-index]");
-      if (counter) counter.textContent = String(idx + 1);
-    },
     work: (p) => setTrace(p),
     knowledge: (p, el) => {
       const svg = el.querySelector<SVGElement>("[data-kmap]");
@@ -466,7 +439,7 @@ const setupJourney = () => {
         const shown = range(p, 0.42, 0.5) * (1 - range(p, 0.86, 0.9));
         el.style.setProperty("--shade", String(shown));
         fadeIn(content, shown, 20);
-        setScene(6);
+        setScene(5);
       },
     });
   }
@@ -481,7 +454,7 @@ const setupJourney = () => {
       flight("build", range(p, 0, 0.45));
       stage.setFade(0);
       fadeIn(decisionUi, range(p, 0.5, 0.6));
-      setScene(8);
+      setScene(7);
     },
   });
 };

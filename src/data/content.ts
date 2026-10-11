@@ -192,6 +192,64 @@ export const stories: Story[] = [
   },
 ];
 
+// ---------------------------------------------------------------- scene 02: evidence — seven routes, each with its review
+// A case is one module of the archive: the result first, then the route (start → decision → work → result),
+// and the message the family or the student sent afterwards. The three full stories lend their richer chapters.
+export type Review = { shot: string; excerpt: string; source: string };
+export type EvidenceCase = {
+  unit: string;
+  exam: string;
+  subjects: string;
+  result: string;
+  title: string;
+  span?: string;
+  route: { label: string; text: string }[];
+  reviews: Review[];
+};
+
+const shot = (n: number) => `evidence/review-${String(n).padStart(2, "0")}.webp`;
+// the review that belongs to each module (the others go to "ещё отзывы")
+const caseReviews: Record<string, Review[]> = {
+  "01": [{ shot: shot(1), source: "из сообщения родителя", excerpt: "Вы нам очень помогли не только в учёбе, но и в психологическом состоянии и в моральном плане." }],
+  "02": [{ shot: shot(4), source: "из сообщения родителя", excerpt: "Поступил в МИРЭА на ИТ-инфраструктуру. <…> Да, я рассказываю о вас, если кто-то спрашивает." }],
+  "04": [{ shot: shot(2), source: "из сообщения родителя", excerpt: "Он действительно с большим интересом и охотой занимался. Я думаю, что он в вас нашёл не просто учителя, но и наставника, друга, товарища." }],
+  "05": [
+    { shot: shot(9), source: "из отзыва ученицы", excerpt: "Задания идут постепенно, от простого к более сложному, поэтому в процессе подготовки особых трудностей не возникало. Также преподаватель без проблем отвечает на вопросы вне занятий." },
+    { shot: shot(7), source: "из переписки с ученицей", excerpt: "О, прикиньте, у меня в школе самый высокий суммарный балл за 3 предмета. У меня 265." },
+    { shot: shot(5), source: "из сообщения ученицы", excerpt: "Я поступила в МГСУ, управление в строительстве, у меня всё хорошо." },
+  ],
+  "07": [{ shot: shot(3), source: "из переписки с родителем", excerpt: "Поступил <…> в МИРЭА, надеюсь, осилит обучение. <…> Да, конечно буду рекомендовать вас." }],
+};
+const storyOf = (unit: string) => stories.find((st) => st.unit === unit);
+
+export const evidenceCases: EvidenceCase[] = trajectories.map((t) => {
+  const st = storyOf(t.unit);
+  return {
+    unit: t.unit,
+    exam: t.exam,
+    subjects: t.subjects,
+    result: t.highlight,
+    title: st?.title ?? t.brief,
+    span: st?.span,
+    route: st
+      ? st.chapters
+      : [
+          { label: "Старт", text: t.start },
+          { label: "Решение", text: t.task },
+          { label: "Работа", text: t.work },
+          { label: "Итог", text: t.result },
+        ],
+    reviews: caseReviews[t.unit] ?? [],
+  };
+});
+
+// reviews without a module of their own
+export const moreReviews: { shots: string[]; excerpt: string; source: string }[] = [
+  { shots: [shot(8), shot(6)], source: "ученица · базовая математика", excerpt: "Пришла с пустой головой и забытыми знаниями, а ушла с твёрдой 4 за экзамен по базовой математике, на что изначально вообще не рассчитывала." },
+  { shots: [shot(10)], source: "ученик · информатика", excerpt: "С ним гораздо лучше стал понимать язык программирования, в целом получил множество хороших советов по экзамену." },
+  { shots: [shot(11)], source: "ученица · 9 класс", excerpt: "Всё понятно объясняет и разбирает каждый момент, который не понятен. Благодаря ему закончила 9 класс на отлично." },
+];
+
 // ---------------------------------------------------------------- scene 05: work (Edison) — how the system reacts
 // General rules: what happens after which event.
 export const controlRules = [
@@ -431,13 +489,12 @@ export const messageTemplates = [
 export const journey = [
   { id: "hero", index: "01", title: "Возможность", progress: 0.42 },
   { id: "evidence", index: "02", title: "Доказательства", progress: 0.5 },
-  { id: "stories", index: "03", title: "Истории", progress: 0.55 },
-  { id: "work", index: "04", title: "Работа", progress: 0.62 },
-  { id: "knowledge", index: "05", title: "Карта знаний", progress: 0.72 },
-  { id: "subjects", index: "06", title: "Предметы", progress: 0.8 },
-  { id: "human", index: "07", title: "Человек", progress: 0.88 },
-  { id: "formats", index: "08", title: "Форматы", progress: 0.95 },
-  { id: "final", index: "09", title: "Следующий шаг", progress: 1 },
+  { id: "work", index: "03", title: "Работа", progress: 0.62 },
+  { id: "knowledge", index: "04", title: "Карта знаний", progress: 0.72 },
+  { id: "subjects", index: "05", title: "Предметы", progress: 0.8 },
+  { id: "human", index: "06", title: "Человек", progress: 0.88 },
+  { id: "formats", index: "07", title: "Форматы", progress: 0.95 },
+  { id: "final", index: "08", title: "Следующий шаг", progress: 1 },
 ] as const;
 
 // What the final sequence shows between construction_progress 0.45 and 1.0.

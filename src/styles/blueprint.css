@@ -1,11 +1,11 @@
-/* Scene 03 — engineering layer (blueprint / evidence). */
+/* Scene 02 — evidence: the engineering drawing, then the routes with their reviews. */
 
-.track--blueprint { height: 900vh; }
+.track--blueprint { height: 1250vh; }
 
 .blueprint {
   --bp-line: rgba(125, 207, 255, 0.16);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(18rem, 25rem);
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 0.6rem 2rem;
   padding: 88px clamp(20px, 3.4vw, 56px) 20px;
@@ -228,105 +228,6 @@
   box-shadow: 0 0 0 4px rgba(125, 207, 255, 0.15);
 }
 
-.dossier {
-  grid-row: 2 / 4;
-  grid-column: 2;
-  align-self: stretch;
-  display: grid;
-  grid-template-rows: minmax(0, 1.25fr) minmax(0, 1fr);
-  gap: 1rem;
-  min-height: 0;
-  opacity: 0;
-  visibility: hidden;
-}
-
-.dossier__title {
-  color: var(--cyan-hud);
-  font-family: var(--mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.dossier__card {
-  display: grid;
-  gap: 0.6rem;
-  padding: 0.9rem 1rem;
-  border: 1px solid rgba(125, 207, 255, 0.22);
-  border-left-color: rgba(125, 207, 255, 0.6);
-  background: rgba(8, 16, 32, 0.72);
-}
-
-.dossier__tag {
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 0.64rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.dossier__card small {
-  color: var(--dim);
-  font-family: var(--mono);
-  font-size: 0.64rem;
-}
-
-.dossier__trajectory {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 0.6rem;
-  color: var(--text-strong);
-  font-family: var(--serif);
-  font-size: 1.2rem;
-}
-
-.dossier__trajectory i {
-  height: 1px;
-  background: linear-gradient(90deg, var(--dim), var(--cyan-hud));
-}
-
-.dossier__wave {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  height: 28px;
-}
-
-.dossier__wave i {
-  flex: 1;
-  height: var(--h);
-  background: rgba(125, 207, 255, 0.55);
-}
-
-.dossier__scan {
-  display: grid;
-  place-items: center;
-  height: 64px;
-  border: 1px dashed rgba(125, 207, 255, 0.35);
-  background: repeating-linear-gradient(45deg, rgba(125, 207, 255, 0.08) 0 6px, transparent 6px 12px);
-  color: var(--cyan-hud);
-  font-family: var(--mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.dossier__detail {
-  margin: 0;
-  border: 1px solid rgba(125, 207, 255, 0.22);
-}
-
-.dossier__detail img { width: 100%; filter: saturate(0.7); }
-
-.dossier__detail figcaption {
-  padding: 0.4rem 0.6rem;
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.06em;
-}
-
 .title-block {
   grid-column: 1;
   justify-self: end;
@@ -346,168 +247,15 @@
 
 @media (max-width: 900px) {
   .blueprint { grid-template-columns: 1fr; overflow-y: auto; }
-  .dossier { grid-row: auto; grid-column: 1; }
   .callout, .drawing__leaders, .title-block { display: none; }
 }
 
 .is-still .track--blueprint { height: auto; }
 .is-still .blueprint { opacity: 1; visibility: visible; --bp-blue: 1; --bp-grid: 1; --bp-callouts: 1; }
-.is-still .dossier { opacity: 1; visibility: visible; }
 
 /* dense layers get a lighter highlight */
 .drawing__pass[data-bp-pass="pass_shell"][data-active] { opacity: calc(0.28 * (1 - var(--bp-exposed, 0))); }
 .drawing__pass[data-bp-pass="pass_frame"][data-active] { opacity: calc(0.5 * (1 - var(--bp-exposed, 0))); }
-
-/* ---- archive of trajectories */
-.archive,
-.reviews {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 0.6rem;
-  min-height: 0;
-}
-
-.dossier__title span { color: var(--dim); }
-
-.archive__viewport {
-  position: relative;
-  overflow: hidden;
-  min-height: 0;
-  -webkit-mask-image: linear-gradient(transparent, #000 6%, #000 88%, transparent);
-  mask-image: linear-gradient(transparent, #000 6%, #000 88%, transparent);
-}
-
-.archive__list {
-  display: grid;
-  gap: 0.7rem;
-  margin: 0;
-  padding: 0.6rem 0 40vh;
-  list-style: none;
-  will-change: transform;
-}
-
-.case {
-  display: grid;
-  gap: 0.45rem;
-  padding: 0.8rem 0.95rem;
-  border: 1px solid rgba(125, 207, 255, 0.16);
-  border-left-color: rgba(125, 207, 255, 0.3);
-  background: rgba(8, 16, 32, 0.7);
-  color: var(--muted);
-  font-size: 0.8rem;
-  line-height: 1.45;
-  opacity: 0.75;
-  transition: opacity 400ms ease, border-color 400ms ease;
-}
-
-.case[data-active] {
-  opacity: 1;
-  border-color: rgba(125, 207, 255, 0.4);
-  border-left-color: var(--cyan-hud);
-}
-
-.case__head {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  font-family: var(--mono);
-  font-size: 0.64rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.case__head b { color: var(--cyan-hud); font-weight: 400; }
-.case__head span { color: var(--dim); text-align: right; }
-
-.case__rows {
-  display: grid;
-  grid-template-columns: 5.2rem 1fr;
-  gap: 0.35rem 0.7rem;
-  margin: 0.2rem 0 0;
-}
-
-.case__rows dt {
-  color: var(--dim);
-  font-family: var(--mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding-top: 0.15rem;
-}
-
-.case__rows dd { margin: 0; color: var(--text); }
-.case__result { color: var(--text-strong) !important; font-weight: 600; }
-.case__start { color: var(--muted); }
-
-.case__highlight {
-  color: var(--text-strong);
-  font-family: var(--serif);
-  font-size: 1.05rem;
-  line-height: 1.2;
-}
-
-/* ---- review screenshots */
-.reviews__frame {
-  position: relative;
-  min-height: 0;
-  overflow: hidden;
-  border: 1px solid rgba(125, 207, 255, 0.22);
-  background:
-    repeating-linear-gradient(45deg, rgba(125, 207, 255, 0.04) 0 6px, transparent 6px 12px),
-    rgba(8, 16, 32, 0.72);
-}
-
-.reviews__shot {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 0.6rem;
-  border: 0;
-  background: none;
-  cursor: zoom-in;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(12px);
-  transition: opacity 450ms ease, transform 450ms ease, visibility 450ms;
-}
-
-.reviews__shot[data-active] {
-  opacity: 1;
-  visibility: visible;
-  transform: none;
-}
-
-.reviews__shot img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-}
-
-.reviews__nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
-  color: var(--dim);
-  font-family: var(--mono);
-  font-size: 0.6rem;
-}
-
-.reviews__nav button {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid rgba(125, 207, 255, 0.35);
-  background: transparent;
-  color: var(--text);
-  cursor: pointer;
-}
-
-.reviews__nav button:hover { border-color: var(--cyan-hud); color: var(--cyan-hud); }
-.reviews { grid-template-rows: auto minmax(0, 1fr) auto; }
 
 .lightbox {
   max-width: min(92vw, 1100px);
@@ -533,3 +281,228 @@
   color: var(--text-strong);
   cursor: pointer;
 }
+
+/* ---------------------------------------------------------------- beat 2: the drawing recedes, the routes come forward */
+.drawing {
+  transform: translate3d(calc(var(--bp-recede, 0) * 12vw), 0, 0) scale(calc(1 - 0.12 * var(--bp-recede, 0)));
+  filter: blur(calc(var(--bp-recede, 0) * 1.4px));
+  opacity: calc(1 - 0.72 * var(--bp-recede, 0));
+}
+.blueprint__head { opacity: calc(1 - var(--bp-recede, 0)); }
+.title-block { opacity: calc(var(--bp-callouts, 0) * (1 - var(--bp-recede, 0))); }
+.drawing__marks,
+.exposed-legend { opacity: calc(var(--bp-exposed, 0) * (1 - var(--bp-recede, 0))); }
+
+.evidence {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: clamp(1rem, 3vh, 2.2rem);
+  padding: 92px clamp(20px, 3.4vw, 56px) clamp(20px, 4vh, 40px);
+  opacity: 0;
+  visibility: hidden;
+}
+/* keeps the receding drawing as texture, never in competition with the text */
+.evidence::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(5, 9, 20, 0.9) 0%, rgba(5, 9, 20, 0.62) 52%, rgba(5, 9, 20, 0.8) 100%);
+}
+
+.evidence__head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: 0.4rem 1.4rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--line);
+}
+.evidence__title { color: var(--text-strong); font-family: var(--serif); font-size: clamp(1.6rem, 2.1vw, 2.2rem); font-weight: 400; line-height: 1; }
+.evidence__sub { color: var(--muted); font-size: 0.92rem; }
+.evidence__ticks { display: flex; gap: 0.3rem; margin: 0; padding: 0; list-style: none; }
+.evidence__ticks li {
+  min-width: 2.1rem;
+  padding: 0.3rem 0.45rem;
+  border: 1px solid var(--line);
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-align: center;
+  transition: color 300ms ease, border-color 300ms ease, background-color 300ms ease;
+}
+.evidence__ticks li[data-done] { border-color: var(--line-strong); color: var(--muted); }
+.evidence__ticks li[data-current] { border-color: var(--cyan-hud); color: var(--cyan-hud); background: rgba(111, 200, 255, 0.08); }
+
+.evidence__stage { position: relative; display: grid; min-height: 0; }
+
+.ecase {
+  grid-area: 1 / 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(20rem, 31rem);
+  align-items: center;
+  align-content: center;
+  gap: clamp(2rem, 5vw, 5.5rem);
+  min-height: 0;
+  transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out), visibility 600ms;
+}
+.ecase[data-state="next"] { opacity: 0; transform: translate3d(0, 28px, 0); visibility: hidden; }
+.ecase[data-state="past"] { opacity: 0; transform: translate3d(0, -28px, 0); visibility: hidden; transition-duration: 380ms; }
+.ecase--solo { grid-template-columns: minmax(0, 54rem); }
+
+.ecase__route { max-width: 48rem; }
+.ecase__meta { color: var(--cyan-hud); font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; }
+.ecase__result {
+  margin: 0.7rem 0 0;
+  color: var(--text-strong);
+  font-family: var(--serif);
+  font-size: clamp(2rem, 3.2vw, 3.4rem);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.ecase__title { margin-top: 0.6rem; color: var(--muted); font-size: 0.95rem; }
+
+/* the route as it was steered: a spine, each step lights as the visitor reads on */
+.ecase__steps { position: relative; display: grid; margin: 1.4rem 0 0; padding: 0 0 0 1.5rem; list-style: none; }
+.ecase__steps::before {
+  content: "";
+  position: absolute;
+  left: 0.36rem;
+  top: 1rem;
+  bottom: 1rem;
+  width: 1px;
+  background: var(--line-strong);
+}
+.ecase__steps li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 6.2rem minmax(0, 1fr);
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid rgba(169, 177, 214, 0.1);
+  opacity: calc(0.28 + 0.72 * var(--o, 1));
+  transition: opacity 350ms ease;
+}
+.ecase__steps li::before,
+.ecase__steps li::after {
+  content: "";
+  position: absolute;
+  left: calc(-1.5rem + 0.36rem - 4.5px);
+  top: 0.95rem;
+  width: 9px;
+  height: 9px;
+  box-sizing: border-box;
+  border-radius: 50%;
+}
+.ecase__steps li::before { border: 1.5px solid var(--cyan-hud); background: #050914; }
+.ecase__steps li::after { background: var(--cyan-hud); opacity: var(--o, 1); }
+.ecase__steps li:last-child::before { border-color: var(--text-strong); }
+.ecase__steps li:last-child::after { background: var(--text-strong); }
+.ecase__steps span { padding-top: 0.2rem; color: var(--dim); font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.ecase__steps p { color: var(--text); font-size: 0.93rem; line-height: 1.5; }
+.ecase__steps li:last-child p { color: var(--text-strong); }
+
+/* the family's own words: an excerpt to read, the original message one click away */
+.ecase__review {
+  margin: 0;
+  padding: 1.4rem 1.5rem 1.2rem;
+  border: 1px solid var(--line-strong);
+  background: rgba(5, 8, 18, 0.82);
+}
+.ecase__review blockquote {
+  color: var(--text-strong);
+  font-family: var(--serif);
+  font-size: clamp(1.2rem, 1.45vw, 1.55rem);
+  line-height: 1.3;
+  text-wrap: pretty;
+}
+.ecase__review figcaption { margin-top: 0.8rem; color: var(--muted); font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.ecase__shots {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.shot {
+  height: clamp(6.5rem, 17vh, 10.5rem);
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  background: #151727;
+  cursor: zoom-in;
+  transition: border-color 250ms ease;
+}
+.shot img { width: 100%; height: 100%; object-fit: cover; object-position: top left; filter: saturate(0.85); transition: transform 500ms var(--ease-out); }
+.shot:hover, .shot:focus-visible { border-color: var(--cyan-hud); }
+.shot:hover img { transform: scale(1.03); }
+.ecase__note { display: block; margin-top: 0.7rem; color: var(--dim); font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.06em; }
+
+.ecase--more { grid-template-columns: minmax(0, 1fr); align-content: center; gap: 1.6rem; }
+.more { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.4rem; margin: 0; padding: 0; list-style: none; }
+.more li { display: grid; align-content: start; gap: 0.6rem; padding-top: 1rem; border-top: 1px solid var(--line-strong); }
+.more blockquote { color: var(--text-strong); font-family: var(--serif); font-size: 1.15rem; line-height: 1.32; }
+.more__source { color: var(--muted); font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; }
+.more .ecase__shots { margin-top: 0.2rem; }
+
+/* phones and reduced motion: every route in normal flow, fully lit */
+@media (max-width: 900px) {
+  .drawing { transform: none; filter: none; opacity: 1; }
+  .evidence { position: relative; inset: auto; padding: 0; opacity: 1 !important; visibility: visible !important; transform: none !important; }
+  .evidence::before { display: none; }
+  .evidence__head { grid-template-columns: 1fr; }
+  .evidence__ticks { display: none; }
+  .ecase { grid-area: auto; grid-template-columns: 1fr; gap: 1.4rem; margin-bottom: 3rem; opacity: 1 !important; visibility: visible !important; transform: none !important; }
+  .ecase__steps li { grid-template-columns: 1fr; gap: 0.25rem; --o: 1; }
+  .more { grid-template-columns: 1fr; }
+}
+.is-still .evidence { position: relative; inset: auto; opacity: 1; visibility: visible; }
+.is-still .evidence__ticks { display: none; }
+.is-still .ecase { grid-area: auto; margin-bottom: 4rem; opacity: 1; visibility: visible; transform: none; }
+.is-still .ecase__steps li { --o: 1; }
+
+/* ---------------------------------------------------------------- Tokyo Night sheet: the drawing is ink on the night */
+.track__stage.blueprint {
+  --bp-line: rgba(122, 162, 247, 0.07);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.35'/%3E%3C/svg%3E") 0 0 / 240px 240px,
+    radial-gradient(ellipse 70% 80% at 62% 50%, #222538 0%, #1a1b26 46%, #16161e 100%);
+  background-blend-mode: soft-light, normal;
+}
+.blueprint__grid { mix-blend-mode: screen; }
+/* on paper the solid cut is ink too: it may only lighten, never leave a black field around the sphere */
+.drawing__slab { mix-blend-mode: screen; }
+
+
+/* behind the stories the drawing stays legible as a working sheet */
+.drawing { opacity: calc(1 - 0.22 * var(--bp-recede, 0)); filter: blur(calc(var(--bp-recede, 0) * 0.8px)); }
+/* opacity / filter isolate the drawing as a group: blend the whole group onto the paper so the renders'
+   black backgrounds disappear (ink only ever lightens the sheet) */
+.track__stage.blueprint .drawing { mix-blend-mode: screen; }
+.evidence::before {
+  background: linear-gradient(90deg, rgba(22, 22, 30, 0.92) 0%, rgba(22, 22, 30, 0.78) 36%, rgba(22, 22, 30, 0.25) 62%, rgba(22, 22, 30, 0.55) 100%);
+}
+
+/* the family's words get more room */
+.ecase { grid-template-columns: minmax(0, 1fr) minmax(22rem, 38rem); }
+.ecase__review { padding: 1.6rem 1.7rem 1.4rem; background: rgba(26, 27, 38, 0.9); }
+.ecase__review blockquote { font-size: clamp(1.25rem, 1.6vw, 1.7rem); }
+.shot { height: clamp(8rem, 24vh, 14rem); }
+
+/* "more reviews": heading on top, the cards across the full width (overrides the two-column case grid) */
+.ecase.ecase--more { grid-template-columns: minmax(0, 1fr); align-content: center; gap: 1.6rem; }
+
+/* behind the stories: subsystem colour stays on through the exposed view, the С1–С4 marks follow the exposed view */
+.track__stage.blueprint .drawing__pass[data-active] { opacity: calc(0.85 - 0.35 * var(--bp-exposed, 0)); }
+.track__stage.blueprint .drawing__pass[data-bp-pass="pass_shell"][data-active] { opacity: calc(0.4 - 0.15 * var(--bp-exposed, 0)); }
+.track__stage.blueprint .drawing__pass[data-bp-pass="pass_frame"][data-active] { opacity: calc(0.6 - 0.2 * var(--bp-exposed, 0)); }
+.track__stage.blueprint .drawing__marks { opacity: var(--bp-exposed, 0); }
+.drawing__marks text { fill: #7dcfff; stroke: #1a1b26; font-size: 26px; }
+.drawing__marks line { stroke: rgba(125, 207, 255, 0.75); }
+.drawing__marks circle { fill: #1a1b26; stroke: #7dcfff; }

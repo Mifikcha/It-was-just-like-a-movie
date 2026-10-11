@@ -1,6 +1,5 @@
 ---
-import Icon from "./Icon.astro";
-import { reviewShots, trajectories } from "../data/content";
+import { evidenceCases, moreReviews } from "../data/content";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const src = (name: string) => `${base}/blueprint/${name}.webp`;
@@ -19,9 +18,10 @@ const callouts = [
 ];
 const passes = ["pass_shell", "pass_frame", "pass_core", "pass_mirrors", "pass_thermal", "pass_rings", "pass_modules"];
 const tints: Record<string, string> = {
-  pass_thermal: "#e8946a",   // ember: the radiators' glow (polish.css --ember)
-  pass_core: "#ff8f6b",
-  pass_mirrors: "#b69cff",
+  // Tokyo Night accents
+  pass_thermal: "#ff9e64",
+  pass_core: "#f7768e",
+  pass_mirrors: "#bb9af7",
 };
 const left = callouts.filter((c) => c.side === "left").sort((a, b) => a.y - b.y);
 const right = callouts.filter((c) => c.side === "right").sort((a, b) => a.y - b.y);
@@ -36,13 +36,14 @@ const layers = [
 ];
 ---
 
-<!-- Scene 03: engineering layer. Beauty cutaway → blueprint section → subsystem highlights + archive of trajectories → exposed view. -->
+<!-- Scene 02: evidence. The cutaway becomes a drawing (subsystems, exposed view), then recedes into the background
+     and the seven routes come forward one by one: result, the route as it was steered, and the family's own words. -->
 <section class="track track--blueprint" id="evidence" data-track="blueprint" data-scene-index="1">
   <div class="track__stage blueprint" data-blueprint>
     <div class="blueprint__grid" aria-hidden="true"></div>
 
     <header class="blueprint__head">
-      <p class="eyebrow"><span>02 / 09</span>Инженерный слой · разрез А–А</p>
+      <p class="eyebrow"><span>02 / 08</span>Инженерный слой · разрез А–А</p>
       <h2 class="headline">Доказательства —<br />в конструкции.</h2>
     </header>
 
@@ -112,43 +113,69 @@ const layers = [
       </div>
     </figure>
 
-    <aside class="dossier" data-bp-dossier aria-label="Архив траекторий">
-      <div class="archive">
-        <p class="dossier__title">Архив траекторий <span>· {String(trajectories.length).padStart(2, "0")} модулей</span></p>
-        <div class="archive__viewport">
-          <ol class="archive__list" data-archive-list>
-            {trajectories.map((t) => (
-              <li class="case" data-case>
-                <p class="case__head">
-                  <b>Модуль {t.unit}</b>
-                  <span>{t.exam} · {t.subjects}</span>
-                </p>
-                <p class="case__start">{t.brief}</p>
-                <p class="case__highlight"><Icon name="arrow-right" class="case__arrow" /> {t.highlight}</p>
+    <div class="evidence" data-evidence>
+      <header class="evidence__head">
+        <h3 class="evidence__title">Истории учеников</h3>
+        <p class="evidence__sub">Семь маршрутов: с чего начинали, как вели и чем закончилось.</p>
+        <ol class="evidence__ticks" aria-hidden="true">
+          {evidenceCases.map((c, i) => <li data-ev-tick={i}>{c.unit}</li>)}
+          <li data-ev-tick={evidenceCases.length}>ещё</li>
+        </ol>
+      </header>
+
+      <div class="evidence__stage">
+        {evidenceCases.map((c, i) => (
+          <article class:list={["ecase", c.reviews.length === 0 && "ecase--solo"]} data-ev-step={i}>
+            <div class="ecase__route">
+              <p class="ecase__meta">Модуль {c.unit} · {c.exam} · {c.subjects}{c.span && ` · ${c.span}`}</p>
+              <h4 class="ecase__result">{c.result}</h4>
+              <p class="ecase__title">{c.title}</p>
+              <ol class="ecase__steps">
+                {c.route.map((r) => (
+                  <li data-ev-line>
+                    <span>{r.label}</span>
+                    <p>{r.text}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            {c.reviews.length > 0 && (
+              <figure class="ecase__review">
+                <blockquote>«{c.reviews[0].excerpt}»</blockquote>
+                <figcaption>— {c.reviews[0].source}</figcaption>
+                <div class="ecase__shots">
+                  {c.reviews.map((r, k) => (
+                    <button type="button" class="shot" data-zoom={`${base}/${r.shot}`} aria-label={`Увеличить сообщение ${k + 1}: ${r.source}`}>
+                      <img src={`${base}/${r.shot}`} alt="" loading="lazy" decoding="async" />
+                    </button>
+                  ))}
+                </div>
+                <small class="ecase__note">Оригинал сообщения · имена скрыты · нажмите, чтобы увеличить</small>
+              </figure>
+            )}
+          </article>
+        ))}
+
+        <article class="ecase ecase--more" data-ev-step={evidenceCases.length}>
+          <h4 class="ecase__result">Ещё отзывы</h4>
+          <ul class="more">
+            {moreReviews.map((m) => (
+              <li>
+                <blockquote>«{m.excerpt}»</blockquote>
+                <p class="more__source">— {m.source}</p>
+                <div class="ecase__shots">
+                  {m.shots.map((sh, k) => (
+                    <button type="button" class="shot" data-zoom={`${base}/${sh}`} aria-label={`Увеличить сообщение: ${m.source}${m.shots.length > 1 ? `, ${k + 1}` : ""}`}>
+                      <img src={`${base}/${sh}`} alt="" loading="lazy" decoding="async" />
+                    </button>
+                  ))}
+                </div>
               </li>
             ))}
-          </ol>
-        </div>
+          </ul>
+        </article>
       </div>
-
-      <div class="reviews" data-reviews>
-        <p class="dossier__title">
-          Отзывы · документы <span data-review-count>01 / {String(reviewShots.length).padStart(2, "0")}</span>
-        </p>
-        <div class="reviews__frame">
-          {reviewShots.map((shot, i) => (
-            <button class="reviews__shot" type="button" data-review={i} aria-label={`Открыть отзыв ${i + 1}`}>
-              <img src={`${base}/${shot}`} alt={`Сообщение от ученика или родителя, ${i + 1}`} loading="lazy" decoding="async" />
-            </button>
-          ))}
-        </div>
-        <div class="reviews__nav">
-          <button type="button" data-review-prev aria-label="Предыдущий отзыв"><Icon name="arrow-left" /></button>
-          <small>Имена скрыты. Нажмите, чтобы увеличить.</small>
-          <button type="button" data-review-next aria-label="Следующий отзыв"><Icon name="arrow-right" /></button>
-        </div>
-      </div>
-    </aside>
+    </div>
 
     <footer class="title-block" aria-hidden="true">
       <span>Hopes and Dreams</span>

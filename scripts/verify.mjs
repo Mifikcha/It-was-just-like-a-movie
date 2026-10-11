@@ -3,7 +3,7 @@ import { readdir, readFile } from "node:fs/promises";
 
 const html = await readFile("dist/index.html", "utf8");
 
-// one sphere version everywhere: flights, blueprint drawings and the stills (author's pod window, stories)
+// one sphere version everywhere: flights, blueprint drawings and the stills (the author's pod window)
 const sceneVersion = JSON.parse(await readFile("public/scene-version.json", "utf8"));
 const versions = new Set(["seq", "blueprint", "scenes"].map((k) => sceneVersion[k]));
 assert.equal(versions.size, 1, `Mixed sphere versions on the site: ${JSON.stringify(sceneVersion)}`);
@@ -14,7 +14,6 @@ for (const marker of [
   'lang="ru"',
   'id="top"',
   'id="evidence"',
-  'id="stories"',
   'id="work"',
   'id="knowledge"',
   'id="subjects"',
@@ -49,7 +48,7 @@ const words = [...`${text} ${attrs.join(" ")}`.replace(/Hopes\s+and\s+Dreams|Des
 assert.deepEqual([...new Set(words)], [], `English words on the page: ${[...new Set(words)].join(", ")}`);
 
 // every scroll sequence ships complete: AVIF in every resolution tier, WebP at 960 for browsers without AVIF
-const sequences = { approach: 90, f_stories: 72, f_work: 72, f_knowledge: 72, f_subjects: 72, f_formats: 72, f_final: 72 };
+const sequences = { approach: 90, f_stories: 72, f_knowledge: 72, f_subjects: 72, f_formats: 72, f_final: 72 };
 const tiers = { 1920: ["avif"], 960: ["avif", "webp"] };
 for (const [name, count] of Object.entries(sequences)) {
   for (const [size, exts] of Object.entries(tiers)) {

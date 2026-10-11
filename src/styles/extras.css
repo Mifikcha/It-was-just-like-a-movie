@@ -114,9 +114,6 @@
 .platform-strip dd { margin: 0.3rem 0 0; color: var(--muted); font-size: 0.94rem; line-height: 1.35; }
 .platform-strip .text-link { justify-self: start; font-size: 0.9rem; }
 
-/* ---------------------------------------------------------------- 03 archive: start -> result */
-.case__start { color: var(--muted); font-size: 0.8rem; }
-.case__highlight i { color: var(--cyan-hud); font-style: normal; }
 
 /* ---------------------------------------------------------------- 09 formats */
 .format__price { font-size: 2.4rem; font-weight: 600; }
@@ -220,10 +217,9 @@
 .still__bg--blueprint img { opacity: calc(0.3 * var(--content, 0)); }
 .blueprint { background: rgba(5, 9, 20, 0.9); }
 .track--still { height: 380vh; }
-.track--stories { height: 540vh; }
 .track--subjects { height: 480vh; }
 .track--human { height: 640vh; }
-.track--blueprint { height: 1000vh; }
+.track--blueprint { height: 1250vh; }
 .track--final { height: 380vh; }
 
 .human__dark {
