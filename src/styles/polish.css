@@ -148,3 +148,68 @@
   .drawing__leaders g[data-active] polyline,
   .drawing__leaders g[data-active] circle { animation: none; }
 }
+
+/* ---------------------------------------------------------------- phones: the last word on the compact layout */
+@media (max-width: 900px) {
+  /* the opening flight is shorter on a thumb: about two screens of travel, not three and a half */
+  .track--opening { height: 260vh; }
+
+  /* a slimmer bar: 64px instead of 88, the page gets its height back on every screen */
+  .site-header { padding-block: 10px; }
+
+  /* small print never below 12px; mono caps get a touch less tracking to stay on one line */
+  .journey .eyebrow,
+  .journey .ecase__meta,
+  .journey .ecase__steps span,
+  .journey .ecase__review figcaption,
+  .journey .ecase__note,
+  .journey .more__source,
+  .journey .rules-live__title,
+  .journey .route-passport dt,
+  .journey .route-passport dd small,
+  .journey .progress__count,
+  .journey .subjects__ladder,
+  .journey .passport__id,
+  .journey .human__role,
+  .journey .diploma span,
+  .journey .human__papers-title,
+  .journey .human__papers small,
+  .journey .format__level,
+  .journey .format__fine,
+  .journey .templates__title,
+  .journey .subject-row li,
+  .journey .rules-live li span,
+  .journey .subjects__ladder li,
+  .journey .passport__tools,
+  .journey .format__price small,
+  .journey .final-quote figcaption,
+  .journey .contact-line label,
+  .journey-footer a { font-size: 0.75rem; letter-spacing: 0.06em; }
+  .journey .route-scene__quote figcaption { font-size: 0.75rem; }
+
+  /* the translation of a quote gets its own line instead of running into the attribution */
+  .route-scene__quote figcaption span { display: block; margin-top: 0.3rem; font-size: 0.82rem; }
+  .route-scene__quote figcaption span i { display: none; }
+
+  /* subject tabs: one row of three, no orphan on a second line */
+  .subjects__tabs { flex-wrap: nowrap; gap: 0 1rem; }
+  .subjects__tabs button { font-size: 1.25rem; white-space: nowrap; }
+
+  /* the platform panel loses some inner padding so its figures line up closer to the page edge */
+  .platform-strip { padding: 1.2rem 1.1rem; }
+
+  /* formats: a smaller orbit in the corner, and the head of the card keeps clear of it */
+  .format__orbit { top: 0.4rem; right: 0.4rem; width: 5.4rem; height: 5.4rem; }
+  .format__level,
+  .format h3 { padding-right: 5.6rem; }
+
+  /* the author's text sits on the pod interior: an even veil under the whole column, not only the sides */
+  .track--human .still__shade--sides {
+    background: linear-gradient(180deg, rgba(4, 5, 11, 0.55) 0%, rgba(4, 5, 11, 0.8) 30%, rgba(4, 5, 11, 0.86) 100%);
+  }
+
+  /* the knowledge map comes back as the scene's sky: the route and its marks without labels (they would
+     collide with the text); the portrait slice keeps the current topic and the return point in view */
+  .kmap { display: block; opacity: 0.38; --sky: 1; --route: 1; --focus: 1; --returned: 1; --next: 1; }
+  .kmap__label { display: none; }
+}

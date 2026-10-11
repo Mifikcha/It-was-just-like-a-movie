@@ -260,12 +260,16 @@
   .track--final { height: auto !important; }
   .track--final .track__stage { position: relative; height: auto; overflow: visible; }
   .build-ui { display: none; }
-  .decision-ui { position: relative; inset: auto; left: auto; top: auto; width: auto; padding: 96px 16px 48px; opacity: 1 !important; visibility: visible !important; transform: none !important; }
+  .decision-ui { position: relative; inset: auto; left: auto; top: auto; width: auto; padding: 96px 20px 48px; opacity: 1 !important; visibility: visible !important; transform: none !important; }
   .templates ul { grid-template-columns: 1fr; }
   .decision-ui .contact-line { grid-template-columns: 1fr; }
+  .templates__title span { display: block; margin: 0.35rem 0 0; }
+  .template { font-size: 0.82rem; }
 }
 
 .still__shade--light { background: linear-gradient(270deg, rgba(4, 5, 11, 0.9) 0%, rgba(4, 5, 11, 0.45) 30%, rgba(4, 5, 11, 0) 50%); }
 
 /* ---------------------------------------------------------------- 10: two templates side by side */
-.templates ul { grid-template-columns: 1fr 1fr; }
+@media (min-width: 901px) {
+  .templates ul { grid-template-columns: 1fr 1fr; }
+}

@@ -180,7 +180,7 @@
 
 /* ---------------------------------------------------------------- phones and reduced motion */
 @media (max-width: 900px) {
-  .kmap { display: none; }
+  /* .kmap: shown as the scene's sky on phones, see polish.css */
   .knowledge { margin-left: 0; max-width: none; }
   .route-passport > div { grid-template-columns: 1fr; gap: 0.35rem; padding: 0.8rem 0; }
 }

@@ -54,6 +54,8 @@ export class SequenceStage {
   private focusX = 0.62;
   private listeners: (() => void)[] = [];
   private loadListeners: (() => void)[] = [];
+  /** sequences shown only by their end frames (phones): their bodies never load */
+  private endsOnly = new Set<SequenceName>();
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -136,6 +138,7 @@ export class SequenceStage {
     }
     // 3. the light frames of the flights in play, so scrubbing is smooth early
     for (const seq of pool) {
+      if (this.endsOnly.has(seq.name)) continue;
       const i = body(seq.lo, seq);
       if (i >= 0) return [seq.name, seq.lo, i];
     }
@@ -143,6 +146,7 @@ export class SequenceStage {
     for (const seq of pool) {
       if (!seq.hi) continue;
       for (const i of ends(seq)) if (!seq.hi.images[i]) return [seq.name, seq.hi, i];
+      if (this.endsOnly.has(seq.name)) continue;
       const i = body(seq.hi, seq);
       if (i >= 0) return [seq.name, seq.hi, i];
     }
@@ -164,6 +168,11 @@ export class SequenceStage {
     if (known.length === 0) return;
     this.wanted = [...known, ...this.wanted.filter((n) => !known.includes(n))];
     this.pump();
+  }
+
+  /** These sequences are never scrubbed, only shown at an end: load their two end frames and nothing else. */
+  showEndsOnly(...names: SequenceName[]) {
+    names.forEach((n) => this.endsOnly.add(n));
   }
 
   /** progress 0..1 inside the named sequence. */

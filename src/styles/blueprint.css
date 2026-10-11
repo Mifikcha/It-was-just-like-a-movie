@@ -490,8 +490,10 @@
 }
 
 /* the family's words get more room */
-.ecase { grid-template-columns: minmax(0, 1fr) minmax(22rem, 38rem); }
 .ecase__review { padding: 1.6rem 1.7rem 1.4rem; background: rgba(26, 27, 38, 0.9); }
+@media (min-width: 901px) {
+  .ecase { grid-template-columns: minmax(0, 1fr) minmax(22rem, 38rem); }
+}
 .ecase__review blockquote { font-size: clamp(1.25rem, 1.6vw, 1.7rem); }
 .shot { height: clamp(8rem, 24vh, 14rem); }
 
@@ -510,16 +512,32 @@
 /* 1:1 with the cutaway the hero flight ends on: the backdrop is cover-fitted 1920x1080 (scale s = max(vw/1920,
    vh/1080)), its shell has r = 0.258 H at the centre; the drawing's shell has r = 0.28 of its height ->
    drawing height = 0.258 * 1080 * s / 0.28 = max(52vw, 92.4vh), centred like the backdrop */
-.track__stage.blueprint .drawing {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: max(83.2vw, 147.9vh);
-  max-width: none;
-  margin: 0;
-  transform: translate(-50%, -50%);
-  filter: none;
-  opacity: 0.86;
+@media (min-width: 901px) {
+  .track__stage.blueprint .drawing {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(83.2vw, 147.9vh);
+    max-width: none;
+    margin: 0;
+    transform: translate(-50%, -50%);
+    filter: none;
+    opacity: 0.86;
+  }
+}
+
+/* phones: the drawing sits in flow under the heading, a little wider than the column (its edges fade out anyway) */
+@media (max-width: 900px) {
+  .track__stage.blueprint .drawing {
+    width: calc(100% + 2 * clamp(20px, 3.4vw, 56px));
+    max-width: none;
+    margin-inline: calc(-1 * clamp(20px, 3.4vw, 56px));
+    filter: none;
+    opacity: 0.9;
+  }
+  .ecase__review { padding: 1.2rem 1.1rem 1.1rem; }
+  .ecase__review blockquote { font-size: 1.2rem; }
+  .ecase__meta { line-height: 1.6; }
 }
 .track__stage.blueprint .drawing__marks text { font-size: 36px; font-weight: 600; fill: #c0caf5; stroke: #16161e; stroke-width: 9px; letter-spacing: 0.08em; }
 .track__stage.blueprint .drawing__marks line { stroke: #7dcfff; stroke-width: 1.6; }

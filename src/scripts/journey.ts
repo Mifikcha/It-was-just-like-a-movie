@@ -351,12 +351,15 @@ const setupJourney = () => {
   setConstruction(0.42);
   setScene(0);
   const compact = window.matchMedia("(max-width: 900px)").matches;
+  // phones only scrub the opening; every other scene shows the last frame of its flight
+  if (compact) stage.showEndsOnly("f_stories", "f_subjects", "f_formats", "f_final");
 
   ScrollTrigger.create({
     trigger: "[data-track='approach']",
     start: "top top",
     end: "bottom bottom",
-    snap: { snapTo: settle(0.12, 0.9, 0, 1), duration: { min: 0.4, max: 1.2 }, delay: 0.12, ease: "power1.inOut" },
+    // touch scrolling has its own momentum: a snap fights it and throws the page back
+    snap: compact ? undefined : { snapTo: settle(0.12, 0.9, 0, 1), duration: { min: 0.4, max: 1.2 }, delay: 0.12, ease: "power1.inOut" },
     onToggle: ({ isActive }) => isActive && preloadAround("approach"),
     onUpdate: ({ progress: p, isActive }) => {
       if (!isActive && p > 0 && p < 1) return;
