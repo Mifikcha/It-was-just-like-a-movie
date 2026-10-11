@@ -1,6 +1,7 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SequenceStage } from "./sequence";
+import { boot } from "./boot";
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
@@ -596,3 +597,4 @@ setupHeader();
 setupContactForm();
 if (reducedMotion) setupStill();
 else setupJourney();
+boot(stage, "approach");

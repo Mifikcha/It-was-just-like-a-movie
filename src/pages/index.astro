@@ -16,6 +16,7 @@ import "../styles/scenes.css";
 import "../styles/extras.css";
 import "../styles/loop-map.css";
 import "../styles/polish.css";
+import "../styles/boot.css";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
@@ -29,6 +30,23 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     <img class="stage-canvas" src={`${base}/seq/approach/960/0001.webp`} alt="" />
   </noscript>
   <div class="stage-shade" aria-hidden="true"></div>
+  <!-- the first frames arriving: the hero, still in the dark. Shown only when loading takes noticeable time. -->
+  <div class="boot" data-boot hidden>
+    <div class="boot__bar">
+      <p class="boot__name">Hopes and Dreams</p>
+      <button class="boot__skip" type="button" data-boot-skip hidden>Продолжить</button>
+      <span class="boot__value" data-boot-value aria-hidden="true">000%</span>
+      <span
+        class="boot__line"
+        role="progressbar"
+        aria-label="Загрузка первой сцены"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
+        data-boot-line
+      ><i></i></span>
+    </div>
+  </div>
   <SiteHeader />
   <SceneRail />
   <main class="journey">

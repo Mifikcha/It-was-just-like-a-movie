@@ -1,0 +1,145 @@
+/* Boot: the first screen held in the dark while its frames arrive. Not a splash: the hero is already
+   on the canvas underneath, the veil only lifts once the opening flight can be scrubbed. */
+
+html.is-booting {
+  overflow: hidden;
+}
+
+/* only the frame shows through the dark; the interface comes up with it */
+html.is-booting :is(.site-header, .scene-rail, .journey) {
+  opacity: 0;
+}
+
+html.is-lifting :is(.site-header, .scene-rail, .journey) {
+  transition: opacity 900ms var(--ease-out, ease-out) 250ms;
+}
+
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  align-items: end;
+  padding: 0 36px clamp(28px, 5vh, 52px);
+  background: rgba(4, 5, 11, 0.8);
+}
+
+.boot[hidden] {
+  display: none;
+}
+
+/* the veil is up from the first paint, before the scripts arrive */
+html.is-booting .boot {
+  display: grid;
+}
+
+/* the veil lifts slower than it fell: the film comes up out of the dark */
+.boot[data-done] {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1100ms var(--ease-out, ease-out);
+}
+
+.boot__bar {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: baseline;
+  column-gap: 2rem;
+  row-gap: 0.9rem;
+  width: min(1500px, 100%);
+  margin: 0 auto;
+  opacity: 0;
+  transition: opacity 360ms ease, transform 1100ms var(--ease-out, ease-out);
+}
+
+.boot__bar[data-shown] {
+  opacity: 1;
+}
+
+.boot[data-done] .boot__bar {
+  opacity: 0;
+  transform: translate3d(0, 14px, 0);
+}
+
+.boot__name {
+  margin: 0;
+  color: var(--text-strong);
+  font-family: var(--serif);
+  font-size: clamp(1.25rem, 1.6vw, 1.6rem);
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.boot__value {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+}
+
+.boot__skip {
+  min-height: 44px;
+  margin: -14px 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 600ms ease, color 200ms ease;
+}
+
+.boot__skip[data-shown] {
+  opacity: 1;
+}
+
+.boot__skip:hover,
+.boot__skip:focus-visible {
+  color: var(--cyan);
+}
+
+.boot__line {
+  grid-column: 1 / -1;
+  display: block;
+  height: 1px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.boot__line i {
+  display: block;
+  height: 100%;
+  background: var(--text-strong);
+  transform: scaleX(var(--p, 0));
+  transform-origin: left center;
+  transition: transform 420ms var(--ease-out, ease-out);
+}
+
+@media (max-width: 760px) {
+  .boot {
+    padding-inline: 16px;
+  }
+
+  .boot__bar {
+    column-gap: 1.2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boot,
+  .boot[data-done],
+  .boot__bar,
+  .boot__line i,
+  .boot__skip {
+    transition-duration: 1ms;
+  }
+
+  .boot[data-done] .boot__bar {
+    transform: none;
+  }
+}

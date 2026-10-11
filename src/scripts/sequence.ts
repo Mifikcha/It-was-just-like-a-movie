@@ -4,7 +4,7 @@
 
 export type SequenceName = string;
 
-type Width = 1920 | 960;
+type Width = 2560 | 1920 | 960;
 
 /** One resolution of a sequence. */
 type Tier = {
@@ -53,6 +53,7 @@ export class SequenceStage {
   private dirty = true;
   private focusX = 0.62;
   private listeners: (() => void)[] = [];
+  private loadListeners: (() => void)[] = [];
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -60,11 +61,11 @@ export class SequenceStage {
     counts: Record<SequenceName, number>,
   ) {
     this.ctx = canvas.getContext("2d", { alpha: false })!;
-    // screens wider than a phone sharpen to 1920 (1080p, downscaled from the 1440p renders);
-    // phones and data saver stay on the light tier
+    // device pixels across the viewport pick the sharp tier: laptops 1920, large and retina screens
+    // the 1440p renders as they are (2560); phones and data saver stay on the light tier
     const px = window.innerWidth * Math.min(window.devicePixelRatio, 2);
     const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
-    const sharp: Width | null = !saveData && px > 1400 ? 1920 : null;
+    const sharp: Width | null = saveData ? null : px > 2200 ? 2560 : px > 1400 ? 1920 : null;
     for (const [name, frames] of Object.entries(counts) as [SequenceName, number][]) {
       const order: number[] = [];
       for (const step of [8, 4, 2, 1]) {
@@ -102,6 +103,7 @@ export class SequenceStage {
       this.inFlight--;
       t.loaded[index] = ok;
       if (ok && name === this.active) this.dirty = true;
+      this.loadListeners.forEach((fn) => fn());
       this.pump();
     };
     img.onload = () => done(true);
@@ -193,6 +195,19 @@ export class SequenceStage {
     this.focusX = x;
     this.dirty = true;
     this.listeners.forEach((fn) => fn());
+  }
+
+  /** Share of a sequence's light frames that have settled (loaded or failed), 0..1. */
+  progress(name: SequenceName) {
+    const seq = this.sequences.get(name);
+    if (!seq) return 1;
+    let settled = 0;
+    for (let i = 0; i < seq.frames; i++) if (seq.lo.loaded[i] !== undefined) settled++;
+    return settled / seq.frames;
+  }
+
+  onFrameLoad(fn: () => void) {
+    this.loadListeners.push(fn);
   }
 
   onLayout(fn: () => void) {
