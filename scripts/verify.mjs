@@ -13,7 +13,6 @@ assert.ok([...versions][0]?.startsWith("hopes_dyson_v"), "scene-version.json: mi
 for (const marker of [
   'lang="ru"',
   'id="top"',
-  'id="approach"',
   'id="evidence"',
   'id="stories"',
   'id="work"',
@@ -23,7 +22,6 @@ for (const marker of [
   'id="formats"',
   'id="contact"',
   "data-stage-canvas",
-  "data-quad=",
   "https://t.me/Skifcha",
   "степень",
 ]) {
@@ -51,7 +49,7 @@ const words = [...`${text} ${attrs.join(" ")}`.replace(/Hopes\s+and\s+Dreams|Des
 assert.deepEqual([...new Set(words)], [], `English words on the page: ${[...new Set(words)].join(", ")}`);
 
 // every scroll sequence ships complete: AVIF in every resolution tier, WebP at 960 for browsers without AVIF
-const sequences = { approach: 90, f_blueprint: 72, f_stories: 72, f_work: 72, f_knowledge: 72, f_subjects: 72, f_formats: 72, f_final: 72 };
+const sequences = { approach: 90, f_stories: 72, f_work: 72, f_knowledge: 72, f_subjects: 72, f_formats: 72, f_final: 72 };
 const tiers = { 1920: ["avif"], 960: ["avif", "webp"] };
 for (const [name, count] of Object.entries(sequences)) {
   for (const [size, exts] of Object.entries(tiers)) {

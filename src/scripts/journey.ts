@@ -12,8 +12,8 @@ const $$ = <T extends Element = HTMLElement>(sel: string) => Array.from(document
 const canvas = $<HTMLCanvasElement>("[data-stage-canvas]")!;
 const FLIGHT_FRAMES = 72;
 const stage = new SequenceStage(canvas, canvas.dataset.base ?? "", {
+  // the opening flight: first screen straight into the cutaway of scene 02
   approach: 90,
-  f_blueprint: FLIGHT_FRAMES,
   f_stories: FLIGHT_FRAMES,
   f_work: FLIGHT_FRAMES,
   f_knowledge: FLIGHT_FRAMES,
@@ -249,12 +249,12 @@ function setTrace(p: number) {
 // One continuous camera: every scene starts with a rendered flight from the previous scene's camera
 // and holds the flight's last frame as its backdrop. The only cut to black is the human-layer intro.
 const heroUi = $("[data-hero-ui]");
-const displayModule = $("[data-display-module]");
 const decisionUi = $("[data-decision-ui]");
 
 // scene -> flight that brings the camera there, and construction_progress at its start / end
 const FLIGHT: Record<string, { seq: string; from: number; to: number }> = {
-  blueprint: { seq: "f_blueprint", from: 0.45, to: 0.5 },
+  // scene 02 holds the last frame of the opening flight (the cutaway)
+  blueprint: { seq: "approach", from: 0.42, to: 0.5 },
   stories: { seq: "f_stories", from: 0.5, to: 0.55 },
   work: { seq: "f_work", from: 0.55, to: 0.62 },
   knowledge: { seq: "f_knowledge", from: 0.62, to: 0.72 },
@@ -294,22 +294,21 @@ const setupJourney = () => {
     trigger: "[data-track='approach']",
     start: "top top",
     end: "bottom bottom",
-    snap: { snapTo: settle(0.12, 0.78, 0, 0.9), duration: { min: 0.4, max: 1.2 }, delay: 0.12, ease: "power1.inOut" },
+    snap: { snapTo: settle(0.12, 0.9, 0, 1), duration: { min: 0.4, max: 1.2 }, delay: 0.12, ease: "power1.inOut" },
     onToggle: ({ isActive }) => isActive && preloadAround("approach"),
     onUpdate: ({ progress: p, isActive }) => {
       if (!isActive && p > 0 && p < 1) return;
-      const travel = ease(range(p, 0.08, 0.8));
+      const travel = ease(range(p, 0.08, 0.95));
       stage.show("approach", travel);
       stage.setFade(0);
-      setConstruction(0.42 + 0.03 * travel);
+      setConstruction(0.42 + 0.08 * travel);
       fadeIn(heroUi, 1 - range(p, 0.02, 0.1), -40);
-      fadeIn(displayModule, range(p, 0.8, 0.88) * (1 - range(p, 0.95, 0.99)));
-      setScene(p < 0.45 ? 0 : 1);
+      setScene(0);
     },
   });
 
   // in-page links land on the settled screen of a scene, not at the start of its flight
-  const READY: Record<string, number> = { approach: 0.9, blueprint: 0.24, human: 0.56, formats: 0.66 };
+  const READY: Record<string, number> = { blueprint: 0.24, human: 0.56, formats: 0.66 };
   if (!compact) $$<HTMLAnchorElement>('a[href^="#"]').forEach((a) =>
     a.addEventListener("click", (e) => {
       const track = document.getElementById(a.hash.slice(1))?.closest<HTMLElement>("[data-track]");
@@ -322,7 +321,7 @@ const setupJourney = () => {
     }),
   );
 
-  // phones: scenes 03-09 are laid out in normal flow (see scenes.css); the canvas shows each scene's end frame
+  // phones: scenes 02-08 are laid out in normal flow (see scenes.css); the canvas shows each scene's end frame
   if (compact) {
     $$("[data-track='blueprint'], [data-still], [data-track='build']").forEach((track) =>
       ScrollTrigger.create({
@@ -342,7 +341,7 @@ const setupJourney = () => {
     );
   }
 
-  // scene 03: flight into the cutaway -> blueprint overlay -> subsystem highlights + archive + reviews -> exposed view
+  // scene 02: the cutaway (reached by the opening flight) -> blueprint overlay -> subsystem highlights + archive + reviews -> exposed view
   const bp = $("[data-blueprint]");
   const bpPasses = $$("[data-bp-pass]");
   const bpCallouts = $$("[data-bp-callout]");
@@ -358,7 +357,7 @@ const setupJourney = () => {
     onToggle: ({ isActive }) => isActive && preloadAround("blueprint"),
     onUpdate: ({ progress: p }) => {
       if (!bp) return;
-      flight("blueprint", range(p, 0, 0.1));
+      flight("blueprint", 1);
       stage.setFade(0);
       fadeIn(bp, range(p, 0.1, 0.16) * (1 - range(p, 0.95, 1)), 0);
       const set = (k: string, v: number) => bp.style.setProperty(k, v.toFixed(3));
@@ -385,7 +384,7 @@ const setupJourney = () => {
         cases.forEach((c, i) => c.toggleAttribute("data-active", i === idx));
       }
       if (!reviewManual) showReview(Math.min(reviewShots.length - 1, Math.floor(range(p, 0.22, 0.9) * reviewShots.length)));
-      setScene(2);
+      setScene(1);
     },
   });
 
@@ -467,7 +466,7 @@ const setupJourney = () => {
         const shown = range(p, 0.42, 0.5) * (1 - range(p, 0.86, 0.9));
         el.style.setProperty("--shade", String(shown));
         fadeIn(content, shown, 20);
-        setScene(7);
+        setScene(6);
       },
     });
   }
@@ -482,7 +481,7 @@ const setupJourney = () => {
       flight("build", range(p, 0, 0.45));
       stage.setFade(0);
       fadeIn(decisionUi, range(p, 0.5, 0.6));
-      setScene(9);
+      setScene(8);
     },
   });
 };

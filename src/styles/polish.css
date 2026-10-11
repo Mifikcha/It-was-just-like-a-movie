@@ -38,69 +38,6 @@
   .scene-rail { display: none; }
 }
 
-/* ---------------------------------------------------------------- scene 02: the live interface on the display */
-.screen-live {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  border: 1px solid rgba(125, 207, 255, 0.35);
-  background: var(--ink);
-  box-shadow: 0 0 60px rgba(111, 200, 255, 0.16);
-  color: var(--text-strong);
-  text-decoration: none;
-}
-
-.screen-live img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 0%;
-  animation: screen-scroll 26s ease-in-out 1s infinite alternate;
-}
-
-/* scanline + vignette: the page reads as a screen inside the shot, not a pasted screenshot */
-.screen-live::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    repeating-linear-gradient(0deg, rgba(125, 207, 255, 0.035) 0 1px, transparent 1px 4px),
-    radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(4, 5, 11, 0.55) 100%);
-}
-
-.screen-live__tag {
-  position: absolute;
-  z-index: 1;
-  right: 4%;
-  bottom: 6%;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.8em;
-  padding: 0.6em 1em;
-  border: 1px solid rgba(125, 207, 255, 0.5);
-  background: rgba(4, 5, 11, 0.82);
-  color: var(--cyan-hud);
-  font-family: var(--mono);
-  font-size: 1.5rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  transition: background-color 300ms ease, color 300ms ease;
-}
-
-.screen-live__tag svg { width: 1.1em; fill: none; stroke: currentColor; stroke-width: 1.6; }
-.screen-live:hover .screen-live__tag { background: var(--cyan-hud); color: var(--ink); }
-
-.display-module__screen:not([data-fitted]) .screen-live__tag { font-size: 0.7rem; }
-
-@keyframes screen-scroll {
-  0%, 12% { object-position: 50% 0%; }
-  88%, 100% { object-position: 50% 62%; }
-}
-
 /* ---------------------------------------------------------------- scene headlines: lines rise out of a mask */
 [data-split] .line {
   display: block;
@@ -206,7 +143,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .screen-live img { animation: none; }
   [data-split] .line > span { transform: none; transition: none; }
   .cta--primary::after { display: none; }
   .drawing__leaders g[data-active] polyline,

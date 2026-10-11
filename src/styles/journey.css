@@ -313,115 +313,6 @@ body {
   text-transform: uppercase;
 }
 
-/* ---------------------------------------------------------------- scene 02 display module */
-.display-module {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  visibility: hidden;
-}
-
-.display-module__screen {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 1280px;
-  height: 720px;
-  transform-origin: 0 0;
-}
-
-.display-module__screen:not([data-fitted]) {
-  position: relative;
-  width: min(88vw, 900px);
-  height: auto;
-  aspect-ratio: 16 / 9;
-  margin: 18vh auto 0;
-}
-
-.placeholder {
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: 0.8rem;
-  width: 100%;
-  height: 100%;
-  border: 1px solid rgba(111, 200, 255, 0.35);
-  background:
-    repeating-linear-gradient(0deg, rgba(111, 200, 255, 0.05) 0 1px, transparent 1px 4px),
-    radial-gradient(ellipse at 50% 60%, rgba(40, 70, 110, 0.55), rgba(6, 10, 22, 0.92) 70%);
-  box-shadow: 0 0 60px rgba(111, 200, 255, 0.18), inset 0 0 80px rgba(111, 200, 255, 0.12);
-  color: var(--text);
-  font-family: var(--mono);
-  text-align: center;
-  text-transform: uppercase;
-}
-
-.placeholder svg {
-  width: 96px;
-  fill: none;
-  stroke: var(--cyan-hud);
-  stroke-width: 1.2;
-}
-
-.placeholder span {
-  color: var(--cyan-hud);
-  font-size: 1.6rem;
-  letter-spacing: 0.2em;
-}
-
-.placeholder small {
-  color: var(--muted);
-  font-size: 1rem;
-}
-
-[data-fitted] .placeholder {
-  gap: 1.6rem;
-}
-
-[data-fitted] .placeholder svg {
-  width: 170px;
-}
-
-[data-fitted] .placeholder span {
-  font-size: 3rem;
-}
-
-[data-fitted] .placeholder small {
-  font-size: 1.9rem;
-  letter-spacing: 0.08em;
-  text-transform: none;
-}
-
-.display-module__caption {
-  position: absolute;
-  left: clamp(20px, 3vw, 56px);
-  top: 50%;
-  transform: translateY(-38%);
-  display: grid;
-  gap: 1rem;
-  width: min(22rem, 25vw);
-  padding: 1.4rem 1.6rem 1.5rem;
-  border-left: 1px solid rgba(111, 200, 255, 0.5);
-  background: linear-gradient(90deg, rgba(4, 5, 11, 0.82), rgba(4, 5, 11, 0.4));
-  backdrop-filter: blur(6px);
-}
-
-.display-module__caption .eyebrow::after {
-  display: none;
-}
-
-.display-module__caption .headline {
-  font-size: clamp(1.9rem, 2.7vw, 3.2rem);
-}
-
-.display-module__caption p:not(.eyebrow) {
-  font-size: 0.95rem;
-}
-
-.display-module__caption p:not(.eyebrow) {
-  color: var(--text);
-}
-
 /* ---------------------------------------------------------------- interlude */
 .interlude {
   display: grid;
@@ -727,7 +618,6 @@ body {
 .is-still .track { height: auto; }
 .is-still .track__stage { position: relative; height: auto; min-height: 100vh; overflow: visible; }
 .is-still .hero-ui { position: relative; min-height: 100vh; }
-.is-still .display-module,
 .is-still .interlude,
 .is-still .build-ui,
 .is-still .decision-ui {
@@ -737,7 +627,6 @@ body {
   visibility: visible;
   padding: 16vh clamp(20px, 4.4vw, 56px) 10vh;
 }
-.is-still .display-module__caption { position: relative; left: auto; bottom: auto; margin-top: 2rem; }
 .is-still .build-ui { width: auto; }
 .is-still .decision-ui { width: auto; left: auto; top: auto; }
 
@@ -759,7 +648,6 @@ body {
   .scene-rail { right: 8px; gap: 0.5rem; }
   .scene-rail ol { gap: 0.55rem; }
   .scene-rail li { width: 5px; height: 5px; }
-  .display-module__caption { right: 16px; top: auto; bottom: 24px; width: auto; transform: none; }
   .contact-line { grid-template-columns: 1fr; }
   .build-meter__stages { font-size: 0.66rem; }
 }

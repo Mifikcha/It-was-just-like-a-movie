@@ -430,15 +430,14 @@ export const messageTemplates = [
 // Scroll journey through the megastructure. `progress` = construction_progress shown in that scene.
 export const journey = [
   { id: "hero", index: "01", title: "Возможность", progress: 0.42 },
-  { id: "approach", index: "02", title: "Модуль среды", progress: 0.45 },
-  { id: "evidence", index: "03", title: "Доказательства", progress: 0.5 },
-  { id: "stories", index: "04", title: "Истории", progress: 0.55 },
-  { id: "work", index: "05", title: "Работа", progress: 0.62 },
-  { id: "knowledge", index: "06", title: "Карта знаний", progress: 0.72 },
-  { id: "subjects", index: "07", title: "Предметы", progress: 0.8 },
-  { id: "human", index: "08", title: "Человек", progress: 0.88 },
-  { id: "formats", index: "09", title: "Форматы", progress: 0.95 },
-  { id: "final", index: "10", title: "Следующий шаг", progress: 1 },
+  { id: "evidence", index: "02", title: "Доказательства", progress: 0.5 },
+  { id: "stories", index: "03", title: "Истории", progress: 0.55 },
+  { id: "work", index: "04", title: "Работа", progress: 0.62 },
+  { id: "knowledge", index: "05", title: "Карта знаний", progress: 0.72 },
+  { id: "subjects", index: "06", title: "Предметы", progress: 0.8 },
+  { id: "human", index: "07", title: "Человек", progress: 0.88 },
+  { id: "formats", index: "08", title: "Форматы", progress: 0.95 },
+  { id: "final", index: "09", title: "Следующий шаг", progress: 1 },
 ] as const;
 
 // What the final sequence shows between construction_progress 0.45 and 1.0.
