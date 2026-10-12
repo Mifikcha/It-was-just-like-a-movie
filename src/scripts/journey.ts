@@ -26,6 +26,7 @@ stage.setFocus(window.innerWidth < 760 ? 0.66 : 0.5);
 
 // ---------------------------------------------------------------- shared UI state
 const rail = $$("[data-rail-dot]");
+const navLinks = $$("[data-nav-scene]");
 
 const setConstruction = (value: number) => {
   document.documentElement.style.setProperty("--construction", value.toFixed(3));
@@ -34,6 +35,9 @@ const setConstruction = (value: number) => {
 const setScene = (index: number) => {
   rail.forEach((dot, i) => dot.toggleAttribute("data-active", i === index));
   rail.forEach((dot, i) => dot.toggleAttribute("data-passed", i < index));
+  const current = (el: Element | null, on: boolean) => (on ? el?.setAttribute("aria-current", "true") : el?.removeAttribute("aria-current"));
+  rail.forEach((dot, i) => current(dot.querySelector("a"), i === index));
+  navLinks.forEach((a) => current(a, Number(a.dataset.navScene) === index));
 };
 
 const fadeIn = (el: HTMLElement | null, t: number, lift = 24) => {
@@ -279,14 +283,13 @@ const skyLife = (() => {
   };
 })();
 
-// ---------------------------------------------------------------- scene 03: the four rules, answered on the map
-// 1 diagnostics -> the map and the mastered topics surface; 2 homework -> the route draws on to the focus;
-// 3 a repeated error -> the reopened topic returns to the route; 4 the report -> progress and the next step.
-const RULES = [0.34, 0.49, 0.64, 0.78, 0.93];
-const rules = $$("[data-rule]");
+// ---------------------------------------------------------------- scene 03: the route surfaces on the map
+// the map and the mastered topics surface -> the route draws on to the focus -> the reopened topic returns
+// to the route -> the next step.
+const RULES = [0.24, 0.36, 0.5, 0.64, 0.93];
 function setMap(p: number, svg: SVGElement) {
   const set = (k: string, v: number) => svg.style.setProperty(k, v.toFixed(3));
-  const [r1, r2, r3, r4, end] = RULES;
+  const [r1, r2, r3, r4] = RULES;
   set("--sky", range(p, r1, r1 + 0.08));
   set("--route", ease(range(p, r2, r2 + 0.1)));
   const lit = { focus: range(p, r2 + 0.06, r2 + 0.12), returned: range(p, r3, r3 + 0.05), next: range(p, r4, r4 + 0.05) };
@@ -296,17 +299,8 @@ function setMap(p: number, svg: SVGElement) {
   set("--returned-flash", range(p, r3 + 0.02, r3 + 0.06) * (1 - range(p, r4 - 0.02, r4 + 0.04)));
   set("--next", lit.next);
   // the calm idle motion (breathing sky, drift, pulse on the focus) runs only while the map is on screen
-  svg.toggleAttribute("data-live", p > 0.3 && p < 0.97);
-  skyLife?.(p > 0.3 && p < 0.97);
-  $$("[data-lit-line]").forEach((l) => l.style.setProperty("--o", lit[l.dataset.litLine as keyof typeof lit].toFixed(3)));
-  const k = RULES.findIndex((r, i) => p >= r && p < RULES[i + 1]);
-  // desktop shows one rule at a time (the one the map is answering); before the first and after the last
-  // the nearest rule stays on screen
-  const shown = k >= 0 ? k : p >= end ? RULES.length - 2 : 0;
-  rules.forEach((r, i) => (r.dataset.state = i < shown ? "done" : i === shown ? "current" : "next"));
-  $$("[data-rule-tick]").forEach((t, i) => t.toggleAttribute("data-on", i <= shown));
-  $("[data-rules]")?.setAttribute("data-live", "");
-  $("[data-progress]")?.style.setProperty("--o", range(p, r4, r4 + 0.05).toFixed(3));
+  svg.toggleAttribute("data-live", p > 0.22 && p < 0.97);
+  skyLife?.(p > 0.22 && p < 0.97);
 }
 
 // ---------------------------------------------------------------- scroll journey
@@ -367,13 +361,13 @@ const setupJourney = () => {
       stage.show("approach", travel);
       stage.setFade(0);
       setConstruction(0.42 + 0.08 * travel);
-      fadeIn(heroUi, 1 - range(p, 0.02, 0.1), -40);
+      fadeIn(heroUi, 1 - range(p, 0.02, 0.08), 0);
       setScene(0);
     },
   });
 
   // in-page links land on the settled screen of a scene, not at the start of its flight
-  const READY: Record<string, number> = { blueprint: 0.035, human: 0.56, formats: 0.66 };
+  const READY: Record<string, number> = { approach: 0, blueprint: 0.035, work: 0.4, subjects: 0.3, human: 0.5, formats: 0.4, build: 0.62 };
   if (!compact) $$<HTMLAnchorElement>('a[href^="#"]').forEach((a) =>
     a.addEventListener("click", (e) => {
       const track = document.getElementById(a.hash.slice(1))?.closest<HTMLElement>("[data-track]");
@@ -436,10 +430,12 @@ const setupJourney = () => {
     start: "top top",
     end: "bottom bottom",
     onToggle: ({ isActive }) => isActive && preloadAround("blueprint"),
-    onUpdate: ({ progress: p }) => {
+    onUpdate: ({ progress: p, isActive }) => {
       if (!bp) return;
-      flight("blueprint", 1);
-      stage.setFade(0);
+      if (isActive) {
+        flight("blueprint", 1);
+        stage.setFade(0);
+      }
       const shown = range(p, 0, 0.03) * (1 - range(p, 0.975, 1));
       fadeIn(bp, shown, 0);
       const set = (k: string, v: number) => bp.style.setProperty(k, v.toFixed(3));
@@ -457,22 +453,18 @@ const setupJourney = () => {
       bpPasses.forEach((el) => el.toggleAttribute("data-active", el.dataset.bpPass === active));
       bpCallouts.forEach((el) => el.removeAttribute("data-active"));
       bpLabels.forEach((el) => el.removeAttribute("data-active"));
-      // the routes: one case per step; inside a case its route lights up line by line
-      fadeIn(evidence, range(p, 0.005, 0.03), 16);
-      const t = ev;
-      const k = Math.min(evSteps.length - 1, Math.floor(t));
-      const local = t - k;
+      // the routes: one case per step, each shown whole
+      fadeIn(evidence, range(p, 0.005, 0.03), 0);
+      const k = Math.min(evSteps.length - 1, Math.floor(ev));
       evSteps.forEach((s, i) => {
         s.dataset.state = i < k ? "past" : i === k ? "current" : "next";
         s.toggleAttribute("inert", i !== k);
-        if (i === k) s.querySelectorAll<HTMLElement>("[data-ev-line]").forEach((l, j, all) =>
-          l.style.setProperty("--o", range(local, 0.04 + (j * 0.5) / all.length, 0.1 + (j * 0.5) / all.length).toFixed(3)));
       });
       evTicks.forEach((tk, i) => {
         tk.toggleAttribute("data-done", i < k);
         tk.toggleAttribute("data-current", i === k);
       });
-      setScene(1);
+      if (isActive) setScene(1);
     },
   });
 
@@ -481,22 +473,16 @@ const setupJourney = () => {
     work: (p, el) => {
       const svg = el.querySelector<SVGElement>("[data-kmap]");
       if (!svg) return;
-      svg.style.opacity = String(range(p, 0.3, 0.36) * (1 - range(p, 0.95, 1)));
+      svg.style.opacity = String(range(p, 0.22, 0.27) * (1 - range(p, 0.95, 1)));
       setMap(p, svg);
     },
     subjects: (p) => {
       if (subjectManual) return;
       const ids = ["physics", "math", "cs"];
-      setSubject(ids[Math.min(2, Math.floor(range(p, 0.3, 0.94) * 3))]);
-    },
-    formats: (p) => {
-      $$("[data-format]").forEach((f, i) => {
-        f.style.setProperty("--o", range(p, 0.38 + i * 0.06, 0.46 + i * 0.06).toFixed(3));
-        f.style.setProperty("--step", String(i));
-      });
+      setSubject(ids[Math.min(2, Math.floor(range(p, 0.24, 0.94) * 3))]);
     },
   };
-  const FLIGHT_SHARE = 0.3;
+  const FLIGHT_SHARE = 0.22;
   if (!compact) $$("[data-still]").forEach((track) => {
     const name = track.dataset.track!;
     if (name === "human") return;
@@ -508,14 +494,17 @@ const setupJourney = () => {
       start: "top top",
       end: "bottom bottom",
       onToggle: ({ isActive }) => isActive && preloadAround(name),
-      onUpdate: ({ progress: p }) => {
-        flight(name, range(p, 0, FLIGHT_SHARE));
-        stage.setFade(name === "formats" ? 1 - range(p, 0, 0.14) : 0);
-        const shown = range(p, FLIGHT_SHARE, FLIGHT_SHARE + 0.07) * (1 - range(p, 0.95, 1));
+      // a jump across several scenes updates every trigger on the way: only the active one drives the camera
+      onUpdate: ({ progress: p, isActive }) => {
+        if (isActive) {
+          flight(name, range(p, 0, FLIGHT_SHARE));
+          stage.setFade(name === "formats" ? 1 - range(p, 0, 0.14) : 0);
+          setScene(sceneIndex);
+        }
+        const shown = range(p, FLIGHT_SHARE - 0.02, FLIGHT_SHARE + 0.03) * (1 - range(p, 0.96, 1));
         el.style.setProperty("--content", shown.toFixed(3));
-        fadeIn(content, shown, 20);
+        fadeIn(content, shown, 0);
         stillHandlers[name]?.(p, el);
-        setScene(sceneIndex);
       },
     });
   });
@@ -533,20 +522,21 @@ const setupJourney = () => {
       start: "top top",
       end: "bottom bottom",
       onToggle: ({ isActive }) => isActive && preloadAround("human"),
-      onUpdate: ({ progress: p }) => {
-        stage.show("f_subjects", 1);
-        stage.setFade(range(p, 0, 0.05));
-        setConstruction(0.8 + 0.08 * p);
+      onUpdate: ({ progress: p, isActive }) => {
+        if (isActive) {
+          stage.show("f_subjects", 1);
+          stage.setFade(range(p, 0, 0.05));
+          setConstruction(0.8 + 0.08 * p);
+          setScene(4);
+        }
         // black, a long quiet hold on the line, then straight into the pod
         dark.style.opacity = String(range(p, 0, 0.05) * (1 - range(p, 0.3, 0.38)) + range(p, 0.9, 0.96));
         intro.style.opacity = String(range(p, 0.06, 0.12) * (1 - range(p, 0.26, 0.31)));
-        intro.style.transform = `translate(-50%, calc(-50% + ${(1 - range(p, 0.06, 0.31)) * 14}px))`;
         inside.style.opacity = String(range(p, 0.3, 0.38));
         inside.style.setProperty("--push", String(1.12 - 0.1 * ease(range(p, 0.3, 0.55))));
-        const shown = range(p, 0.42, 0.5) * (1 - range(p, 0.86, 0.9));
+        const shown = range(p, 0.4, 0.45) * (1 - range(p, 0.86, 0.9));
         el.style.setProperty("--shade", String(shown));
-        fadeIn(content, shown, 20);
-        setScene(4);
+        fadeIn(content, shown, 0);
       },
     });
   }
@@ -557,11 +547,13 @@ const setupJourney = () => {
     start: "top top",
     end: "bottom bottom",
     onToggle: ({ isActive }) => isActive && preloadAround("build"),
-    onUpdate: ({ progress: p }) => {
-      flight("build", range(p, 0, 0.45));
-      stage.setFade(0);
-      fadeIn(decisionUi, range(p, 0.5, 0.6));
-      setScene(6);
+    onUpdate: ({ progress: p, isActive }) => {
+      if (isActive) {
+        flight("build", range(p, 0, 0.45));
+        stage.setFade(0);
+        setScene(6);
+      }
+      fadeIn(decisionUi, range(p, 0.5, 0.56), 0);
     },
   });
 };

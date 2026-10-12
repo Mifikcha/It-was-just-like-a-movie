@@ -38,29 +38,25 @@
   .scene-rail { display: none; }
 }
 
-/* ---------------------------------------------------------------- scene headlines: lines rise out of a mask */
-[data-split] .line {
-  display: block;
-  overflow: hidden;
-  padding-bottom: 0.08em;
-  margin-bottom: -0.08em;
-}
-
-[data-split] .line > span {
-  display: block;
-  transform: translate3d(0, 108%, 0);
-  transition: transform 1000ms var(--ease-out);
-  transition-delay: calc(var(--i, 0) * 110ms);
-}
-
-[data-split][data-revealed] .line > span { transform: none; }
-
 /* ---------------------------------------------------------------- calls to action */
 .cta--primary {
   position: relative;
   overflow: hidden;
   isolation: isolate;
 }
+
+/* the scene's one decisive action: a full, tall button that reads from across the screen */
+.cta--big {
+  justify-content: space-between;
+  gap: 1.4rem;
+  min-height: 64px;
+  padding: 0 1.8rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.1em;
+  box-shadow: 0 10px 30px -12px rgba(125, 207, 255, 0.45);
+}
+.cta--big svg { width: 22px; }
+.formats__cta { width: 100%; min-height: 66px; font-size: 1.02rem; }
 
 /* one light sweep across the starlight button on hover */
 .cta--primary::after {
@@ -79,7 +75,7 @@
 
 /* ---------------------------------------------------------------- formats: tiers answer the pointer */
 .format {
-  transform: translateY(calc((1 - var(--o, 0)) * 20px + var(--lift, 0px)));
+  transform: translateY(var(--lift, 0px));
   transition: border-color 320ms ease, --lift 320ms var(--ease-out), background-color 320ms ease;
 }
 
@@ -105,10 +101,7 @@
 
 /* ---------------------------------------------------------------- knowledge map: "return" in ember */
 .kmap { --returned-c: var(--ember); }
-.kmap__label.is-returned,
-.route-passport .is-returned dd,
-.progress__count .is-returned { color: var(--ember); fill: var(--ember); }
-.progress__strip i.is-returned { background: var(--ember); }
+.kmap__label.is-returned { color: var(--ember); fill: var(--ember); }
 
 /* ---------------------------------------------------------------- blueprint: the active leader is drawn */
 .drawing__leaders g[data-active] polyline {
@@ -143,7 +136,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-split] .line > span { transform: none; transition: none; }
   .cta--primary::after { display: none; }
   .drawing__leaders g[data-active] polyline,
   .drawing__leaders g[data-active] circle { animation: none; }
@@ -164,10 +156,6 @@
   .journey .ecase__review figcaption,
   .journey .ecase__note,
   .journey .more__source,
-  .journey .rules-live__title,
-  .journey .route-passport dt,
-  .journey .route-passport dd small,
-  .journey .progress__count,
   .journey .subjects__ladder,
   .journey .passport__id,
   .journey .human__role,
@@ -178,18 +166,11 @@
   .journey .format__fine,
   .journey .templates__title,
   .journey .subject-row li,
-  .journey .rules-live li span,
   .journey .subjects__ladder li,
-  .journey .passport__tools,
   .journey .format__price small,
   .journey .final-quote figcaption,
   .journey .contact-line label,
   .journey-footer a { font-size: 0.75rem; letter-spacing: 0.06em; }
-  .journey .route-scene__quote figcaption { font-size: 0.75rem; }
-
-  /* the translation of a quote gets its own line instead of running into the attribution */
-  .route-scene__quote figcaption span { display: block; margin-top: 0.3rem; font-size: 0.82rem; }
-  .route-scene__quote figcaption span i { display: none; }
 
   /* subject tabs: one row of three, no orphan on a second line */
   .subjects__tabs { flex-wrap: nowrap; gap: 0 1rem; }

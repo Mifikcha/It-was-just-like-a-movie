@@ -1,5 +1,5 @@
 ---
-import { quotes, controlRules, physicsMap, physicsLinks, routeWalked, routeAhead, programmeStrip, routePassport as pass } from "../data/content";
+import { physicsMap, physicsLinks, routeWalked, routeAhead } from "../data/content";
 
 // The physics map of Hopes and Dreams as it is: every theory note is a star, every wikilink a line.
 // One student's trajectory surfaces inside it; only the points that matter right now are named.
@@ -43,12 +43,10 @@ const label = (n: (typeof physicsMap)[number]) => {
 };
 const named = physicsMap.filter((n) => n.label);
 
-const counts = programmeStrip.flatMap((m) => m.states).reduce<Record<string, number>>((c, s) => ((c[s] = (c[s] ?? 0) + 1), c), {});
-const total = programmeStrip.reduce((t, m) => t + m.states.length, 0);
 ---
 
-<!-- Scene 03: how the system steers one route. The physics map of Hopes and Dreams over the assembly sector;
-     the four rules fire one by one and the student's route on the map answers each of them. -->
+<!-- Scene 03: one shared system, a personal trajectory. The physics map of Hopes and Dreams over the assembly
+     sector: the sky surfaces, the student's route draws on, the reopened topic returns to it. -->
 <section class="track track--still track--route" id="work" data-track="work" data-still data-scene-index="2">
   <div class="track__stage still" data-still-stage>
     <div class="still__shade still__shade--route" aria-hidden="true"></div>
@@ -104,58 +102,17 @@ const total = programmeStrip.reduce((t, m) => t + m.states.length, 0);
 
     <div class="still__content knowledge route-scene" data-still-content>
       <p class="eyebrow"><span>03 / 07</span>Сектор сборки · контур управления</p>
-      <figure class="route-scene__quote" lang="en">
-        <blockquote>“{quotes.work.text}”</blockquote>
-        <figcaption>— {quotes.work.author}<span lang="ru"><i aria-hidden="true"> · </i>{quotes.work.ru}</span></figcaption>
-      </figure>
-      <h2 class="headline">Общая система одна.<br />Траектория — персональная.</h2>
-
-      <div class="rules-live" data-rules>
-        <p class="rules-live__title">
-          Как система реагирует
-          <span class="rules-live__ticks" aria-hidden="true">{controlRules.map((_, i) => <i data-rule-tick={i}>{String(i + 1).padStart(2, "0")}</i>)}</span>
-        </p>
-        <ol>
-          {controlRules.map((r, i) => (
-            <li data-rule={i}><span>{String(i + 1).padStart(2, "0")}</span><p>{r}</p></li>
-          ))}
-        </ol>
-      </div>
-
-      <dl class="route-passport">
-        <div class="route-passport__route">
-          <dt>Маршрут</dt>
-          <dd>{pass.route}<small>{pass.programme}</small></dd>
-        </div>
-        <div class="is-current" data-lit-line="focus">
-          <dt>Текущий фокус</dt>
-          <dd>{pass.focus.topic}<small>{pass.focus.meta}</small></dd>
-        </div>
-        <div class="is-returned" data-lit-line="returned">
-          <dt>Возврат</dt>
-          <dd>{pass.returned.topic}<small>{pass.returned.meta}</small></dd>
-        </div>
-        <div class="is-next" data-lit-line="next">
-          <dt>Следующий шаг</dt>
-          <dd>{pass.next.join(" → ")}</dd>
-        </div>
-      </dl>
-
-      <div class="progress" data-progress>
-        <p class="progress__strip" aria-hidden="true">
-          {programmeStrip.map((m) => (
-            <span title={m.module}>{m.states.map((s) => <i class={`is-${s}`} />)}</span>
-          ))}
-        </p>
-        <p class="progress__count">
-          <span class="is-done">{counts.done} из {total} освоено</span>
-          <span class="is-current">{counts.current} изучается</span>
-          <span class="is-returned">{counts.returned} нужно повторить</span>
-        </p>
-      </div>
-
-
-      <p class="route-passport__source">Ученик демонстрационный; программа, темы и&nbsp;связи — из&nbsp;Hopes and Dreams.</p>
+      <h2 class="headline route-scene__head">
+        <span class="route-scene__one">Общая система <em>одна.</em></span>
+        <span class="route-scene__own">Траектория — <em>персональная.</em></span>
+      </h2>
+      <p class="route-scene__lead">Контур способен адаптироваться под&nbsp;потребности.</p>
+      <ul class="route-scene__how">
+        <li><b>Статистика</b>каждое решение учитывается</li>
+        <li><b>Ошибки</b>превращаются в&nbsp;новые задания по&nbsp;этой теме</li>
+        <li><b>Отчёт</b>после каждого урока</li>
+        <li><b>Маршрут</b>меняется под&nbsp;ваш запрос</li>
+      </ul>
     </div>
   </div>
 </section>

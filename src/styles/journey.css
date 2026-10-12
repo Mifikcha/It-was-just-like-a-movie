@@ -49,7 +49,7 @@ body {
   position: relative;
 }
 
-.track--opening { height: 420vh; }
+.track--opening { height: 300vh; }
 .track--interlude { height: 180vh; }
 .track--final { height: 460vh; }
 
@@ -82,10 +82,36 @@ body {
 }
 
 .site-header nav {
+  gap: clamp(1rem, 2.2vw, 2.4rem);
   color: var(--text);
   font-family: var(--sans);
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   letter-spacing: 0.01em;
+}
+
+/* the section on screen is marked in the bar: one line under it, in the HUD cyan */
+.site-header nav a {
+  position: relative;
+  padding: 0.55rem 0;
+  transition: color 200ms ease;
+}
+.site-header nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.2rem;
+  height: 1.5px;
+  background: var(--cyan-hud);
+  transform: scaleX(0);
+  transition: transform 260ms var(--ease-out, ease);
+}
+.site-header nav a[aria-current] { color: var(--text-strong); }
+.site-header nav a[aria-current]::after { transform: none; }
+
+@media (max-width: 980px) {
+  .site-header nav { display: none; }
+  .site-header { grid-template-columns: 1fr auto; }
 }
 
 .header-contact {
@@ -186,6 +212,23 @@ body {
 .cta--primary:hover svg {
   transform: translateX(3px);
 }
+
+/* the second action: the live environment itself, a framed button under the starlight one */
+.cta--outline {
+  padding: 0 1.3rem;
+  border: 1px solid rgba(241, 242, 255, 0.55);
+  border-radius: 8px;
+  background: rgba(4, 5, 11, 0.45);
+  transition: border-color 240ms ease, color 240ms ease, background-color 240ms ease;
+}
+
+.cta--outline:hover {
+  border-color: var(--cyan-hud);
+  color: var(--cyan-hud);
+  background: rgba(10, 24, 44, 0.6);
+}
+
+.cta--outline:hover svg { transform: translate(2px, -2px); }
 
 .cta--quiet {
   padding: 0;
@@ -592,54 +635,84 @@ body {
   font-style: normal;
 }
 
-/* ---------------------------------------------------------------- scene rail */
+/* ---------------------------------------------------------------- scene rail: the page's table of contents */
 .scene-rail {
   position: fixed;
   z-index: 50;
-  right: clamp(14px, 2.2vw, 32px);
+  right: clamp(10px, 1.8vw, 28px);
   top: 50%;
-  display: grid;
-  justify-items: center;
-  gap: 0.7rem;
   transform: translateY(-50%);
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 0.66rem;
 }
 
 .scene-rail ol {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.15rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.scene-rail li {
-  width: 7px;
-  height: 7px;
-  border: 1px solid var(--muted);
+.scene-rail a {
+  position: relative;
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.scene-rail i {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+}
+
+.scene-rail i::before {
+  content: "";
+  width: 11px;
+  height: 11px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--muted);
   border-radius: 50%;
-  transition: background-color 300ms ease, border-color 300ms ease, box-shadow 300ms ease;
+  transition: background-color 240ms ease, border-color 240ms ease, transform 240ms var(--ease-out, ease);
 }
 
-.scene-rail li[data-passed] {
-  border-color: var(--cyan-hud);
+/* the scene's name appears beside its dot on hover / focus, and stays for the current one while hovering the rail */
+.scene-rail__label {
+  position: absolute;
+  right: calc(100% + 0.4rem);
+  top: 50%;
+  margin-top: -0.85rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  background: rgba(4, 5, 11, 0.82);
+  color: var(--text-strong);
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(6px);
+  transition: opacity 180ms ease, transform 180ms var(--ease-out, ease);
+  pointer-events: none;
 }
 
-.scene-rail li[data-active] {
+.scene-rail a:hover .scene-rail__label,
+.scene-rail a:focus-visible .scene-rail__label,
+.scene-rail:hover a[aria-current] .scene-rail__label {
+  opacity: 1;
+  transform: none;
+}
+
+.scene-rail a:hover i::before,
+.scene-rail a:focus-visible i::before { border-color: var(--text-strong); transform: scale(1.25); }
+.scene-rail li[data-passed] i::before { border-color: var(--cyan-hud); background: rgba(125, 207, 255, 0.35); }
+.scene-rail a[aria-current] i::before {
   border-color: var(--text-strong);
   background: var(--text-strong);
-  box-shadow: 0 0 10px rgba(241, 242, 255, 0.7);
+  transform: scale(1.3);
 }
-
-.scene-rail::after {
-  content: "";
-  width: 1px;
-  height: 48px;
-  margin-top: 0.2rem;
-  background: var(--line-strong);
-}
+.scene-rail a:focus-visible { outline: none; }
+.scene-rail a:focus-visible i { outline: 1.5px solid var(--cyan-hud); outline-offset: -4px; border-radius: 50%; }
 
 /* ---------------------------------------------------------------- still mode (reduced motion) */
 .is-still .track { height: auto; }
@@ -672,9 +745,6 @@ body {
   .display { font-size: clamp(2.6rem, 12vw, 3.6rem); }
   .hero-ui__quote,
   .hero-ui__motto { display: none; }
-  .scene-rail { right: 8px; gap: 0.5rem; }
-  .scene-rail ol { gap: 0.55rem; }
-  .scene-rail li { width: 5px; height: 5px; }
   .contact-line { grid-template-columns: 1fr; }
   .build-meter__stages { font-size: 0.66rem; }
 }

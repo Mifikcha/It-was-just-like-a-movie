@@ -399,7 +399,6 @@ export const subjectModes = [
     ],
   },
 ];
-export const subjectTools = ["Desmos", "симуляции", "Python с автопроверкой", "граф знаний", "отчёты", "режим фокуса"];
 
 // Hopes and Dreams at a glance (scene 07 footer).
 export const platformFacts = [
@@ -482,13 +481,13 @@ export const messageTemplates = [
 
 // Scroll journey through the megastructure. `progress` = construction_progress shown in that scene.
 export const journey = [
-  { id: "hero", index: "01", title: "Возможность", progress: 0.42 },
-  { id: "evidence", index: "02", title: "Доказательства", progress: 0.5 },
+  { id: "top", index: "01", title: "Начало", progress: 0.42 },
+  { id: "evidence", index: "02", title: "Истории", progress: 0.5 },
   { id: "work", index: "03", title: "Маршрут", progress: 0.62 },
   { id: "subjects", index: "04", title: "Предметы", progress: 0.8 },
-  { id: "human", index: "05", title: "Человек", progress: 0.88 },
+  { id: "author", index: "05", title: "Автор", progress: 0.88 },
   { id: "formats", index: "06", title: "Форматы", progress: 0.95 },
-  { id: "final", index: "07", title: "Следующий шаг", progress: 1 },
+  { id: "contact", index: "07", title: "Связаться", progress: 1 },
 ] as const;
 
 // What the final sequence shows between construction_progress 0.45 and 1.0.

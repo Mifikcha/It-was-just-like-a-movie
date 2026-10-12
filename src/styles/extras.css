@@ -80,17 +80,6 @@
 
 .passport__grid dd { max-width: 16rem; margin: 0.5rem 0 0; color: var(--text); font-size: 0.86rem; line-height: 1.35; }
 
-.passport__tools {
-  justify-self: start;
-  padding: 0.7rem 1rem;
-  border: 1px solid rgba(125, 207, 255, 0.35);
-  background: rgba(8, 20, 40, 0.72);
-  color: var(--text-strong);
-  font-family: var(--mono);
-  font-size: 0.74rem;
-  letter-spacing: 0.06em;
-}
-
 .platform-strip {
   align-self: center;
   display: grid;
@@ -112,7 +101,7 @@
 .platform-strip dl { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem 1.3rem; margin: 0; }
 .platform-strip dt { color: var(--text-strong); font-family: var(--serif); font-size: 2.6rem; line-height: 1; }
 .platform-strip dd { margin: 0.3rem 0 0; color: var(--muted); font-size: 0.94rem; line-height: 1.35; }
-.platform-strip .text-link { justify-self: start; font-size: 0.9rem; }
+.platform-strip__demo { justify-content: space-between; margin-top: 0.3rem; }
 
 
 /* ---------------------------------------------------------------- 09 formats */
@@ -216,11 +205,11 @@
 .still__shade--sides { opacity: var(--shade, 0); }
 .still__bg--blueprint img { opacity: calc(0.3 * var(--content, 0)); }
 .blueprint { background: rgba(5, 9, 20, 0.9); }
-.track--still { height: 380vh; }
-.track--subjects { height: 480vh; }
-.track--human { height: 640vh; }
-.track--blueprint { height: 1250vh; }
-.track--final { height: 380vh; }
+.track--still { height: 260vh; }
+.track--subjects { height: 320vh; }
+.track--human { height: 420vh; }
+.track--blueprint { height: 860vh; }
+.track--final { height: 280vh; }
 
 .human__dark {
   position: absolute;

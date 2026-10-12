@@ -1,7 +1,7 @@
 /* Scenes 05–06: how the system reacts and the knowledge map (one student's route through it). */
 
 /* ---------------------------------------------------------------- 03 route: the rules, answered on the map */
-.track--still[data-track="work"] { height: 520vh; }
+.track--still[data-track="work"] { height: 300vh; }
 
 /* the assembly sector stays the backdrop; the map needs a calm night in front of the lit panels */
 .still__shade--route {
@@ -11,62 +11,66 @@
   opacity: var(--content, 0);
 }
 
-.knowledge.route-scene { gap: 0.95rem; max-width: 38rem; }
-.knowledge.route-scene .headline { font-size: clamp(1.8rem, 2.3vw, 2.6rem); }
-.route-scene__quote blockquote { color: var(--text); font-family: var(--serif); font-size: 1.08rem; font-style: italic; line-height: 1.35; }
-.route-scene__quote figcaption { margin-top: 0.3rem; color: var(--dim); font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.08em; }
-.route-scene__quote figcaption span { letter-spacing: 0; text-transform: none; font-family: var(--sans); }
-
-/* the four rules: the current one reads, the others wait or rest */
-.rules-live { border-top: 1px solid var(--line-strong); }
-.rules-live__title { padding: 0.6rem 0 0.15rem; color: var(--cyan-hud); font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.16em; text-transform: uppercase; }
-.rules-live ol { display: grid; margin: 0; padding: 0; list-style: none; }
-.rules-live li {
-  display: grid;
-  grid-template-columns: 1.8rem 1fr;
-  gap: 0.4rem;
-  padding: 0.38rem 0;
-  border-bottom: 1px solid rgba(169, 177, 214, 0.1);
-  color: var(--dim);
-  font-size: 0.82rem;
-  line-height: 1.4;
-  transition: color 400ms ease;
-}
-.rules-live li span { padding-top: 0.12rem; font-family: var(--mono); font-size: 0.62rem; }
-.rules-live li[data-state="done"] { color: var(--muted); }
-.rules-live li[data-state="current"] { color: var(--text-strong); }
-.rules-live li[data-state="current"] span { color: var(--cyan-hud); }
-
-.rules-live__title { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
-.rules-live__ticks { display: flex; gap: 0.25rem; }
-.rules-live__ticks i { padding: 0.1rem 0.3rem; border: 1px solid var(--line); color: var(--dim); font-style: normal; font-size: 0.58rem; letter-spacing: 0.06em; transition: color 300ms ease, border-color 300ms ease; }
-.rules-live__ticks i[data-on] { border-color: var(--cyan-hud); color: var(--cyan-hud); }
-/* one rule at a time on desktop; phones and reduced motion keep the full list */
-.rules-live[data-live] li:not([data-state="current"]) { display: none; }
-.rules-live[data-live] li { grid-template-columns: 1fr; border-bottom: 0; min-height: 3.2em; animation: rule-in 450ms var(--ease-out, ease) both; }
-.rules-live[data-live] li span { display: none; }
-.rules-live[data-live] li p { color: var(--text-strong); font-size: 1rem; }
-@keyframes rule-in { from { opacity: 0; transform: translateY(6px); } }
-@media (max-width: 900px) { .rules-live__ticks { display: none; } .rules-live[data-live] li:not([data-state="current"]) { display: grid; } }
-
-/* the column holds quote, headline, the live rule and the passport: kept tight so it fits one screen */
-.knowledge.route-scene { gap: 0.7rem; align-content: center; }
+/* one statement over the map: the shared system recedes, the personal trajectory carries the light */
+.knowledge.route-scene { gap: 1.6rem; max-width: 40rem; align-content: center; }
 .route-scene .eyebrow::after { display: none; }
-.route-scene .route-passport > div { padding: 0.5rem 0; }
-.route-scene .route-passport dd { font-size: 1.12rem; }
-.route-scene .route-passport dd small { margin-top: 0.15rem; }
-@media (max-height: 820px) {
-  .knowledge.route-scene { gap: 0.5rem; padding-top: 84px; }
-  .knowledge.route-scene .headline { font-size: 1.6rem; }
-  .route-scene__quote blockquote { font-size: 0.92rem; }
-  .route-scene .route-passport > div { padding: 0.35rem 0; }
-  .route-scene .route-passport dd { font-size: 0.95rem; }
-  .rules-live[data-live] li { min-height: 0; }
-  .route-passport__source { display: none; }
+.route-scene__head.headline {
+  display: grid;
+  gap: 0.35em;
+  font-size: clamp(2.6rem, 4.4vw, 4.9rem);
+  line-height: 1;
+  text-wrap: balance;
+}
+.route-scene__head span { display: block; }
+.route-scene__head em { font-style: italic; }
+.route-scene__one { color: var(--muted); font-size: 0.62em; }
+.route-scene__one em { color: var(--text-strong); }
+.route-scene__own { color: var(--text-strong); }
+.route-scene__own em { color: var(--cyan-hud); }
+.route-scene__lead {
+  max-width: 30rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--line-strong);
+  color: var(--text-strong);
+  font-size: clamp(1.1rem, 1.35vw, 1.35rem);
+  line-height: 1.4;
 }
 
-/* the progress strip is the answer to the last rule (the report) */
-.route-scene .progress { opacity: calc(0.35 + 0.65 * var(--o, 1)); transition: opacity 300ms ease; }
+/* how the contour adapts: the key word carries the line, the rest is one short clause */
+.route-scene__how {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.1rem 2rem;
+  margin: 0.2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.route-scene__how li {
+  display: grid;
+  gap: 0.25rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+.route-scene__how b {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--text-strong);
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  font-weight: 400;
+}
+.route-scene__how b::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cyan-hud);
+}
+/* the return of a mistaken topic is the map's one warm mark */
+.route-scene__how li:nth-child(2) b::before { background: var(--ember); }
+@media (max-width: 520px) { .route-scene__how { grid-template-columns: 1fr; } }
 
 /* ---------------------------------------------------------------- 06 knowledge: the real physics map, one student's route */
 .kmap { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; --returned-c: #e8b98a; }
@@ -138,50 +142,18 @@
 .kmap__label.is-next { fill: var(--muted); font-size: 22px; opacity: var(--next, 0); }
 .kmap__label.is-aside { fill: var(--dim); font-size: 19px; opacity: var(--route, 0); }
 
-/* the passport of this one route */
 .knowledge { display: grid; align-content: center; gap: 1.25rem; margin-left: auto; max-width: 34rem; }
-.knowledge .headline { font-size: clamp(2rem, 2.5vw, 2.8rem); }
-
-.route-passport { display: grid; margin: 0; border-top: 1px solid var(--line); }
-.route-passport > div {
-  display: grid;
-  grid-template-columns: 7.75rem 1fr;
-  gap: 1rem;
-  align-items: baseline;
-  padding: 0.6rem 0;
-  border-bottom: 1px solid var(--line);
-  opacity: calc(0.3 + 0.7 * var(--o, 1));
-  transition: opacity 0.4s ease;
-}
-.route-passport dt { color: var(--dim); font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; }
-.route-passport dd { margin: 0; color: var(--text-strong); font-family: var(--serif); font-size: 1.15rem; line-height: 1.2; text-wrap: balance; }
-.route-passport dd small { display: block; margin-top: 0.3rem; color: var(--dim); font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.04em; line-height: 1.45; }
-.route-passport dd.is-plain { color: var(--muted); font-family: var(--sans); font-size: 0.86rem; line-height: 1.5; }
-.route-passport .is-current dd { color: var(--text-strong); }
-.route-passport .is-current dt { color: var(--cyan); }
-.route-passport .is-returned dd { color: #f0d2b2; }
-.route-passport .is-next dd { color: var(--muted); }
-
-/* the whole programme, one mark per topic, grouped by module */
-.progress { display: grid; gap: 0.65rem; }
-.progress__strip { display: flex; gap: 7px; margin: 0; }
-.progress__strip span { display: flex; gap: 2px; }
-.progress__strip i { display: block; width: 4px; height: 12px; background: rgba(169, 177, 214, 0.22); }
-.progress__strip i.is-done { background: rgba(215, 225, 245, 0.62); }
-.progress__strip i.is-current { background: var(--cyan); }
-.progress__strip i.is-returned { background: #e8b98a; }
-.progress__strip i.is-next { background: transparent; box-shadow: inset 0 0 0 1px rgba(215, 225, 245, 0.55); }
-.progress__count { display: flex; flex-wrap: wrap; gap: 0.35rem 1.1rem; margin: 0; color: var(--muted); font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
-.progress__count .is-current { color: var(--cyan); }
-.progress__count .is-returned { color: #f0d2b2; }
-
-.route-passport__note { margin: 0; color: var(--muted); font-size: 0.86rem; line-height: 1.55; max-width: 44ch; }
-.route-passport__source { margin: -0.6rem 0 0; color: var(--dim); font-size: 0.72rem; }
 
 /* ---------------------------------------------------------------- phones and reduced motion */
 @media (max-width: 900px) {
   /* .kmap: shown as the scene's sky on phones, see polish.css */
   .knowledge { margin-left: 0; max-width: none; }
-  .route-passport > div { grid-template-columns: 1fr; gap: 0.35rem; padding: 0.8rem 0; }
 }
 .is-still .kmap { opacity: 1; }
+
+@media (max-height: 760px) and (min-width: 901px) {
+  .knowledge.route-scene { gap: 1rem; padding-top: 72px; }
+  .route-scene__head.headline { font-size: clamp(2.2rem, 3.6vw, 3.6rem); }
+  .route-scene__lead { padding-top: 0.8rem; }
+  .route-scene__how { gap: 0.7rem 1.6rem; }
+}

@@ -1,16 +1,18 @@
 ---
-import { links } from "../data/content";
+import { journey, links } from "../data/content";
+
+// every scene between the opening and the contact screen, in scroll order
+const sections = journey.slice(1, -1);
 ---
 
 <header class="site-header" data-site-header>
   <a class="wordmark" href="#top" aria-label="Hopes and Dreams — к началу страницы">
     <span>Hopes</span><i>and</i><span>Dreams</span>
   </a>
-  <nav aria-label="Основная навигация">
-    <a href="#evidence">Система</a>
-    <a href="#evidence">Доказательства</a>
-    <a href="#author">Автор</a>
-    <a href="#formats">Форматы</a>
+  <nav aria-label="Разделы">
+    {sections.map((s) => (
+      <a href={`#${s.id}`} data-nav-scene={journey.indexOf(s)}>{s.title}</a>
+    ))}
   </nav>
   <a class="header-contact" href={links.telegram} target="_blank" rel="noreferrer">
     Связаться

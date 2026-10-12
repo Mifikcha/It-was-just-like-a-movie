@@ -78,7 +78,7 @@
 .subjects__tabs button[aria-selected="true"] { color: var(--text-strong); border-color: var(--tint); }
 
 .subjects__panel { grid-row: 3; grid-column: 1; display: none; gap: 1rem; }
-.subjects__panel[data-active] { display: grid; animation: panel-in 500ms ease both; }
+.subjects__panel[data-active] { display: grid; animation: panel-in 220ms ease both; }
 .subjects__panel p { color: var(--text); font-size: 1.05rem; }
 
 .subjects__panel ul {
@@ -100,7 +100,7 @@
 
 .subjects__panel li::before { content: ""; display: inline-block; width: 6px; height: 6px; margin: 0 0.55em 0.12em 0; border-radius: 50%; background: currentColor; }
 
-@keyframes panel-in { from { opacity: 0; transform: translateY(10px); } }
+@keyframes panel-in { from { opacity: 0; } }
 
 /* ---------------------------------------------------------------- 08 human */
 .human__layer { opacity: 0; }
@@ -287,8 +287,6 @@ button.photo-slot:focus-visible { border-color: var(--cyan-hud); }
   border-top: 2px solid rgba(125, 207, 255, calc(0.3 + 0.2 * var(--step, 0)));
   background: rgba(5, 9, 20, 0.78);
   backdrop-filter: blur(6px);
-  opacity: var(--o, 0);
-  transform: translateY(calc((1 - var(--o, 0)) * 20px));
 }
 
 .format__level { color: var(--cyan-hud); font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; }

@@ -31,7 +31,7 @@ const orbits = [
       </p>
       <ol class="formats__list">
         {formats.map((f, i) => (
-          <li class="format" data-format>
+          <li class="format" style={`--step: ${i}`}>
             <svg class="format__orbit" viewBox="-28 -28 56 56" aria-hidden="true" style={`--period: ${orbits[i % 3].period}`}>
               <circle class="format__track" r={orbits[i % 3].r} />
               {orbits[i % 3].students.map(([x, y]) => <circle class="format__student" cx={x} cy={y} r="2.6" />)}
@@ -48,8 +48,8 @@ const orbits = [
           </li>
         ))}
       </ol>
-      <a class="cta cta--primary" href={links.telegram} target="_blank" rel="noreferrer">
-        Подобрать формат
+      <a class="cta cta--primary cta--big formats__cta" href={links.telegram} target="_blank" rel="noreferrer">
+        Договориться о формате или купить
         <svg viewBox="0 0 20 12" aria-hidden="true"><path d="M1 6h17M13 1l5 5-5 5" /></svg>
       </a>
     </div>

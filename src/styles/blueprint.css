@@ -1,6 +1,6 @@
 /* Scene 02 — evidence: the engineering drawing, then the routes with their reviews. */
 
-.track--blueprint { height: 1250vh; }
+.track--blueprint { height: 860vh; }
 
 .blueprint {
   --bp-line: rgba(125, 207, 255, 0.16);
@@ -348,10 +348,10 @@
   align-content: center;
   gap: clamp(2rem, 5vw, 5.5rem);
   min-height: 0;
-  transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out), visibility 600ms;
+  transition: opacity 280ms ease, visibility 280ms;
 }
-.ecase[data-state="next"] { opacity: 0; transform: translate3d(0, 28px, 0); visibility: hidden; }
-.ecase[data-state="past"] { opacity: 0; transform: translate3d(0, -28px, 0); visibility: hidden; transition-duration: 380ms; }
+.ecase[data-state="next"] { opacity: 0; visibility: hidden; }
+.ecase[data-state="past"] { opacity: 0; visibility: hidden; }
 .ecase--solo { grid-template-columns: minmax(0, 54rem); }
 
 .ecase__route { max-width: 48rem; }
@@ -386,8 +386,6 @@
   gap: 1rem;
   padding: 0.6rem 0;
   border-top: 1px solid rgba(169, 177, 214, 0.1);
-  opacity: calc(0.28 + 0.72 * var(--o, 1));
-  transition: opacity 350ms ease;
 }
 .ecase__steps li::before,
 .ecase__steps li::after {
@@ -401,7 +399,7 @@
   border-radius: 50%;
 }
 .ecase__steps li::before { border: 1.5px solid var(--cyan-hud); background: #050914; }
-.ecase__steps li::after { background: var(--cyan-hud); opacity: var(--o, 1); }
+.ecase__steps li::after { background: var(--cyan-hud); }
 .ecase__steps li:last-child::before { border-color: var(--text-strong); }
 .ecase__steps li:last-child::after { background: var(--text-strong); }
 .ecase__steps span { padding-top: 0.2rem; color: var(--dim); font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; }

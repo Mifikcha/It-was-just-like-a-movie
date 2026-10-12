@@ -11,7 +11,7 @@ html.is-booting :is(.site-header, .scene-rail, .journey) {
 }
 
 html.is-lifting :is(.site-header, .scene-rail, .journey) {
-  transition: opacity 900ms var(--ease-out, ease-out) 250ms;
+  transition: opacity 500ms var(--ease-out, ease-out) 80ms;
 }
 
 .boot {
@@ -37,7 +37,7 @@ html.is-booting .boot {
 .boot[data-done] {
   opacity: 0;
   pointer-events: none;
-  transition: opacity 1100ms var(--ease-out, ease-out);
+  transition: opacity 600ms var(--ease-out, ease-out);
 }
 
 .boot__bar {
