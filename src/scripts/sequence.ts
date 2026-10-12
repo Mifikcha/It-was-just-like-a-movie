@@ -4,7 +4,7 @@
 
 export type SequenceName = string;
 
-type Width = 2560 | 1920 | 960;
+type Width = 3840 | 2560 | 1920 | 960;
 
 /** One resolution of a sequence. */
 type Tier = {
@@ -12,6 +12,8 @@ type Tier = {
   images: (HTMLImageElement | undefined)[];
   loaded: boolean[];
   cursor: number;
+  /** 4K only: frames around the playhead, decoded ahead of the draw (null while decoding) */
+  bitmaps?: Map<number, ImageBitmap | null>;
 };
 
 type Sequence = {
@@ -28,6 +30,12 @@ type Sequence = {
 // a few requests at a time, so the queue order holds instead of every frame sharing the line
 const MAX_IN_FLIGHT = 12;
 
+// A 4K frame drawn straight from its <img> is decoded again on every draw (~70 ms: the browser's
+// decoded-image cache does not keep frames this large), so the scrub stutters. The frames around the
+// playhead are decoded ahead into bitmaps instead (~4 ms to draw), a few at a time, off the main thread.
+const DECODE_AHEAD = 4;
+const MAX_DECODING = 3;
+
 const FRAME_W = 1920;
 const FRAME_H = 1080;
 
@@ -35,7 +43,13 @@ const FRAME_H = 1080;
 const AVIF_PROBE =
   "data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAAD5bWV0YQAAAAAAAAAvaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAFBpY3R1cmVIYW5kbGVyAAAAAA5waXRtAAAAAAABAAAAHmlsb2MAAAAARAAAAQABAAAAAQAAASEAAAAWAAAAKGlpbmYAAAAAAAEAAAAaaW5mZQIAAAAAAQAAYXYwMUNvbG9yAAAAAGppcHJwAAAAS2lwY28AAAAUaXNwZQAAAAAAAAACAAAAAgAAABBwaXhpAAAAAAMKCgoAAAAMYXYxQ4EATAAAAAATY29scm5jbHgAAgACAAIAAAAAF2lwbWEAAAAAAAAAAQABBAECgwQAAAAebWRhdAoFGAA24CAyDRgAAABQAAAAALATSyg=";
 
-const tier = (width: Width): Tier => ({ width, images: [], loaded: [], cursor: 0 });
+const tier = (width: Width): Tier => ({
+  width,
+  images: [],
+  loaded: [],
+  cursor: 0,
+  bitmaps: width === 3840 ? new Map() : undefined,
+});
 
 export class SequenceStage {
   private ctx: CanvasRenderingContext2D;
@@ -43,6 +57,7 @@ export class SequenceStage {
   /** sequences to load, most urgent first (the active one always goes ahead) */
   private wanted: SequenceName[] = [];
   private inFlight = 0;
+  private decoding = 0;
   /** frame format, known once the AVIF probe settles; nothing loads before that */
   private ext: "avif" | "webp" | null = null;
   private active: SequenceName = "approach";
@@ -63,11 +78,11 @@ export class SequenceStage {
     counts: Record<SequenceName, number>,
   ) {
     this.ctx = canvas.getContext("2d", { alpha: false })!;
-    // device pixels across the viewport pick the sharp tier: laptops 1920, large and retina screens
-    // the 1440p renders as they are (2560); phones and data saver stay on the light tier
+    // device pixels across the viewport pick the sharp tier: laptops 1920, 1440p screens 2560,
+    // 4K and large retina screens the 4K renders (3840); phones and data saver stay on the light tier
     const px = window.innerWidth * Math.min(window.devicePixelRatio, 2);
     const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
-    const sharp: Width | null = saveData ? null : px > 2200 ? 2560 : px > 1400 ? 1920 : null;
+    const sharp: Width | null = saveData ? null : px > 3000 ? 3840 : px > 2200 ? 2560 : px > 1400 ? 1920 : null;
     for (const [name, frames] of Object.entries(counts) as [SequenceName, number][]) {
       const order: number[] = [];
       for (const step of [8, 4, 2, 1]) {
@@ -181,6 +196,7 @@ export class SequenceStage {
     if (!seq) return;
     const index = Math.max(0, Math.min(1, progress)) * (seq.frames - 1);
     if (name !== this.active) {
+      this.release(this.sequences.get(this.active));
       this.active = name;
       this.current = index;
       // the visible flight takes the head of the queue
@@ -255,9 +271,55 @@ export class SequenceStage {
     return !!(seq.hi?.loaded[i] || seq.lo.loaded[i]);
   }
 
-  /** The sharpest loaded image of a frame. */
-  private image(seq: Sequence, i: number) {
-    return seq.hi?.loaded[i] ? seq.hi.images[i]! : seq.lo.images[i]!;
+  /** The sharpest image of a frame that draws without being decoded on the spot. */
+  private image(seq: Sequence, i: number): CanvasImageSource {
+    const hi = seq.hi;
+    if (!hi?.loaded[i]) return seq.lo.images[i]!;
+    if (!hi.bitmaps) return hi.images[i]!;
+    // until the 4K frame is decoded, the light frame stands in
+    return hi.bitmaps.get(i) ?? (seq.lo.loaded[i] ? seq.lo.images[i]! : hi.images[i]!);
+  }
+
+  /** Decode the 4K frames around the playhead, nearest first; drop the ones left behind. */
+  private warm(seq: Sequence) {
+    const t = seq.hi;
+    if (!t?.bitmaps) return;
+    const bitmaps = t.bitmaps;
+    const at = Math.round(this.current);
+    const ahead = this.target >= this.current ? 1 : -1;
+    for (const [i, bitmap] of bitmaps) {
+      if (Math.abs(i - at) <= DECODE_AHEAD + 1) continue;
+      bitmap?.close();
+      bitmaps.delete(i);
+    }
+    for (let d = 0; d <= DECODE_AHEAD && this.decoding < MAX_DECODING; d++) {
+      for (const i of d === 0 ? [at] : [at + d * ahead, at - d * ahead]) {
+        if (this.decoding >= MAX_DECODING) return;
+        if (i < 0 || i >= seq.frames || !t.loaded[i] || bitmaps.has(i)) continue;
+        bitmaps.set(i, null);
+        this.decoding++;
+        // from the file (already in the HTTP cache): decoding a Blob stays off the main thread
+        fetch(t.images[i]!.src)
+          .then((r) => r.blob())
+          .then((blob) => createImageBitmap(blob))
+          .then(
+            (bitmap) => {
+              if (bitmaps.get(i) !== null || seq.name !== this.active) bitmap.close();
+              else bitmaps.set(i, bitmap);
+            },
+            () => bitmaps.delete(i),
+          )
+          .finally(() => {
+            this.decoding--;
+            this.dirty = true;
+          });
+      }
+    }
+  }
+
+  private release(seq?: Sequence) {
+    seq?.hi?.bitmaps?.forEach((bitmap) => bitmap?.close());
+    seq?.hi?.bitmaps?.clear();
   }
 
   private nearestLoaded(seq: Sequence, index: number) {
@@ -284,6 +346,7 @@ export class SequenceStage {
   private draw() {
     this.dirty = false;
     const seq = this.sequences.get(this.active)!;
+    this.warm(seq);
     const { ox, oy, w, h } = this.layout();
     const ctx = this.ctx;
     const lo = Math.floor(this.current);

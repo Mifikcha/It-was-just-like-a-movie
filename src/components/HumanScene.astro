@@ -7,7 +7,14 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 <section class="track track--still track--human" id="author" data-track="human" data-still data-scene-index="4">
   <div class="track__stage still" data-still-stage>
     <div class="human__layers" aria-hidden="true">
-      <img class="human__layer" data-human-layer="inside" src={`${base}/scenes/pod_interior_comp.webp`} alt="" />
+      <img
+        class="human__layer"
+        data-human-layer="inside"
+        src={`${base}/scenes/pod_interior_comp.webp`}
+        srcset={`${base}/scenes/pod_interior_comp.webp 2560w, ${base}/scenes/pod_interior_comp_3840.webp 3840w`}
+        sizes="100vw"
+        alt=""
+      />
     </div>
     <div class="still__shade still__shade--sides" aria-hidden="true"></div>
 
