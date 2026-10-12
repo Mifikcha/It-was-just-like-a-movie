@@ -314,21 +314,6 @@ body {
   color: var(--text-strong);
 }
 
-.hero-ui__motto {
-  position: absolute;
-  left: clamp(20px, 4.4vw, 56px);
-  bottom: clamp(28px, 7vh, 64px);
-  padding-left: 1rem;
-  border-left: 1px solid var(--line-strong);
-  color: var(--text);
-  font-family: var(--sans);
-  font-size: 0.72rem;
-  font-weight: 600;
-  line-height: 1.7;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-
 .hero-ui__quote {
   position: absolute;
   right: clamp(20px, 5.5vw, 80px);
@@ -743,8 +728,7 @@ body {
 
   .hero-ui__copy { top: 92px; }
   .display { font-size: clamp(2.6rem, 12vw, 3.6rem); }
-  .hero-ui__quote,
-  .hero-ui__motto { display: none; }
+  .hero-ui__quote { display: none; }
   .contact-line { grid-template-columns: 1fr; }
   .build-meter__stages { font-size: 0.66rem; }
 }
