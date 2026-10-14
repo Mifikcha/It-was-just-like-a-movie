@@ -146,12 +146,28 @@ export class SequenceStage {
     // 1. ends of the flights in play: a scene's backdrop is the last frame of its flight,
     //    and the first frame continues the previous one
     for (const seq of pool) for (const i of ends(seq)) if (!seq.lo.images[i]) return [seq.name, seq.lo, i];
+    // 1b. the same frames at the screen's resolution right away: what is on screen, and every scene's held
+    //     backdrop, must not wait behind megabytes of light frames (over the network that is tens of seconds)
+    for (const seq of pool) {
+      if (!seq.hi) continue;
+      for (const i of ends(seq)) if (!seq.hi.images[i]) return [seq.name, seq.hi, i];
+    }
     // 2. every scene's backdrop, so no scene is ever reached with an empty sky
     for (const seq of this.sequences.values()) {
       const i = seq.frames - 1;
       if (!seq.lo.images[i]) return [seq.name, seq.lo, i];
     }
-    // 3. the light frames of the flights in play, so scrubbing is smooth early
+    // 3. the light frames of the flights in play, so scrubbing is smooth early; the visible flight first,
+    //    then its sharp frames, before the light frames of the flights further ahead
+    const active = this.sequences.get(this.active);
+    if (active && this.wanted.includes(active.name) && !this.endsOnly.has(active.name)) {
+      const i = body(active.lo, active);
+      if (i >= 0) return [active.name, active.lo, i];
+      if (active.hi) {
+        const j = body(active.hi, active);
+        if (j >= 0) return [active.name, active.hi, j];
+      }
+    }
     for (const seq of pool) {
       if (this.endsOnly.has(seq.name)) continue;
       const i = body(seq.lo, seq);
