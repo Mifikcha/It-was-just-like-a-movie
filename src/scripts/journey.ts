@@ -1,6 +1,7 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SequenceStage } from "./sequence";
+import { WebGLStage } from "./webgl/stage";
 import { boot } from "./boot";
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -12,7 +13,16 @@ const $$ = <T extends Element = HTMLElement>(sel: string) => Array.from(document
 
 const canvas = $<HTMLCanvasElement>("[data-stage-canvas]")!;
 const FLIGHT_FRAMES = 72;
-const stage = new SequenceStage(canvas, canvas.dataset.base ?? "", {
+// experiment: the megastructure is drawn live in WebGL; ?engine=legacy (or no WebGL2) keeps the rendered flights
+const params = new URLSearchParams(location.search);
+const live = () => {
+  try {
+    return params.get("engine") === "legacy" ? null : new WebGLStage(canvas);
+  } catch {
+    return null; // no WebGL2, or the GPU refused a context: the rendered flights
+  }
+};
+const stage = live() ?? new SequenceStage(canvas, canvas.dataset.base ?? "", {
   // the opening flight: first screen straight into the cutaway of scene 02
   approach: 90,
   // scene 03 (work) arrives by the stories flight: the cutaway pulls back to the collector field
@@ -23,6 +33,7 @@ const stage = new SequenceStage(canvas, canvas.dataset.base ?? "", {
 });
 // centred crop everywhere so overlays drawn in frame space (constellation) line up; phones keep the sphere in view
 stage.setFocus(window.innerWidth < 760 ? 0.66 : 0.5);
+if (stage instanceof WebGLStage && params.has("debug")) import("./webgl/debug").then((m) => m.mountDebug(stage));
 
 // ---------------------------------------------------------------- shared UI state
 const rail = $$("[data-rail-dot]");
@@ -30,6 +41,7 @@ const navLinks = $$("[data-nav-scene]");
 
 const setConstruction = (value: number) => {
   document.documentElement.style.setProperty("--construction", value.toFixed(3));
+  if (stage instanceof WebGLStage) stage.setConstruction(value);
 };
 
 const setScene = (index: number) => {

@@ -21,3 +21,7 @@ npm run verify
 Контент, который позже заменяется реальными данными, собран в `src/data/content.ts`. Результаты, отзывы, кейсы, фотография и изображения дипломов намеренно оставлены явными placeholders — сайт не создаёт вымышленные доказательства.
 
 Пуш в `main` запускает отдельный GitHub Pages workflow из `.github/workflows/deploy.yml`.
+
+## Эксперимент: real-time WebGL (ветка `experiment/realtime-webgl`)
+
+Пролёты рисуются процедурной Three.js-сценой вместо покадровых рендеров; исходный движок доступен по `?engine=legacy`. Запуск, архитектура, замеры и выводы — [docs/webgl-experiment.md](docs/webgl-experiment.md).

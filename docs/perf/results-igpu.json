@@ -1,0 +1,74 @@
+{
+  "date": "2026-10-14T21:36:21.058Z",
+  "base": "http://localhost:4390/It-was-just-like-a-movie/",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "throttle": false,
+  "igpu": true,
+  "cpu": 1,
+  "scrollMs": 40000,
+  "results": [
+    {
+      "engine": "legacy",
+      "gpu": "ANGLE (AMD, AMD Radeon(TM) 860M Graphics (0x00001114) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "refreshMs": 6.9,
+      "load": {
+        "fcpMs": 1124,
+        "readyMs": 1274,
+        "bytesAtReadyMB": 5.51,
+        "requestsAtReady": 159,
+        "longTasks": 1,
+        "totalBlockingMs": 42
+      },
+      "scroll": {
+        "frames": 4862,
+        "avgFps": 121.6,
+        "p50Ms": 6.9,
+        "p95Ms": 7.3,
+        "p99Ms": 48.7,
+        "over25ms": 136,
+        "over50ms": 47,
+        "longTasks": 50,
+        "totalBlockingMs": 411
+      },
+      "totalTransferMB": 67.82,
+      "totalRequests": 800,
+      "jsHeapMB": 3.5,
+      "tier": null
+    },
+    {
+      "engine": "webgl",
+      "gpu": "ANGLE (AMD, AMD Radeon(TM) 860M Graphics (0x00001114) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "refreshMs": 7,
+      "load": {
+        "fcpMs": 1364,
+        "readyMs": 1359,
+        "bytesAtReadyMB": 1.36,
+        "requestsAtReady": 25,
+        "longTasks": 2,
+        "totalBlockingMs": 211
+      },
+      "scroll": {
+        "frames": 5705,
+        "avgFps": 142.6,
+        "p50Ms": 6.9,
+        "p95Ms": 7.2,
+        "p99Ms": 7.5,
+        "over25ms": 0,
+        "over50ms": 0,
+        "longTasks": 0,
+        "totalBlockingMs": 0
+      },
+      "totalTransferMB": 2.79,
+      "totalRequests": 41,
+      "jsHeapMB": 8.8,
+      "tier": {
+        "tier": "high",
+        "switches": 2,
+        "res": 1
+      }
+    }
+  ]
+}

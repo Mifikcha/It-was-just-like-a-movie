@@ -2,13 +2,12 @@
 // scrubs instead of stuttering. The percentage is the real share of those frames. The veil is there from
 // the first paint (BaseLayout marks the page before it renders); the bar only appears when loading takes
 // noticeable time, and slow loads get «Продолжить» to go ahead on whatever has arrived.
-import type { SequenceStage } from "./sequence";
 
 const SHOW_AFTER = 400;
 const SKIP_AFTER = 2500;
 const LIFT = 1100;
 
-export const boot = (stage: SequenceStage, sequence: string) => {
+export const boot = (stage: { progress(name: string): number; onFrameLoad(fn: () => void): void }, sequence: string) => {
   const root = document.documentElement;
   const el = document.querySelector<HTMLElement>("[data-boot]");
   // deep links and restored scroll positions go straight to their scene
