@@ -27,7 +27,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
         <p class="evidence__sub">Семь маршрутов: с чего начинали, как вели и чем закончилось.</p>
         <ol class="evidence__ticks" aria-label="Истории">
           {evidenceCases.map((c, i) => (
-            <li data-ev-tick={i}><button type="button" data-ev-go={i} aria-label={`История ${c.unit}`}>{c.unit}</button></li>
+            <li data-ev-tick={i}><button type="button" data-ev-go={i} aria-label={`История ${i + 1}`}>{String(i + 1).padStart(2, "0")}</button></li>
           ))}
           <li data-ev-tick={evidenceCases.length}><button type="button" data-ev-go={evidenceCases.length} aria-label="Ещё отзывы">ещё</button></li>
         </ol>
@@ -37,7 +37,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
         {evidenceCases.map((c, i) => (
           <article class:list={["ecase", c.reviews.length === 0 && "ecase--solo"]} data-ev-step={i}>
             <div class="ecase__route">
-              <p class="ecase__meta">Модуль {c.unit} · {c.exam} · {c.subjects}{c.span && ` · ${c.span}`}</p>
+              <p class="ecase__meta">История {String(i + 1).padStart(2, "0")} · {c.exam} · {c.subjects}{c.span && ` · ${c.span}`}</p>
               <h4 class="ecase__result">{c.result}</h4>
               <p class="ecase__title">{c.title}</p>
               <ol class="ecase__steps">

@@ -453,6 +453,8 @@ const setupJourney = () => {
     return gsap.to(s, { t: to, duration, delay, ease: "power2.out", onUpdate: () => show[name](s.t) });
   };
   const backdrop = (i: number) => (compact && i > 0 ? (SCENES[i] === "build" ? 0.35 : 0.6) : 0);
+  // the stories screen is an opaque sheet: once it is up, the planet behind it is not drawn at all
+  const restFade = (i: number) => (SCENES[i] === "blueprint" ? 1 : backdrop(i));
   const mark = (i: number) => {
     tracks.forEach((tr, k) => {
       tr.toggleAttribute("data-on", k === i);
@@ -464,6 +466,7 @@ const setupJourney = () => {
     stage.setFade(backdrop(i));
   };
   const settle = (i: number) => {
+    stage.setFade(restFade(i));
     if (SCENES[i] === "blueprint") drawing(true);
     if (SCENES[i] === "work") map(true);
   };
@@ -492,13 +495,13 @@ const setupJourney = () => {
     tracks[next].scrollTop = 0;
     if (Math.abs(next - from) > 1) {
       // a jump across several screens: a short dip to the night, no flight through every stop on the way
-      const f = { v: backdrop(from) };
+      const f = { v: restFade(from) };
       fadeTo(SCENES[from], 0, 0.3);
       await gsap.to(f, { v: 1, duration: 0.35, ease: "power1.in", onUpdate: () => stage.setFade(f.v) });
       land(next);
       show[SCENES[next]](0);
       stage.setFade(1);
-      await gsap.to(f, { v: backdrop(next), duration: 0.6, ease: "power2.out", onUpdate: () => stage.setFade(f.v) });
+      await gsap.to(f, { v: restFade(next), duration: 0.6, ease: "power2.out", onUpdate: () => stage.setFade(f.v) });
       fadeTo(SCENES[next], 1, 0.6);
       busy = false;
       return;

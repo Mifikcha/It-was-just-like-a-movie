@@ -556,11 +556,8 @@
 .evidence__ticks li:hover { border-color: var(--cyan-hud); color: var(--text-strong); }
 
 /* ---------------------------------------------------------------- the harvester sheet (HarvesterDrawing.astro)
-   Thin drafting lines over Saturn's night side; one subsystem at a time takes its tint, and in the exploded view the
+   Thin drafting lines on the sheet; one subsystem at a time takes its tint, and in the exploded view the
    subsystems move out along their own --dx / --dy. */
-.is-paged .blueprint {
-  background: linear-gradient(90deg, rgba(5, 9, 20, 0.86) 0%, rgba(5, 9, 20, 0.5) 42%, rgba(5, 9, 20, 0.42) 58%, rgba(5, 9, 20, 0.78) 100%);
-}
 .hv {
   position: absolute;
   inset: 0;
