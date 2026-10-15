@@ -1,7 +1,7 @@
 // Saturn, drawn in neon light: the planet and its rings are clouds of particles in the Tokyo Night palette.
 // The ring structure is the real one (C, B, Cassini division, A, Encke gap, F), the north pole carries the
 // hexagon, and the light is honest: the rings shade the planet, the planet shades the rings.
-// Everything turns prograde: the clouds, the rings (Kepler), the spokes, the moons.
+// The planet and its spokes turn one way, the rings (Kepler) and the moons the other.
 // Scroll "activates" it (uLive): a slow survey sweep across the rings and a brighter signal ring.
 import * as THREE from "three";
 import { COMMON, OUT, TIERS, U, buildSky, release, rng, shader, type Tier } from "./world";
@@ -18,8 +18,8 @@ const BANDS: [number, number, number][] = [
 const SUN = new THREE.Vector3(-0.78, 0.3, 0.55).normalize();
 /** the planet's spin, rad/s: one turn in about half a minute */
 const SPIN = 0.2;
-// ring orbits follow Kepler (inner faster), scaled so even the outermost ring outruns the planet by a quarter
-const ORBIT = SPIN * 1.25 * ((BANDS[BANDS.length - 1][1] * RING) / (R * 2)) ** 1.5;
+// ring orbits follow Kepler (inner faster): the outermost ring at 0.75 x SPIN, the innermost about twice as fast
+const ORBIT = 0.6 * SPIN * 1.25 * ((BANDS[BANDS.length - 1][1] * RING) / (R * 2)) ** 1.5;
 // particles on the planet, in the rings
 const COUNT: Record<Tier, [number, number]> = { low: [22000, 50000], medium: [100000, 220000], high: [180000, 420000] };
 // render scale range per tier: points blur at once when the canvas is upscaled, and Saturn has GPU to spare
@@ -42,16 +42,17 @@ ${BANDS.map(([a, b, d]) => `  o += ${d.toFixed(2)} * step(${a.toFixed(3)}, r) * 
   return o;
 }`;
 
-// size in pixels from the particle's world size; below 1.5 px it is drawn at 1.5 and dimmed by its real coverage,
-// close up it is capped (the fragment shader turns those into crisp grains)
+// size in pixels from the particle's world size. Below 1.2 px a share of the particles equal to their real coverage
+// is kept at full strength and the rest dropped: dimming them all instead averages hundreds of faint dots per pixel
+// into haze. Close up the size is capped (the fragment shader turns those into crisp grains).
 const POINT = /* glsl */ `
 uniform float uPx; uniform float uSize;
 varying float vPx;
-float pointSize(vec4 mv, out float gain) {
+float pointSize(vec4 mv, float seed, out float gain) {
   float px = uSize / (-mv.z * uPx);
-  float cov = clamp(px / 1.5, 0.0, 1.0);
-  gain = cov * cov;
-  vPx = clamp(px, 1.5, 4.0);
+  float cov = clamp(px / 1.2, 0.0, 1.0);
+  gain = step(fract(seed * 917.31), cov * cov);
+  vPx = clamp(px, 1.2, 4.0);
   return vPx;
 }`;
 
@@ -70,8 +71,8 @@ float sdHex(vec2 p, float r) {
 }
 void main() {
   vec3 n = normalize(position);
-  // the cloud pattern turns with the planet (prograde); light and shadows stay with the sun
-  float a = -uTime * ${SPIN};
+  // the cloud pattern turns with the planet, against the rings; light and shadows stay with the sun
+  float a = uTime * ${SPIN};
   vec3 s = vec3(n.x * cos(a) - n.z * sin(a), n.y, n.x * sin(a) + n.z * cos(a));
   float lon = atan(s.z, s.x);
   // band edges: festoons along the jets and small eddies where they shear
@@ -106,9 +107,9 @@ void main() {
 
   vec4 mv = modelViewMatrix * vec4(position, 1.0);
   float gain;
-  gl_PointSize = pointSize(mv, gain);
+  gl_PointSize = pointSize(mv, aSeed, gain);
   // the limb stacks particles: thin it out so the disc reads as a sphere, not a ring of light
-  vA = gain * (0.6 + 0.3 * aSeed) * mix(0.45, 1.0, mu);
+  vA = gain * (1.0 + 0.45 * aSeed) * mix(0.45, 1.0, mu);
   gl_Position = projectionMatrix * mv;
 }`;
 
@@ -138,7 +139,7 @@ void main() {
   float shadow = step(along, 0.0) * (1.0 - smoothstep(${(R * 0.97).toFixed(2)}, ${(R * 1.03).toFixed(2)}, length(p - uSun * along)));
   b *= 1.0 - 0.95 * shadow;
   // spokes: dark radial smudges over the B ring that turn with the planet's field, not with the ring
-  float fa = atan(p.z, p.x) - uTime * ${SPIN};
+  float fa = atan(p.z, p.x) + uTime * ${SPIN};
   float spoke = smoothstep(0.55, 0.85, vnoise(vec3(cos(fa) * 4.0, sin(fa) * 4.0, rr * 2.5 + uTime * 0.01)))
     * smoothstep(1.58, 1.66, rr) * (1.0 - smoothstep(1.82, 1.92, rr));
   b *= 1.0 - 0.7 * spoke;
@@ -158,9 +159,9 @@ void main() {
 
   vec4 mv = modelViewMatrix * vec4(p, 1.0);
   float gain;
-  gl_PointSize = pointSize(mv, gain);
+  gl_PointSize = pointSize(mv, aSeed, gain);
   vC = col;
-  vA = b * gain * smoothstep(0.06, 0.5, -mv.z);
+  vA = b * gain * 1.4 * smoothstep(0.06, 0.5, -mv.z);
   gl_Position = projectionMatrix * mv;
 }`;
 
@@ -170,7 +171,8 @@ void main() {
   float d = length(gl_PointCoord - 0.5) * 2.0;
   if (d > 1.0) discard;
   float f = 1.0 - d;
-  float soft = pow(f, 5.0) + pow(f, 1.6) * 0.35;
+  // a tight core with a faint halo: distant particles stay points instead of melting into haze
+  float soft = pow(f, 4.0) * 1.15 + pow(f, 1.6) * 0.18;
   // large sprites (close up) become crisp grains with a one-pixel edge and a faint neon halo, not soft blobs
   float aa = 2.0 / vPx;
   float grain = 1.0 - smoothstep(0.55 - aa, 0.55 + aa, d);
@@ -255,7 +257,8 @@ export function buildSaturn(tier: Tier) {
     p.setLength(R * (1 + (r() - 0.5) * 0.006)).toArray(pp, i * 3);
     ps[i] = r();
   }
-  cloud(pp, ps, dots(PLANET_VERT, spacing * R * 1.5));
+  // sprites a little wider than the spacing: wider ones overlap their neighbours and blur the bands into haze
+  cloud(pp, ps, dots(PLANET_VERT, spacing * R * 1.25));
   const halo = add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), shader(HALO_VERT, HALO_FRAG, { uSize: { value: R * 1.8 } }, {
     blending: THREE.AdditiveBlending, depthWrite: false, transparent: true,
   })));
@@ -276,7 +279,7 @@ export function buildSaturn(tier: Tier) {
     rs[i++] = r();
   }
   const ringArea = Math.PI * RING * RING * BANDS.reduce((s, [a, b]) => s + b * b - a * a, 0);
-  cloud(rp, rs, dots(RING_VERT, Math.sqrt(ringArea / ringN) * 1.1));
+  cloud(rp, rs, dots(RING_VERT, Math.sqrt(ringArea / ringN) * 0.9));
 
   // ---------------------------------------------------------------- two moons on thin orbits, with ticks on the outer one
   const line = new THREE.LineBasicMaterial({ color: 0xbb9af7, transparent: true, opacity: 0.22, depthWrite: false });

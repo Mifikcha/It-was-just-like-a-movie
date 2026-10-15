@@ -86,7 +86,8 @@ const keep = (key: string) => ({
 });
 const store = keep("hd-quality");
 // per world: the two worlds load the GPU differently, so a tier measured on one says little about the other
-const remembered = keep(SATURN ? "hd-quality-auto-saturn" : "hd-quality-auto");
+// "-2": earlier versions could store a tier measured during a slowdown; a new key drops those
+const remembered = keep(SATURN ? "hd-quality-auto-saturn-2" : "hd-quality-auto-2");
 
 export class WebGLStage {
   readonly renderer: THREE.WebGLRenderer;
@@ -192,10 +193,14 @@ export class WebGLStage {
     const sync = () => gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
     this.renderer.render(this.scene, this.camera);
     sync();
-    const t0 = performance.now();
-    for (let i = 0; i < 5; i++) this.renderer.render(this.scene, this.camera);
-    sync();
-    const ms = (performance.now() - t0) / 5;
+    // best of three runs: one hitch (a busy machine, a tab in the background) must not decide the tier for good
+    const run = () => {
+      const t0 = performance.now();
+      for (let i = 0; i < 5; i++) this.renderer.render(this.scene, this.camera);
+      sync();
+      return (performance.now() - t0) / 5;
+    };
+    const ms = Math.min(run(), run(), run());
     // Saturn is measured on the opening shot, its cheapest: the pole costs ~4x more (docs/perf/worlds*.json),
     // so integrated graphics (~1.5 ms here on medium) must land on medium, not high
     const [hi, mid] = SATURN ? [0.9, 3] : [4, 11];
@@ -356,8 +361,8 @@ export class WebGLStage {
     if (this.pendingTier && now - this.lastChange > 700) {
       this.setTier(this.pendingTier);
       this.pendingTier = null;
+      // for this visit only: a slowdown may be the machine, not the GPU, and must not stick on later visits
       this.reason = "stepped down: slow";
-      remembered.set(`${this.gpu}|${this.tier}`);
     }
     if (idle && this.frameNo++ & 1) return;
     U.uTime.value = this.reduced ? 0 : now / 1000;
