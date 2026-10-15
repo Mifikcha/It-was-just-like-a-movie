@@ -1,122 +1,24 @@
 ---
+import HarvesterDrawing from "./HarvesterDrawing.astro";
 import { evidenceCases, moreReviews } from "../data/content";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-const src = (name: string) => `${base}/blueprint/${name}.webp`;
-
-// Callout anchors in drawing space (section render 1600×1000, star centre at 50% / 50%).
-// Projected from the v6 scene objects into the section camera (Blender: scripts/render_blueprint_v6.py → callouts.json).
-const callouts = [
-  { id: "shell", label: "Внешняя оболочка коллекторов", note: "R = 2,6 R★", x: 35.9, y: 37.0, side: "left", pass: "pass_shell" },
-  { id: "frame", label: "Вторичный несущий каркас", note: "сетка 6 × 7 × 7", x: 35.1, y: 61.2, side: "left", pass: "pass_frame" },
-  { id: "collector", label: "Полярный сборщик плазмы", note: "отвод массы в оболочку", x: 50.0, y: 65.1, side: "left", pass: "pass_core" },
-  { id: "thermal", label: "Система теплоотвода", note: "два термопояса и полярные короны", x: 42.6, y: 75.4, side: "left", pass: "pass_thermal" },
-  { id: "modules", label: "Станции на стрелах", note: "3 эксплуатационные станции", x: 69.9, y: 12.9, side: "right", pass: "pass_modules" },
-  { id: "ring", label: "Сервисные кольца", note: "R = 3,4 · 4,2 · 4,9 R★", x: 72.4, y: 45.5, side: "right", pass: "pass_rings" },
-  { id: "mirrors", label: "Кольцо статитов-зеркал", note: "R = 1,85 R★", x: 60.0, y: 48.8, side: "right", pass: "pass_mirrors" },
-  { id: "coil", label: "Контур звёздного подъёма", note: "катушки, R ≈ 1,6 R★", x: 58.3, y: 60.0, side: "right", pass: "pass_core" },
-];
-const passes = ["pass_shell", "pass_frame", "pass_core", "pass_mirrors", "pass_thermal", "pass_rings", "pass_modules"];
-const tints: Record<string, string> = {
-  // Tokyo Night accents
-  pass_thermal: "#ff9e64",
-  pass_core: "#f7768e",
-  pass_mirrors: "#bb9af7",
-};
-const left = callouts.filter((c) => c.side === "left").sort((a, b) => a.y - b.y);
-const right = callouts.filter((c) => c.side === "right").sort((a, b) => a.y - b.y);
-const rowY = (i: number, n: number) => 12 + (i * 62) / Math.max(1, n - 1);
-// Exposed view: radius of each layer in the exploded slab (1600×1000, star centre 800 / 500), measured on the render.
-const layers = [
-  { n: "С1", r: 425 },
-  { n: "С2", r: 372 },
-  { n: "С3", r: 243 },
-  { n: "С4", r: 125 },
-  { n: "★", r: 77 },
-];
 ---
 
-<!-- Scene 02: evidence. The cutaway becomes a drawing (subsystems, exposed view), then recedes into the background
-     and the seven routes come forward one by one: result, the route as it was steered, and the family's own words. -->
+<!-- Scene 02: evidence. Saturn from its night side behind a drawing of the atmospheric harvester (subsystems light up
+     in turn, now and then the exploded view); the seven routes in front, one at a time: result, the route as it was
+     steered, and the family's own words. -->
 <section class="track track--blueprint" id="evidence" data-track="blueprint" data-scene-index="1">
   <div class="track__stage blueprint" data-blueprint>
     <div class="blueprint__grid" aria-hidden="true"></div>
 
     <header class="blueprint__head">
-      <p class="eyebrow"><span>02 / 07</span>Инженерный слой · разрез А–А</p>
+      <p class="eyebrow"><span>02 / 07</span>Инженерный слой · лист 02</p>
       <h2 class="headline">Доказательства —<br />в конструкции.</h2>
     </header>
 
-    <figure class="drawing" aria-label="Поперечный разрез мегаструктуры">
-      <img class="drawing__layer drawing__ghost" src={src("section_blueprint")} alt="" />
-      <img class="drawing__layer drawing__slab" src={src("section_slab")} alt="" />
-      {passes.map((p) => (
-        <span class="drawing__pass" data-bp-pass={p} style={`--mask: url(${src(p)}); --tint: ${tints[p] ?? "#7dcfff"}`}></span>
-      ))}
-      <img class="drawing__layer drawing__exposed" src={src("exposed_blueprint")} alt="" />
-
-      <svg class="drawing__leaders" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
-        {left.map((c, i) => {
-          const y = rowY(i, left.length) * 10;
-          return (
-            <g data-bp-callout={c.id} data-pass={c.pass}>
-              <polyline pathLength="1" points={`${c.x * 16},${c.y * 10} ${c.x * 16 - 90},${y} 60,${y}`} />
-              <circle cx={c.x * 16} cy={c.y * 10} r="5" />
-            </g>
-          );
-        })}
-        {right.map((c, i) => {
-          const y = rowY(i, right.length) * 10;
-          return (
-            <g data-bp-callout={c.id} data-pass={c.pass}>
-              <polyline pathLength="1" points={`${c.x * 16},${c.y * 10} ${c.x * 16 + 90},${y} 1540,${y}`} />
-              <circle cx={c.x * 16} cy={c.y * 10} r="5" />
-            </g>
-          );
-        })}
-      </svg>
-      {left.map((c, i) => (
-        <p class="callout callout--left" data-bp-label={c.id} style={`top: ${rowY(i, left.length)}%`}>
-          {c.label}<small>{c.note}</small>
-        </p>
-      ))}
-      {right.map((c, i) => (
-        <p class="callout callout--right" data-bp-label={c.id} style={`top: ${rowY(i, right.length)}%`}>
-          {c.label}<small>{c.note}</small>
-        </p>
-      ))}
-
-<svg class="drawing__marks" viewBox="0 0 1600 1000" preserveAspectRatio="none" aria-hidden="true">
-        <!-- a radius from the star, up and to the right: the free corner between the header and the review -->
-        <line x1={800 + layers[layers.length - 1].r * Math.SQRT1_2} y1={500 - layers[layers.length - 1].r * Math.SQRT1_2}
-              x2={800 + (layers[0].r + 30) * Math.SQRT1_2} y2={500 - (layers[0].r + 30) * Math.SQRT1_2} />
-        {layers.map((l) => {
-          const x = 800 + l.r * Math.SQRT1_2;
-          const y = 500 - l.r * Math.SQRT1_2;
-          return (
-            <g>
-              <line x1={x - 10} y1={y - 10} x2={x + 10} y2={y + 10} />
-              <circle cx={x} cy={y} r="4" />
-              <text x={x + 18} y={y + 24} text-anchor="start">{l.n}</text>
-            </g>
-          );
-        })}
-      </svg>
-
-      <ol class="exposed-legend" aria-label="Слои в разнесённом виде">
-        <li data-n="С1">Внешняя оболочка</li>
-        <li data-n="С2">Вторичный каркас</li>
-        <li data-n="С3">Статиты-зеркала</li>
-        <li data-n="С4">Контур звёздного подъёма</li>
-        <li data-n="★">Звезда</li>
-      </ol>
-
-      <div class="scale-bar" aria-label="Шкала масштаба">
-        <div class="scale-bar__ticks"><i></i><i></i></div>
-        <p><span>0</span><span>1 R★</span><span>5 R★</span></p>
-        <small>R★ — радиус звезды · при R★ ≈ 696 000 км: 5 R★ ≈ 3,5 млн км [допущение]</small>
-        <small class="scale-bar__earth"><b></b> Земля в том же масштабе</small>
-      </div>
+    <figure class="drawing" aria-label="Атмосферный харвестер: вид сбоку и вид спереди">
+      <HarvesterDrawing />
     </figure>
 
     <div class="evidence" data-evidence>
@@ -187,9 +89,9 @@ const layers = [
 
     <footer class="title-block" aria-hidden="true">
       <span>Hopes and Dreams</span>
-      <span>Лист 01 · разрез А–А</span>
-      <span>Масштаб по шкале</span>
-      <span>Редакция 10</span>
+      <span>Лист 02 · атмосферный харвестер</span>
+      <span>Концепт · размеры условные</span>
+      <span>Редакция 11</span>
     </footer>
   </div>
 

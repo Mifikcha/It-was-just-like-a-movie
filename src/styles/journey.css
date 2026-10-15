@@ -490,8 +490,7 @@ body {
   padding: 1.1rem 1.4rem 0.6rem;
   border: 1px solid var(--line);
   border-left-color: rgba(111, 200, 255, 0.5);
-  background: rgba(4, 5, 11, 0.72);
-  backdrop-filter: blur(8px);
+  background: rgba(4, 5, 11, 0.76);
 }
 
 .contact-line .cta--quiet {
@@ -731,4 +730,36 @@ body {
   .hero-ui__quote { display: none; }
   .contact-line { grid-template-columns: 1fr; }
   .build-meter__stages { font-size: 0.66rem; }
+}
+
+/* ---------------------------------------------------------------- paged journey: one screen at a time
+   The page itself does not scroll: every scene is a fixed screen, the camera flies between them (journey.ts).
+   A screen hides only after its content has faded, so leaving never pops. */
+.is-paged,
+.is-paged body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+.is-paged .track {
+  position: fixed;
+  inset: 0;
+  height: 100vh !important;
+  height: 100svh !important;
+  overflow: hidden;
+  /* opacity, not only visibility: some stages force their own visibility (extras.css) */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, visibility 0s linear 0.45s;
+}
+.is-paged .track[data-on] { z-index: 1; opacity: 1; visibility: visible; transition: opacity 0.4s ease, visibility 0s; }
+/* painted once in advance (journey.ts), never seen */
+.is-paged .track[data-warm]:not([data-on]) { opacity: 0.001; visibility: visible; transition: none; }
+.is-paged .track__stage { position: relative; height: 100%; }
+
+/* the footer belongs to the last screen: along its bottom edge */
+.is-paged .journey-footer { position: absolute; left: 0; right: 0; bottom: 0; padding-block: 1.1rem; background: none; }
+
+/* phones: a screen taller than the viewport scrolls inside; the next swipe at its end turns the page */
+@media (max-width: 900px) {
+  .is-paged .track { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  .is-paged .track--final .track__stage { height: auto; min-height: 100%; overflow: visible; }
+  .is-paged .decision-ui { position: relative; inset: auto; width: auto; padding: 96px clamp(20px, 4.4vw, 56px) 48px; }
+  .is-paged .journey-footer { position: relative; }
 }

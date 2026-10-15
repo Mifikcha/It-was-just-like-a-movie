@@ -1,5 +1,4 @@
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SequenceStage } from "./sequence";
 import { WebGLStage } from "./webgl/stage";
 import { boot } from "./boot";
@@ -56,7 +55,7 @@ const fadeIn = (el: HTMLElement | null, t: number, lift = 24) => {
   if (!el) return;
   el.style.opacity = String(t);
   el.style.transform = `translate3d(0, ${(1 - t) * lift}px, 0)`;
-  el.style.visibility = t < 0.01 ? "hidden" : "visible";
+  el.style.visibility = t <= 0 ? "hidden" : "visible";
   el.toggleAttribute("inert", t < 0.5);
 };
 
@@ -315,259 +314,316 @@ function setMap(p: number, svg: SVGElement) {
   skyLife?.(p > 0.22 && p < 0.97);
 }
 
-// ---------------------------------------------------------------- scroll journey
-// One continuous camera: every scene starts with a rendered flight from the previous scene's camera
-// and holds the flight's last frame as its backdrop. The only cut to black is the human-layer intro.
+// ---------------------------------------------------------------- the journey, one screen at a time
+// One continuous camera: a wheel step, a swipe or a key moves to the next screen, and the camera flies there on a
+// timed path (the stage runs the flight in its own render loop). Content fades out before the flight and in as it
+// lands. A screen whose content is taller than the viewport (phones) scrolls inside first.
 const heroUi = $("[data-hero-ui]");
 const decisionUi = $("[data-decision-ui]");
 
-// scene -> flight that brings the camera there, and construction_progress at its start / end
-const FLIGHT: Record<string, { seq: string; from: number; to: number }> = {
-  // scene 02 holds the last frame of the opening flight (the cutaway)
-  blueprint: { seq: "approach", from: 0.42, to: 0.5 },
-  work: { seq: "f_stories", from: 0.5, to: 0.62 },
-  subjects: { seq: "f_subjects", from: 0.62, to: 0.8 },
-  formats: { seq: "f_formats", from: 0.88, to: 0.95 },
-  build: { seq: "f_final", from: 0.95, to: 1 },
+const SCENES = ["approach", "blueprint", "work", "subjects", "human", "formats", "build"];
+// the flight into each screen, its length and construction_progress at its start / end
+const INTO: Record<string, { seq: string; ms: number; from: number; to: number }> = {
+  blueprint: { seq: "approach", ms: 3400, from: 0.42, to: 0.5 },
+  work: { seq: "f_stories", ms: 3600, from: 0.5, to: 0.62 },
+  subjects: { seq: "f_subjects", ms: 3000, from: 0.62, to: 0.8 },
+  human: { seq: "f_human", ms: 3600, from: 0.8, to: 0.88 },
+  formats: { seq: "f_formats", ms: 3600, from: 0.88, to: 0.95 },
+  build: { seq: "f_final", ms: 3400, from: 0.95, to: 1 },
 };
-const ORDER = ["approach", "blueprint", "work", "subjects", "human", "formats", "build"];
-// the human layer has no flight of its own: it holds the subjects' last frame behind the black
-const seqOf = (track: string) => (track === "approach" ? "approach" : track === "human" ? "f_subjects" : FLIGHT[track].seq);
-// load the flight of this scene and the next one while the visitor is here
-const preloadAround = (track: string) => {
-  const i = ORDER.indexOf(track);
-  stage.preload(...[ORDER[i], ORDER[i + 1]].filter(Boolean).map((t) => seqOf(t!)));
-};
-const flight = (track: string, t: number) => {
-  const f = FLIGHT[track];
-  stage.show(f.seq, ease(clamp(t)));
-  setConstruction(f.from + (f.to - f.from) * clamp(t));
-};
+// the camera stop that is each screen's backdrop
+const rest = (name: string): [string, number, number] => (name === "approach" ? ["approach", 0, 0.42] : [INTO[name].seq, 1, INTO[name].to]);
+const preloadAround = (i: number) =>
+  stage.preload(...([SCENES[i + 1], SCENES[i]].filter((s) => s && s !== "approach").map((s) => INTO[s!].seq).concat("approach") as never[]));
 
-// settle points: a flight released mid-way finishes toward the scroll direction
-const settle = (from: number, to: number, lo: number, hi: number) => (value: number, self?: ScrollTrigger) => {
-  if (value < from || value > to) return value;
-  return (self?.direction ?? 1) > 0 ? hi : lo;
+// the stage flies in its own loop; the rendered-frame fallback (no WebGL2) is scrubbed by a tween instead
+const fly = (seq: string, a: number, b: number, ms: number, build: [number, number]) => {
+  if (stage instanceof WebGLStage) {
+    document.documentElement.style.setProperty("--construction", build[1].toFixed(3));
+    return stage.fly(seq, a, b, ms, build);
+  }
+  const s = { t: a };
+  return new Promise<void>((done) =>
+    gsap.to(s, {
+      t: b,
+      duration: ms / 1000,
+      ease: "sine.inOut",
+      onComplete: done,
+      onUpdate: () => {
+        stage.show(seq as never, s.t);
+        setConstruction(build[0] + (build[1] - build[0]) * ((s.t - a) / (b - a || 1)));
+      },
+    }),
+  );
 };
 
 const setupJourney = () => {
-  gsap.registerPlugin(ScrollTrigger);
-  stage.preload("approach");
-  stage.show("approach", 0, true);
-  setConstruction(0.42);
-  setScene(0);
+  document.documentElement.classList.add("is-paged");
   const compact = window.matchMedia("(max-width: 900px)").matches;
-  // phones only scrub the opening; every other scene shows the last frame of its flight
-  if (compact) stage.showEndsOnly("f_stories", "f_subjects", "f_formats", "f_final");
+  const tracks = SCENES.map((name) => $(`[data-track='${name}']`)!);
+  const header = $("[data-site-header]");
 
-  ScrollTrigger.create({
-    trigger: "[data-track='approach']",
-    start: "top top",
-    end: "bottom bottom",
-    // touch scrolling has its own momentum: a snap fights it and throws the page back
-    snap: compact ? undefined : { snapTo: settle(0.12, 0.9, 0, 1), duration: { min: 0.4, max: 1.2 }, delay: 0.12, ease: "power1.inOut" },
-    onToggle: ({ isActive }) => isActive && preloadAround("approach"),
-    onUpdate: ({ progress: p, isActive }) => {
-      if (!isActive && p > 0 && p < 1) return;
-      const travel = ease(range(p, 0.08, 0.95));
-      stage.show("approach", travel);
-      stage.setFade(0);
-      setConstruction(0.42 + 0.08 * travel);
-      fadeIn(heroUi, 1 - range(p, 0.02, 0.08), 0);
-      setScene(0);
-    },
-  });
-
-  // in-page links land on the settled screen of a scene, not at the start of its flight
-  const READY: Record<string, number> = { approach: 0, blueprint: 0.035, work: 0.4, subjects: 0.3, human: 0.5, formats: 0.4, build: 0.62 };
-  if (!compact) $$<HTMLAnchorElement>('a[href^="#"]').forEach((a) =>
-    a.addEventListener("click", (e) => {
-      const track = document.getElementById(a.hash.slice(1))?.closest<HTMLElement>("[data-track]");
-      const at = track ? READY[track.dataset.track!] : undefined;
-      if (!track || at === undefined) return;
-      e.preventDefault();
-      const top = track.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({ top: top + at * (track.offsetHeight - window.innerHeight), behavior: "instant" });
-      history.replaceState(null, "", a.hash);
-    }),
-  );
-
-  // phones: scenes 02-08 are laid out in normal flow (see scenes.css); the canvas shows each scene's end frame
-  if (compact) {
-    $$("[data-track='blueprint'], [data-still], [data-track='build']").forEach((track) =>
-      ScrollTrigger.create({
-        trigger: track,
-        start: "top center",
-        end: "bottom center",
-        onToggle: ({ isActive }) => {
-          if (!isActive) return;
-          const name = track.dataset.track!;
-          preloadAround(name);
-          if (name === "human") stage.show("f_subjects", 1);
-          else flight(name, 1);
-          stage.setFade(name === "build" ? 0.35 : 0.6);
-          setScene(Number(track.dataset.sceneIndex));
-        },
-      }),
-    );
-  }
-
-  // scene 02, two beats. The drawing: the cutaway becomes a blueprint, subsystems light up, the exposed view.
-  // Then it recedes into the background and the seven routes come forward one by one (+ more reviews).
+  // ---------------------------------------------------------------- what each screen shows, 0 hidden .. 1 shown
   const bp = $("[data-blueprint]");
-  const bpPasses = $$("[data-bp-pass]");
-  const bpCallouts = $$("[data-bp-callout]");
-  const bpLabels = $$("[data-bp-label]");
-  const bpOrder = ["pass_shell", "pass_frame", "pass_core", "pass_mirrors", "pass_thermal", "pass_rings", "pass_modules"];
   const evidence = $("[data-evidence]");
+  const still = (name: string) => {
+    const el = tracks[SCENES.indexOf(name)].querySelector<HTMLElement>("[data-still-stage]")!;
+    const content = el.querySelector<HTMLElement>("[data-still-content]");
+    return (t: number) => {
+      el.style.setProperty("--content", t.toFixed(3));
+      el.style.setProperty("--shade", t.toFixed(3));
+      fadeIn(content, t, 0);
+    };
+  };
+  const show: Record<string, (t: number) => void> = {
+    approach: (t) => fadeIn(heroUi, t, 0),
+    blueprint: (t) => {
+      fadeIn(bp, t, 0);
+      fadeIn(evidence, t, 0);
+    },
+    work: still("work"),
+    subjects: still("subjects"),
+    human: still("human"),
+    formats: still("formats"),
+    build: (t) => fadeIn(decisionUi, t, 0),
+  };
+
+  // ---------------------------------------------------------------- scene 02: the drawing works while the visitor reads
+  const bpPasses = $$("[data-bp-pass]");
   const evSteps = $$("[data-ev-step]");
   const evTicks = $$("[data-ev-tick]");
-  const EV = [0.03, 0.97];
-  const BG_ORDER = ["pass_mirrors", "pass_thermal", "pass_core", "pass_rings", "pass_modules", "pass_frame", "pass_shell"];
-  // straight from the hero into the stories; the drawing is their background from the first moment and
-  // keeps working while the visitor reads: subsystems light up in turn, the section breathes into the
-  // exposed view and back (one slow cycle per four stories)
-  // the 01–07 / «ещё» ticks jump to that story
-  const bpTrack = $("[data-track='blueprint']");
-  if (!compact && bpTrack) $$<HTMLButtonElement>("[data-ev-go]").forEach((b) =>
-    b.addEventListener("click", () => {
-      const i = Number(b.dataset.evGo);
-      const at = EV[0] + ((i + 0.45) / evSteps.length) * (EV[1] - EV[0]);
-      const top = bpTrack.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({ top: top + at * (bpTrack.offsetHeight - window.innerHeight), behavior: "smooth" });
+  let story = 0;
+  const setStory = (k: number) => {
+    story = Math.max(0, Math.min(evSteps.length - 1, k));
+    evSteps.forEach((s, i) => {
+      s.dataset.state = i < story ? "past" : i === story ? "current" : "next";
+      s.toggleAttribute("inert", i !== story);
+    });
+    evTicks.forEach((tk, i) => {
+      tk.toggleAttribute("data-done", i < story);
+      tk.toggleAttribute("data-current", i === story);
+    });
+  };
+  setStory(0);
+  $$<HTMLButtonElement>("[data-ev-go]").forEach((b) => b.addEventListener("click", () => setStory(Number(b.dataset.evGo))));
+  // desktop: the drawing recedes behind the stories; phones keep the sheet's heading above it, in flow
+  ["--bp-blue", "--bp-grid", ...(compact ? [] : ["--bp-recede"])].forEach((k) => bp?.style.setProperty(k, "1"));
+  const BG_ORDER = [...new Set(bpPasses.map((el) => el.dataset.bpPass!))];
+  let drawingLife: gsap.core.Timeline | null = null;
+  const drawing = (on: boolean) => {
+    drawingLife?.kill();
+    drawingLife = null;
+    if (!on || !bp) return;
+    // a subsystem lights up every few seconds; once per cycle the harvester opens into its exploded view and closes
+    const life = { k: 0, x: 0 };
+    drawingLife = gsap
+      .timeline({ repeat: -1 })
+      .to(life, {
+        k: BG_ORDER.length,
+        duration: BG_ORDER.length * 2.8,
+        ease: "none",
+        onUpdate: () => {
+          const active = BG_ORDER[Math.floor(life.k) % BG_ORDER.length];
+          bpPasses.forEach((el) => el.toggleAttribute("data-active", el.dataset.bpPass === active));
+        },
+      }, 0)
+      .to(life, { x: 1, duration: 3.2, ease: "sine.inOut", yoyo: true, repeat: 1, repeatDelay: 6, onUpdate: () => bp.style.setProperty("--bp-exposed", life.x.toFixed(3)) }, 4);
+  };
+
+  // ---------------------------------------------------------------- scene 03: the route surfaces on the map, in time
+  const kmap = tracks[2].querySelector<SVGElement>("[data-kmap]");
+  let mapTween: gsap.core.Tween | null = null;
+  const map = (on: boolean) => {
+    mapTween?.kill();
+    if (!kmap) return;
+    const m = { p: on ? 0.2 : 0 };
+    setMap(m.p, kmap);
+    kmap.style.opacity = on ? "1" : "0";
+    if (on) mapTween = gsap.to(m, { p: 0.96, duration: 9, ease: "none", onUpdate: () => setMap(m.p, kmap) });
+  };
+
+  // scene 05: the line before the study, over the flight in
+  const intro = $("[data-human-intro]");
+
+  // ---------------------------------------------------------------- moving between screens
+  let cur = 0;
+  let busy = false;
+  const fadeTo = (name: string, to: number, duration: number, delay = 0) => {
+    const s = { t: to > 0 ? 0 : 1 };
+    return gsap.to(s, { t: to, duration, delay, ease: "power2.out", onUpdate: () => show[name](s.t) });
+  };
+  const backdrop = (i: number) => (compact && i > 0 ? (SCENES[i] === "build" ? 0.35 : 0.6) : 0);
+  const mark = (i: number) => {
+    tracks.forEach((tr, k) => {
+      tr.toggleAttribute("data-on", k === i);
+      tr.toggleAttribute("inert", k !== i);
+    });
+    setScene(Number(tracks[i].dataset.sceneIndex));
+    header?.toggleAttribute("data-condensed", i > 0);
+    history.replaceState(null, "", i ? `#${tracks[i].id}` : location.pathname + location.search);
+    stage.setFade(backdrop(i));
+  };
+  const settle = (i: number) => {
+    if (SCENES[i] === "blueprint") drawing(true);
+    if (SCENES[i] === "work") map(true);
+  };
+  const leave = (i: number) => {
+    if (SCENES[i] === "blueprint") drawing(false);
+    if (SCENES[i] === "work") map(false);
+  };
+  // a screen with nothing flying: the camera at its stop, its content shown
+  const land = (i: number) => {
+    const [seq, t, build] = rest(SCENES[i]);
+    stage.show(seq as never, t, true);
+    setConstruction(build);
+    SCENES.forEach((s, k) => show[s](k === i ? 1 : 0));
+    if (intro) intro.style.opacity = "0";
+    mark(i);
+    settle(i);
+  };
+
+  const go = async (next: number) => {
+    if (busy || next === cur || next < 0 || next >= SCENES.length) return;
+    busy = true;
+    const from = cur;
+    cur = next;
+    preloadAround(next);
+    leave(from);
+    tracks[next].scrollTop = 0;
+    if (Math.abs(next - from) > 1) {
+      // a jump across several screens: a short dip to the night, no flight through every stop on the way
+      const f = { v: backdrop(from) };
+      fadeTo(SCENES[from], 0, 0.3);
+      await gsap.to(f, { v: 1, duration: 0.35, ease: "power1.in", onUpdate: () => stage.setFade(f.v) });
+      land(next);
+      show[SCENES[next]](0);
+      stage.setFade(1);
+      await gsap.to(f, { v: backdrop(next), duration: 0.6, ease: "power2.out", onUpdate: () => stage.setFade(f.v) });
+      fadeTo(SCENES[next], 1, 0.6);
+      busy = false;
+      return;
+    }
+    const forward = next > from;
+    const flight = INTO[SCENES[forward ? next : from]];
+    const ms = flight.ms;
+    // out first, quickly; the flight starts as the content goes
+    fadeTo(SCENES[from], 0, 0.35);
+    mark(next);
+    // painted (all but invisible) from the start of the flight: its first raster lands while the camera is slow,
+    // not as the content fades in at the end
+    show[SCENES[next]](0.001);
+    const landing = fly(flight.seq, forward ? 0 : 1, forward ? 1 : 0, ms, forward ? [flight.from, flight.to] : [flight.to, flight.from]);
+    // the line before the author, over the flight into the study
+    if (SCENES[next] === "human" && intro) {
+      const o = { v: 0 };
+      const set = () => (intro.style.opacity = o.v.toFixed(3));
+      gsap.timeline()
+        .to(o, { v: 1, duration: 0.8, delay: (ms / 1000) * 0.15, ease: "power2.out", onUpdate: set })
+        .to(o, { v: 0, duration: 0.7, delay: (ms / 1000) * 0.25, ease: "power2.in", onUpdate: set });
+    }
+    fadeTo(SCENES[next], 1, 0.7, (ms / 1000) * 0.8);
+    await landing;
+    settle(next);
+    busy = false;
+  };
+
+  // ---------------------------------------------------------------- input: one gesture, one screen
+  // a panel taller than the screen (phones) scrolls first; only a new gesture at its edge turns the page
+  const canScroll = (target: EventTarget | null, dir: number) => {
+    for (let el = target as HTMLElement | null; el && el !== document.body; el = el.parentElement) {
+      if (el.scrollHeight > el.clientHeight + 2 && /auto|scroll/.test(getComputedStyle(el).overflowY)) {
+        if (dir > 0 ? el.scrollTop + el.clientHeight < el.scrollHeight - 2 : el.scrollTop > 2) return true;
+      }
+      if (el === tracks[cur]) break;
+    }
+    return false;
+  };
+  const modal = () => lightbox?.open;
+  let lastWheel = -1e9;
+  window.addEventListener("wheel", (e) => {
+    if (modal() || e.ctrlKey) return;
+    const dir = Math.sign(e.deltaY);
+    // trackpads keep sending inertia for a second: only a pause makes the next event a new gesture
+    const fresh = e.timeStamp - lastWheel > 240;
+    lastWheel = e.timeStamp;
+    if (!dir || (!busy && canScroll(e.target, dir))) return;
+    e.preventDefault();
+    if (fresh && Math.abs(e.deltaY) > 2) go(cur + dir);
+  }, { passive: false });
+
+  let touch: { y: number; x: number; up: boolean; down: boolean } | null = null;
+  window.addEventListener("touchstart", (e) => {
+    if (modal() || e.touches.length > 1) return void (touch = null);
+    const p = e.touches[0];
+    touch = { y: p.clientY, x: p.clientX, up: !canScroll(e.target, -1), down: !canScroll(e.target, 1) };
+  }, { passive: true });
+  window.addEventListener("touchmove", (e) => {
+    if (!touch) return;
+    const dy = touch.y - e.touches[0].clientY;
+    // at the panel's edge the browser would bounce or reload the page: the swipe is ours
+    if ((busy || (dy > 0 && touch.down) || (dy < 0 && touch.up)) && e.cancelable) e.preventDefault();
+  }, { passive: false });
+  window.addEventListener("touchend", (e) => {
+    if (!touch) return;
+    const p = e.changedTouches[0];
+    const dy = touch.y - p.clientY;
+    const dx = touch.x - p.clientX;
+    if (Math.abs(dy) > 44 && Math.abs(dy) > Math.abs(dx) * 1.3) {
+      if (dy > 0 && touch.down) go(cur + 1);
+      if (dy < 0 && touch.up) go(cur - 1);
+    }
+    touch = null;
+  });
+
+  window.addEventListener("keydown", (e) => {
+    const t = e.target as HTMLElement;
+    if (modal() || e.altKey || e.ctrlKey || e.metaKey || t.closest("input, textarea, select, [contenteditable]")) return;
+    if (SCENES[cur] === "blueprint" && (e.key === "ArrowRight" || e.key === "ArrowLeft") && !t.closest("[role='tablist']")) {
+      e.preventDefault();
+      return setStory(story + (e.key === "ArrowRight" ? 1 : -1));
+    }
+    if (e.key === "Home" || e.key === "End") {
+      e.preventDefault();
+      return void go(e.key === "Home" ? 0 : SCENES.length - 1);
+    }
+    const dir = ({ PageDown: 1, ArrowDown: 1, " ": e.shiftKey ? -1 : 1, PageUp: -1, ArrowUp: -1 } as Record<string, number>)[e.key];
+    if (!dir || (e.key === " " && t.closest("button, a"))) return;
+    if (!busy && canScroll(t === document.body ? tracks[cur] : t, dir)) return;
+    e.preventDefault();
+    go(cur + dir);
+  });
+
+  // in-page links (header, rail, hero buttons) go to their screen
+  $$<HTMLAnchorElement>('a[href^="#"]').forEach((a) =>
+    a.addEventListener("click", (e) => {
+      const track = document.getElementById(a.hash.slice(1))?.closest<HTMLElement>("[data-track]");
+      if (!track) return;
+      e.preventDefault();
+      go(tracks.indexOf(track));
     }),
   );
-  if (!compact) ScrollTrigger.create({
-    trigger: "[data-track='blueprint']",
-    start: "top top",
-    end: "bottom bottom",
-    onToggle: ({ isActive }) => isActive && preloadAround("blueprint"),
-    onUpdate: ({ progress: p, isActive }) => {
-      if (!bp) return;
-      if (isActive) {
-        flight("blueprint", 1);
-        stage.setFade(0);
-      }
-      const shown = range(p, 0, 0.03) * (1 - range(p, 0.975, 1));
-      fadeIn(bp, shown, 0);
-      const set = (k: string, v: number) => bp.style.setProperty(k, v.toFixed(3));
-      set("--bp-blue", 1);
-      set("--bp-grid", 1);
-      set("--bp-callouts", 0);
-      set("--bp-recede", 1);
-      const ev = range(p, EV[0], EV[1]) * evSteps.length;
-      // one slow cycle over the whole archive: the section opens into the exposed view and closes again
-      const whole = range(p, EV[0], EV[1]);
-      const breathe = Math.sin(Math.PI * whole) ** 2;
-      set("--bp-exposed", breathe);
-      // colour from the very first story: a new subsystem every ~half story, the coloured ones first
-      const active = BG_ORDER[Math.min(BG_ORDER.length - 1, Math.floor(whole * BG_ORDER.length))];
-      bpPasses.forEach((el) => el.toggleAttribute("data-active", el.dataset.bpPass === active));
-      bpCallouts.forEach((el) => el.removeAttribute("data-active"));
-      bpLabels.forEach((el) => el.removeAttribute("data-active"));
-      // the routes: one case per step, each shown whole
-      fadeIn(evidence, range(p, 0.005, 0.03), 0);
-      const k = Math.min(evSteps.length - 1, Math.floor(ev));
-      evSteps.forEach((s, i) => {
-        s.dataset.state = i < k ? "past" : i === k ? "current" : "next";
-        s.toggleAttribute("inert", i !== k);
-      });
-      evTicks.forEach((tk, i) => {
-        tk.toggleAttribute("data-done", i < k);
-        tk.toggleAttribute("data-current", i === k);
-      });
-      if (isActive) setScene(1);
-    },
-  });
 
-  // scenes 04-09: flight in, hold the last frame, content on top
-  const stillHandlers: Record<string, (p: number, el: HTMLElement) => void> = {
-    work: (p, el) => {
-      const svg = el.querySelector<SVGElement>("[data-kmap]");
-      if (!svg) return;
-      svg.style.opacity = String(range(p, 0.22, 0.27) * (1 - range(p, 0.95, 1)));
-      setMap(p, svg);
-    },
-    subjects: (p) => {
-      if (subjectManual) return;
-      const ids = ["physics", "math", "cs"];
-      setSubject(ids[Math.min(2, Math.floor(range(p, 0.24, 0.94) * 3))]);
-    },
-  };
-  const FLIGHT_SHARE = 0.22;
-  if (!compact) $$("[data-still]").forEach((track) => {
-    const name = track.dataset.track!;
-    if (name === "human") return;
-    const el = track.querySelector<HTMLElement>("[data-still-stage]")!;
-    const content = el.querySelector<HTMLElement>("[data-still-content]");
-    const sceneIndex = Number(track.dataset.sceneIndex);
-    ScrollTrigger.create({
-      trigger: track,
-      start: "top top",
-      end: "bottom bottom",
-      onToggle: ({ isActive }) => isActive && preloadAround(name),
-      // a jump across several scenes updates every trigger on the way: only the active one drives the camera
-      onUpdate: ({ progress: p, isActive }) => {
-        if (isActive) {
-          flight(name, range(p, 0, FLIGHT_SHARE));
-          stage.setFade(name === "formats" ? 1 - range(p, 0, 0.14) : 0);
-          setScene(sceneIndex);
-        }
-        const shown = range(p, FLIGHT_SHARE - 0.02, FLIGHT_SHARE + 0.03) * (1 - range(p, 0.96, 1));
-        el.style.setProperty("--content", shown.toFixed(3));
-        fadeIn(content, shown, 0);
-        stillHandlers[name]?.(p, el);
-      },
-    });
-  });
+  // start where the address points (a reload, a shared link)
+  cur = Math.max(0, tracks.findIndex((tr) => location.hash && tr.id === location.hash.slice(1)));
+  preloadAround(cur);
+  land(cur);
 
-  // scene 08: cut to black right after the subjects — "first the work, now the person" — then we are in the pod
-  const human = $("[data-track='human']");
-  if (human && !compact) {
-    const el = human.querySelector<HTMLElement>("[data-still-stage]")!;
-    const content = el.querySelector<HTMLElement>("[data-still-content]");
-    const inside = el.querySelector<HTMLElement>("[data-human-layer='inside']")!;
-    const dark = el.querySelector<HTMLElement>("[data-human-dark]")!;
-    const intro = el.querySelector<HTMLElement>("[data-human-intro]")!;
-    ScrollTrigger.create({
-      trigger: human,
-      start: "top top",
-      end: "bottom bottom",
-      onToggle: ({ isActive }) => isActive && preloadAround("human"),
-      onUpdate: ({ progress: p, isActive }) => {
-        if (isActive) {
-          stage.show("f_subjects", 1);
-          stage.setFade(range(p, 0, 0.05));
-          setConstruction(0.8 + 0.08 * p);
-          setScene(4);
-        }
-        // black, a long quiet hold on the line, then straight into the pod
-        dark.style.opacity = String(range(p, 0, 0.05) * (1 - range(p, 0.3, 0.38)) + range(p, 0.9, 0.96));
-        intro.style.opacity = String(range(p, 0.06, 0.12) * (1 - range(p, 0.26, 0.31)));
-        inside.style.opacity = String(range(p, 0.3, 0.38));
-        inside.style.setProperty("--push", String(1.12 - 0.1 * ease(range(p, 0.3, 0.55))));
-        const shown = range(p, 0.4, 0.45) * (1 - range(p, 0.86, 0.9));
-        el.style.setProperty("--shade", String(shown));
-        fadeIn(content, shown, 0);
-      },
-    });
-  }
-
-  // scene 10: fly back to the opening shot — the same megastructure, now complete — then contact
-  if (!compact) ScrollTrigger.create({
-    trigger: "[data-track='build']",
-    start: "top top",
-    end: "bottom bottom",
-    onToggle: ({ isActive }) => isActive && preloadAround("build"),
-    onUpdate: ({ progress: p, isActive }) => {
-      if (isActive) {
-        flight("build", range(p, 0, 0.45));
-        stage.setFade(0);
-        setScene(6);
-      }
-      fadeIn(decisionUi, range(p, 0.5, 0.56), 0);
-    },
-  });
+  // A screen's first paint is expensive (the harvester drawing alone takes ~200 ms) and would land in the middle of
+  // a flight. While the visitor is still on the first screen, each other screen is painted once, all but invisibly.
+  const frame = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const idle = () => new Promise((r) => ("requestIdleCallback" in window ? requestIdleCallback(r, { timeout: 1500 }) : setTimeout(r, 200)));
+  (async () => {
+    await new Promise<void>((r) => (stage.progress("approach") >= 1 ? r() : stage.onFrameLoad(() => r())));
+    for (let k = 0; k < tracks.length; k++) {
+      await idle();
+      if (k === cur || busy) continue;
+      tracks[k].toggleAttribute("data-warm", true);
+      show[SCENES[k]](0.001);
+      await frame();
+      if (k !== cur) show[SCENES[k]](0);
+      tracks[k].removeAttribute("data-warm");
+    }
+  })();
 };
 
 // Without motion: no scrubbing, each scene shows its end frame, content in normal flow.
@@ -586,9 +642,10 @@ const setupStill = () => {
           stage.setFade(0);
           setConstruction(0.42);
         } else {
-          stage.preload(seqOf(name));
-          stage.show(seqOf(name), 1, true);
-          setConstruction(name === "human" ? 0.88 : FLIGHT[name].to);
+          const [seq, t, build] = rest(name);
+          stage.preload(seq as never);
+          stage.show(seq as never, t, true);
+          setConstruction(build);
           stage.setFade(name === "build" ? 0.2 : 0.6);
         }
         setScene(Number((e.target as HTMLElement).dataset.sceneIndex ?? 0));

@@ -4,6 +4,7 @@
 // The planet and its spokes turn one way, the rings (Kepler) and the moons the other.
 // Scroll "activates" it (uLive): a slow survey sweep across the rings and a brighter signal ring.
 import * as THREE from "three";
+import { buildStudy } from "./study";
 import { COMMON, OUT, TIERS, U, buildSky, release, rng, shader, type Tier } from "./world";
 
 /** planet radius; everything else is in these units */
@@ -366,10 +367,12 @@ export function buildSaturn(tier: Tier) {
   }).flat();
   add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(ticks), new THREE.LineBasicMaterial({ color: 0x7dcfff, transparent: true, opacity: 0.3, depthWrite: false })));
 
+  const study = add(buildStudy(SUN));
   const stars = add(buildSky(TIERS[tier].stars, r));
   return {
     group,
     stars,
+    study,
     update(build: number) {
       U.uLive.value = THREE.MathUtils.smoothstep(build, 0.42, 1);
     },

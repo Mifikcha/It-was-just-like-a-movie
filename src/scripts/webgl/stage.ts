@@ -4,6 +4,7 @@
 // so scrolling back and forth always lands on the same picture.
 import * as THREE from "three";
 import { SATURN_RES, buildSaturn } from "./saturn";
+import { STUDY } from "./study";
 import { buildWorld, SHELLS, SWARMS, TIERS, U, type Layout, type Look, type Tier, type World } from "./world";
 
 const FRAME_W = 1920;
@@ -44,24 +45,29 @@ const DYSON_SHOTS: Record<string, Shot> = {
 };
 
 
-// Saturn: the same five stops, re-cut for a ringed planet (ring plane = XZ, rings out to 4.65, moons at 7.6 and 11.5)
+// Saturn: one stop per screen (ring plane = XZ, rings out to 4.65, moons at 7.6 and 11.5, sun from -x +z)
 const S: Record<string, Key> = {
   // the planet upper right, the rings a long diagonal across the frame
   hero: { p: v(3.5, 5.6, 25.0), t: v(-6.2, -0.9, 0), fov: 37, roll: -16 },
-  // head-on and centred, a little above the ring plane
-  front: { p: v(0.6, 2.0, 12.5), t: v(0, 0, 0), fov: 38, roll: -8 },
+  // behind the drawing: the night side from just under the ring plane, a lit crescent and the backlit rings
+  drawing: { p: v(-4.4, -1.3, -12.9), t: v(0.4, 0.3, 1.0), fov: 40, roll: 9 },
   // skimming the A ring toward the planet: the rings run out under the camera, the limb rises ahead
   shell: { p: v(-2.85, 0.7, 5.3), t: v(1.8, 0.5, 2.6), fov: 50, roll: -6 },
   // the whole system from high above, left of centre, both moon orbits in view
   overview: { p: v(5.0, 13.0, 15.0), t: v(1.8, 0, 0), fov: 36, roll: 0 },
   // over the north pole: the hexagon below, the rings curving away around it
   pole: { p: v(1.4, 5.6, 2.4), t: v(-0.5, 1.2, -0.7), fov: 52, roll: -10 },
+  // the author's study: behind the desk, Saturn in the round window
+  study: { p: STUDY.cam, t: STUDY.look, fov: 50, roll: 0 },
 };
+// every path crosses the ring plane outside the rings (r > 4.65), and keeps clear of the moon orbits (7.6, 11.5):
+// nothing streams through the lens
 const saturnShots = (hero: Key): Record<string, Shot> => ({
-  approach: path(hero, [[v(2.6, 3.8, 19.0), v(-3.0, -0.3, 0)]], S.front),
-  f_stories: path(S.front, [[v(-2.4, 1.6, 9.0), v(0.4, 0.3, 0)], [v(-3.0, 1.0, 7.4), v(1.2, 0.4, 1.0)]], S.shell),
+  approach: path(hero, [[v(12.5, 3.0, 12.0), v(-2.5, -0.4, 0.4)], [v(10.6, -1.5, -8.6), v(-0.4, 0.2, 0.8)]], S.drawing),
+  f_stories: path(S.drawing, [[v(11.0, -1.4, -7.5), v(0.0, 0.3, 0.8)], [v(12.5, 1.6, 5.5), v(0.4, 0.4, 1.0)], [v(-1.2, 1.4, 9.6), v(0.8, 0.4, 1.0)]], S.shell),
   f_subjects: path(S.shell, [[v(-5.6, 1.8, 7.6), v(0.8, 0.3, 0)], [v(-1.0, 7.0, 13.5), v(1.4, 0, 0)]], S.overview),
-  f_formats: path(S.overview, [[v(7.0, 8.5, 8.5), v(0.5, 1.0, 0)], [v(3.8, 6.6, 4.6), v(-0.2, 1.3, -0.4)]], S.pole),
+  f_human: path(S.overview, [[STUDY.behind, v(0.2, 0.1, 0)], [STUDY.mouth, STUDY.look]], S.study),
+  f_formats: path(S.study, [[STUDY.mouth, STUDY.look], [v(4.0, 9.0, 12.0), v(0.2, 0.8, 0)], [v(3.8, 6.6, 4.6), v(-0.2, 1.3, -0.4)]], S.pole),
   f_final: path(S.pole, [[v(5.5, 6.5, 8.5), v(-0.8, 0.6, 0)], [v(4.8, 5.4, 20.0), v(-4.4, -0.6, 0)]], hero),
 });
 const SATURN_SHOTS = saturnShots(S.hero);
@@ -93,7 +99,7 @@ export class WebGLStage {
   readonly renderer: THREE.WebGLRenderer;
   private scene = new THREE.Scene();
   private camera = new THREE.PerspectiveCamera(32, FRAME_W / FRAME_H, 0.03, 3000);
-  private world: World | null = null;
+  private world: (World & { study?: THREE.Object3D }) | null = null;
   private layoutAnchors: Layout;
   tier: Tier;
   /** chosen by the visitor (debug panel, ?quality=); auto mode may step down on its own */
@@ -105,6 +111,7 @@ export class WebGLStage {
   private pendingTier: Tier | null = null;
   private gpu: string;
   private shot = "approach";
+  private anim: { name: string; from: number; to: number; start: number; ms: number; build?: [number, number]; done: () => void } | null = null;
   private target = 0;
   private current = 0;
   private build = 0.42;
@@ -177,8 +184,11 @@ export class WebGLStage {
 
   private async start() {
     this.placeCamera();
-    // shaders compile in parallel where the driver allows, instead of one long task on the first frame
+    // shaders compile in parallel where the driver allows, instead of one long task on the first frame; objects
+    // hidden at the start (the study) are compiled too, or their first appearance mid-flight would hitch
+    if (this.world?.study) this.world.study.visible = true;
     await this.renderer.compileAsync(this.scene, this.camera).catch(() => undefined);
+    this.placeCamera();
     if (!this.manual && this.reason !== "measured on an earlier visit") this.pickTier();
     this.renderer.render(this.scene, this.camera);
     this.ready = true;
@@ -239,7 +249,28 @@ export class WebGLStage {
   }
 
   // ---------------------------------------------------------------- SequenceStage API
+  /** A timed flight along a path, eased in and out, advanced in the render loop itself: the camera moves on the
+   *  frame it is drawn, never a frame late. Resolves when it lands (or when another flight or show() replaces it). */
+  fly(name: string, from: number, to: number, ms: number, build?: [number, number]) {
+    this.anim?.done();
+    if (!shots()[name]) return Promise.resolve();
+    return new Promise<void>((done) => {
+      this.anim = { name, from, to, start: performance.now(), ms, build, done };
+      this.shot = name;
+      this.current = this.target = from;
+      this.dirty = true;
+    });
+  }
+
+  get flying() {
+    return this.anim !== null;
+  }
+
   show(name: string, progress: number, immediate = false) {
+    if (this.anim) {
+      this.anim.done();
+      this.anim = null;
+    }
     if (!shots()[name]) return;
     const t = Math.max(0, Math.min(1, progress));
     if (name !== this.shot) {
@@ -337,12 +368,26 @@ export class WebGLStage {
     }
     U.uPx.value = (2 * Math.tan(THREE.MathUtils.degToRad(fov) / 2)) / (this.layout().h * this.renderer.getPixelRatio());
     this.world?.stars.position.copy(this.camera.position);
+    if (this.world?.study) this.world.study.visible = this.shot === "f_human" || this.shot === "f_formats";
   }
 
   private tick = (now: number) => {
     this.raf = requestAnimationFrame(this.tick);
     const dt = this.last ? Math.min(now - this.last, 250) : 16.7;
     this.last = now;
+    const a = this.anim;
+    if (a) {
+      const k = Math.min(1, Math.max(0, (now - a.start) / a.ms));
+      // sine in-out: no jolt at either end, and a lower peak speed than a quintic
+      const e = 0.5 - 0.5 * Math.cos(Math.PI * k);
+      this.current = this.target = a.from + (a.to - a.from) * e;
+      if (a.build) this.setConstruction(a.build[0] + (a.build[1] - a.build[0]) * e);
+      this.dirty = true;
+      if (k >= 1) {
+        this.anim = null;
+        a.done();
+      }
+    }
     const delta = this.target - this.current;
     if (Math.abs(delta) > 1e-4) {
       // the same easing toward the scroll position the frame scrubber had, independent of the refresh rate
@@ -378,7 +423,8 @@ export class WebGLStage {
   /** Dynamic resolution, then (automatic mode only) one tier down when even the lowest resolution is slow. */
   private adapt(dt: number, now: number) {
     this.ema = this.ema * 0.94 + dt * 0.06;
-    if (now < this.calmUntil) return;
+    // never resize mid-flight: reallocating the buffers is itself a hitch, and the change in sharpness shows
+    if (now < this.calmUntil || this.anim) return;
     const [lo, hi] = resOf(this.tier);
     const cap = Math.min(window.devicePixelRatio || 1, 2, hi);
     if (this.ema > 21 && this.resScale > lo) {

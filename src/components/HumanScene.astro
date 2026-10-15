@@ -3,22 +3,12 @@ import { author } from "../data/content";
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
-<!-- Scene 08: the camera flies to the observation pod and inside it. First the work — now the person. -->
+<!-- Scene 05: the camera flies into the study pod, Saturn in its window (drawn live, see webgl/study.ts).
+     First the work — now the person. -->
 <section class="track track--still track--human" id="author" data-track="human" data-still data-scene-index="4">
   <div class="track__stage still" data-still-stage>
-    <div class="human__layers" aria-hidden="true">
-      <img
-        class="human__layer"
-        data-human-layer="inside"
-        src={`${base}/scenes/pod_interior_comp.webp`}
-        srcset={`${base}/scenes/pod_interior_comp.webp 2560w, ${base}/scenes/pod_interior_comp_3840.webp 3840w`}
-        sizes="100vw"
-        alt=""
-      />
-    </div>
     <div class="still__shade still__shade--sides" aria-hidden="true"></div>
 
-    <div class="human__dark" data-human-dark aria-hidden="true"></div>
     <p class="human__intro" data-human-intro>Сначала — работа.<br />Теперь — человек.</p>
 
     <div class="still__content human" data-still-content>

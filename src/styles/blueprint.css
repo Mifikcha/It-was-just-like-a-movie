@@ -285,7 +285,6 @@
 /* ---------------------------------------------------------------- beat 2: the drawing recedes, the routes come forward */
 .drawing {
   transform: translate3d(calc(var(--bp-recede, 0) * 12vw), 0, 0) scale(calc(1 - 0.12 * var(--bp-recede, 0)));
-  filter: blur(calc(var(--bp-recede, 0) * 1.4px));
   opacity: calc(1 - 0.72 * var(--bp-recede, 0));
 }
 .blueprint__head { opacity: calc(1 - var(--bp-recede, 0)); }
@@ -479,7 +478,7 @@
 
 
 /* behind the stories the drawing stays legible as a working sheet */
-.drawing { opacity: calc(1 - 0.22 * var(--bp-recede, 0)); filter: blur(calc(var(--bp-recede, 0) * 0.8px)); }
+.drawing { opacity: calc(1 - 0.22 * var(--bp-recede, 0)); }
 /* opacity / filter isolate the drawing as a group: blend the whole group onto the paper so the renders'
    black backgrounds disappear (ink only ever lightens the sheet) */
 .track__stage.blueprint .drawing { mix-blend-mode: screen; }
@@ -555,3 +554,48 @@
   cursor: pointer;
 }
 .evidence__ticks li:hover { border-color: var(--cyan-hud); color: var(--text-strong); }
+
+/* ---------------------------------------------------------------- the harvester sheet (HarvesterDrawing.astro)
+   Thin drafting lines over Saturn's night side; one subsystem at a time takes its tint, and in the exploded view the
+   subsystems move out along their own --dx / --dy. */
+.is-paged .blueprint {
+  background: linear-gradient(90deg, rgba(5, 9, 20, 0.86) 0%, rgba(5, 9, 20, 0.5) 42%, rgba(5, 9, 20, 0.42) 58%, rgba(5, 9, 20, 0.78) 100%);
+}
+.hv {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke: rgba(192, 202, 245, 0.55);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  -webkit-mask-image: var(--edge-fade);
+  mask-image: var(--edge-fade);
+}
+.hv * { vector-effect: non-scaling-stroke; }
+.hv text { fill: #a9b1d6; stroke: none; font: 500 15px var(--mono); letter-spacing: 0.06em; }
+.hv__body { fill: rgba(5, 9, 20, 0.6); }
+.hv__fine { stroke-opacity: 0.42; stroke-width: 0.8; }
+.hv__dash { stroke-dasharray: 4 5; stroke-opacity: 0.45; }
+.hv__axis { stroke-dasharray: 18 5 3 5; stroke-opacity: 0.35; }
+.hv__beam { stroke-dasharray: 3 7; }
+.hv__flow path { stroke: rgba(125, 207, 255, 0.24); stroke-dasharray: 2 7; }
+.hv__flow .hv__arrow { stroke-dasharray: none; stroke: rgba(125, 207, 255, 0.5); }
+/* the wake is the pink jet of the live scene, curled */
+.hv__wake path { stroke: rgba(247, 118, 142, 0.55); }
+.hv__dim { stroke: rgba(125, 207, 255, 0.55); stroke-width: 1; }
+.hv__tip { fill: rgba(125, 207, 255, 0.55); stroke: none; }
+.hv__levels path { stroke-dasharray: 2 6; stroke-opacity: 0.32; }
+.hv__levels text { fill: #565f89; }
+.hv__balloons { stroke-opacity: 0.6; }
+.hv__balloon { fill: #050914; }
+.hv__balloons text { fill: #c0caf5; }
+.hv g[data-bp-pass] {
+  transform: translate(calc(var(--dx) * var(--bp-exposed, 0) * 1px), calc(var(--dy) * var(--bp-exposed, 0) * 1px));
+  transition: stroke 600ms ease;
+}
+.hv g[data-bp-pass][data-active] { stroke: var(--tint); }
+.hv g[data-bp-pass][data-active] .hv__fine { stroke-opacity: 0.85; }

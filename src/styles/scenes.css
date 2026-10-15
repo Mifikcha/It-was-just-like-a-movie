@@ -285,8 +285,7 @@ button.photo-slot:focus-visible { border-color: var(--cyan-hud); }
   padding: 1.2rem 1.2rem 1.3rem;
   border: 1px solid rgba(125, 207, 255, 0.22);
   border-top: 2px solid rgba(125, 207, 255, calc(0.3 + 0.2 * var(--step, 0)));
-  background: rgba(5, 9, 20, 0.78);
-  backdrop-filter: blur(6px);
+  background: rgba(5, 9, 20, 0.8);
 }
 
 .format__level { color: var(--cyan-hud); font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; }

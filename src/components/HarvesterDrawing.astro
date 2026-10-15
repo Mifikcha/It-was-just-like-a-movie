@@ -1,0 +1,255 @@
+---
+// Sheet 02: the atmospheric harvester, side elevation with a front view. Drawn in code: every gore, frame and blade
+// comes from the hull profile below, so the parts stay consistent with each other.
+// The shape follows NASA Langley's HAVOC aerostat concept (an airship riding the upper atmosphere), with ducted
+// wind turbines on pylons, a tether lowering a probe into the deeper, faster layers, a microwave link to orbit and
+// the Kármán vortex street the machine leaves in the jet. Each subsystem is a group the scene lights up in turn
+// (data-bp-pass), and moves out along --dx/--dy in the exploded view (--bp-exposed).
+const W = 1600;
+const H = 1000;
+const X0 = 360; // nose
+const L = 860; // hull length
+const CY = 420; // hull axis
+const RY = 118; // largest half-height
+const f = (n: number) => n.toFixed(1);
+/** half-height of the hull at x */
+const half = (x: number) => {
+  const u = Math.min(1, Math.max(0, (x - X0) / L));
+  return RY * Math.pow(Math.sin(Math.PI * Math.pow(u, 0.85)), 0.7);
+};
+const xs = (from: number, to: number, step = 4) => Array.from({ length: Math.floor((to - from) / step) + 1 }, (_, i) => from + i * step);
+const line = (pts: [number, number][]) => "M" + pts.map(([x, y]) => `${f(x)},${f(y)}`).join("L");
+const hullX = xs(X0, X0 + L);
+const outline = line(hullX.map((x) => [x, CY - half(x)])) + line(hullX.slice().reverse().map((x) => [x, CY + half(x)])).replace("M", "L") + "Z";
+// longitudinal gores and transverse frames (a frame bulges a little: the ring seen slightly from the side)
+const gores = [-0.8, -0.6, -0.4, -0.2, 0.2, 0.4, 0.6, 0.8].map((k) => line(xs(X0 + 6, X0 + L - 6).map((x) => [x, CY + k * half(x)])));
+const frames = xs(X0 + 0.06 * L, X0 + 0.95 * L, L * 0.055).map((x) => {
+  const h = half(x);
+  return `M${f(x)},${f(CY - h)}A${f(h * 0.16)},${f(h)} 0 0 1 ${f(x)},${f(CY + h)}`;
+});
+// gas cells inside, seen through the skin
+const cells = [0.16, 0.3, 0.44, 0.58, 0.72].map((u) => {
+  const x = X0 + u * L;
+  return { x, rx: L * 0.066, ry: half(x) * 0.78 };
+});
+// the keel: a truss along the belly
+const keelX = xs(X0 + 0.12 * L, X0 + 0.86 * L, 18);
+const keelTop = (x: number) => CY + half(x) * 0.62;
+const keelBot = (x: number) => CY + half(x) * 0.8;
+const keel = [line(keelX.map((x) => [x, keelTop(x)])), line(keelX.map((x) => [x, keelBot(x)])), line(keelX.map((x, i) => [x, i % 2 ? keelTop(x) : keelBot(x)]))];
+
+// ducted turbines on pylons, above and below, at two stations
+const stations = [610, 975];
+const turbines = stations.flatMap((x) => [-1, 1].map((s) => ({ x, s, y0: CY + s * half(x), y1: CY + s * (half(x) + 74) })));
+const blades = (cx: number, cy: number, r: number, n: number, rot = 0.3) =>
+  Array.from({ length: n }, (_, i) => {
+    const a = rot + (i / n) * Math.PI * 2;
+    const b = a + 0.5;
+    return `M${f(cx + Math.cos(a) * r * 0.22)},${f(cy + Math.sin(a) * r * 0.22)}Q${f(cx + Math.cos(b) * r * 0.75)},${f(cy + Math.sin(b) * r * 0.75)} ${f(cx + Math.cos(a + 0.2) * r * 0.96)},${f(cy + Math.sin(a + 0.2) * r * 0.96)}`;
+  }).join("");
+
+// the gondola under the hull
+const G = { x: 650, y: 562, w: 230, h: 44 };
+const gondola = `M${G.x},${G.y + G.h}L${G.x + G.w - 30},${G.y + G.h}Q${G.x + G.w + 8},${G.y + G.h} ${G.x + G.w + 8},${G.y + G.h / 2}Q${G.x + G.w + 8},${G.y} ${G.x + G.w - 30},${G.y}L${G.x + 24},${G.y}Q${G.x - 18},${G.y} ${G.x - 18},${G.y + G.h * 0.6}Q${G.x - 18},${G.y + G.h} ${G.x},${G.y + G.h}Z`;
+const windows = Array.from({ length: 10 }, (_, i) => ({ x: G.x + 8 + i * 19, y: G.y + 10 }));
+const struts = [670, 720, 810, 860].map((x) => `M${x},${f(CY + half(x) - 2)}L${x + (x < 765 ? 8 : -8)},${G.y}`);
+
+// tether to the probe in the deep layer
+const T = { x: 765, y0: G.y + G.h, y1: 892 };
+const probe = `M${T.x},${T.y1}L${T.x - 52},${T.y1 + 52}Q${T.x},${T.y1 + 70} ${T.x + 52},${T.y1 + 52}Z`;
+const probeRibs = [-34, -17, 0, 17, 34].map((d) => `M${T.x},${T.y1}L${T.x + d * 1.5},${T.y1 + 52 + (1 - Math.abs(d) / 34) * 10}`);
+
+// the microwave link: a dish on a mast, aimed up toward the orbital receiver
+const D = { x: 860, y: CY - half(860) - 34 };
+const dish = `M${D.x - 46},${D.y - 18}Q${D.x - 6},${D.y + 26} ${D.x + 38},${D.y - 30}`;
+
+// tail fins carrying radiator panels
+const tailX = X0 + 0.83 * L;
+const finTop = `M${f(tailX)},${f(CY - half(tailX))}L${X0 + L - 58},${CY - half(tailX) - 96}L${X0 + L + 6},${CY - half(tailX) - 96}L${X0 + L - 4},${f(CY - half(X0 + L - 4))}Z`;
+const finBot = finTop.replace(/,(\d+\.?\d*)/g, (_, y) => `,${f(2 * CY - Number(y))}`);
+const radiator = (sign: number) =>
+  xs(tailX + 26, X0 + L - 10, 13).map((x) => {
+    const y0 = CY + sign * (half(x) + 4);
+    const y1 = CY + sign * (half(tailX) + 90);
+    return `M${f(x)},${f(y0)}L${f(x + 14)},${f(y1)}`;
+  });
+
+// the jet around the craft: streamlines that part around the hull, and the vortex street behind the tail
+const stream = (y0: number) =>
+  line(xs(40, 1260, 10).map((x) => {
+    const near = Math.exp(-(((x - (X0 + L * 0.45)) / 420) ** 2));
+    const away = Math.sign(y0 - CY) * near * (RY + 110 - Math.abs(y0 - CY)) * 0.55;
+    return [x, y0 + Math.max(0, away) * (y0 > CY ? 1 : 0) + Math.min(0, away) * (y0 < CY ? 1 : 0)];
+  }));
+const streams = [150, 205, 690, 745].map(stream);
+const spiral = (cx: number, cy: number, r: number, dir: number) =>
+  line(Array.from({ length: 60 }, (_, i) => {
+    const t = i / 59;
+    const a = dir * t * Math.PI * 3.2;
+    return [cx + Math.cos(a) * r * (1 - t * 0.85), cy + Math.sin(a) * r * (1 - t * 0.85)];
+  }));
+const wake = [0, 1, 2, 3, 4].map((i) => spiral(1262 + i * 66, CY + (i % 2 ? 34 : -34), 18 + i * 6, i % 2 ? -1 : 1));
+
+// the front view, top right
+const V = { x: 1430, y: 175, r: 54 };
+const frontRotors = [45, 135, 225, 315].map((deg) => {
+  const a = (deg * Math.PI) / 180;
+  return { x: V.x + Math.cos(a) * (V.r + 46), y: V.y + Math.sin(a) * (V.r + 46), a };
+});
+
+// numbered callouts: [number, part anchor, balloon position]
+const balloons: [string, [number, number], [number, number]][] = [
+  ["1", [470, 330], [430, 262]],
+  ["2", [1000, 512], [1060, 600]],
+  ["3", [975, 268], [1040, 214]],
+  ["4", [700, 590], [600, 650]],
+  ["5", [850, 268], [770, 214]],
+  ["6", [1180, 310], [1226, 252]],
+  ["7", [765, 780], [700, 800]],
+  ["8", [1395, 386], [1440, 320]],
+];
+const scaleTicks = [0, 1, 2, 3, 4, 5];
+---
+
+<svg class="hv" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+  <!-- the jet and the wake: always on, under everything -->
+  <g class="hv__flow">
+    {streams.map((d) => <path d={d} />)}
+    {[180, 718].map((y) => <path class="hv__arrow" d={`M60,${y}l26,0m-8,-5l8,5l-8,5`} />)}
+  </g>
+
+  <!-- 1 envelope -->
+  <g data-bp-pass="pass_shell" style="--tint: #7dcfff; --dx: 0; --dy: 0">
+    <path class="hv__body" d={outline} />
+    {gores.map((d) => <path class="hv__fine" d={d} />)}
+    <path class="hv__axis" d={`M${X0 - 40},${CY}L${X0 + L + 60},${CY}`} />
+  </g>
+
+  <!-- 2 frames, gas cells and the keel truss -->
+  <g data-bp-pass="pass_frame" style="--tint: #7dcfff; --dx: 0; --dy: 0">
+    {frames.map((d) => <path class="hv__fine" d={d} />)}
+    {cells.map((c) => <ellipse class="hv__dash" cx={c.x} cy={CY - 6} rx={c.rx} ry={c.ry} />)}
+    {keel.map((d) => <path d={d} />)}
+  </g>
+
+  <!-- 3 ducted turbines on pylons, and the near rotors face-on -->
+  <g data-bp-pass="pass_rings" style="--tint: #7dcfff; --dx: 0; --dy: -26">
+    {turbines.map((t) => (
+      <g>
+        <path d={`M${t.x - 7},${f(t.y0)}L${t.x - 4},${f(t.y1)}M${t.x + 7},${f(t.y0)}L${t.x + 4},${f(t.y1)}`} />
+        {[0.25, 0.5, 0.75].map((k) => <path class="hv__fine" d={`M${t.x - 6},${f(t.y0 + (t.y1 - t.y0) * k)}L${t.x + 6},${f(t.y0 + (t.y1 - t.y0) * (k + 0.12))}`} />)}
+        <rect x={t.x - 40} y={f(t.y1 - 20)} width="80" height="40" rx="10" />
+        <ellipse cx={t.x - 30} cy={f(t.y1)} rx="7" ry="17" />
+        <path class="hv__fine" d={`M${t.x - 30},${f(t.y1 - 15)}L${t.x - 33},${f(t.y1 + 12)}M${t.x - 27},${f(t.y1 - 12)}L${t.x - 30},${f(t.y1 + 16)}`} />
+        <path d={`M${t.x - 18},${f(t.y1 - 6)}Q${t.x + 26},${f(t.y1 - 7)} ${t.x + 34},${f(t.y1)}Q${t.x + 26},${f(t.y1 + 7)} ${t.x - 18},${f(t.y1 + 6)}Z`} />
+      </g>
+    ))}
+    {stations.map((x) => (
+      <g>
+        <circle cx={x} cy={CY - 4} r="26" />
+        <circle class="hv__fine" cx={x} cy={CY - 4} r="5" />
+        <path class="hv__fine" d={blades(x, CY - 4, 26, 5)} />
+      </g>
+    ))}
+  </g>
+
+  <!-- 4 gondola -->
+  <g data-bp-pass="pass_modules" style="--tint: #7dcfff; --dx: 0; --dy: 34">
+    {struts.map((d) => <path d={d} />)}
+    <path class="hv__body" d={gondola} />
+    {windows.map((w) => <rect class="hv__fine" x={w.x} y={w.y} width="11" height="9" rx="1.5" />)}
+    <path class="hv__fine" d={`M${G.x - 6},${G.y + 28}L${G.x + G.w},${G.y + 28}`} />
+    <path d={`M${G.x + G.w - 6},${G.y}l0,-14m-9,0l18,0`} />
+  </g>
+
+  <!-- 5 microwave link to orbit -->
+  <g data-bp-pass="pass_mirrors" style="--tint: #bb9af7; --dx: 0; --dy: -44">
+    <path d={`M${D.x},${f(CY - half(D.x) + 2)}L${D.x},${D.y}`} />
+    <path class="hv__body" d={dish} />
+    <path class="hv__fine" d={`M${D.x - 4},${D.y}L${D.x - 22},${D.y - 44}M${D.x + 6},${D.y - 4}L${D.x - 22},${D.y - 44}`} />
+    <circle cx={D.x - 22} cy={D.y - 46} r="4" />
+    {[-1, 0, 1].map((k) => <path class="hv__beam" d={`M${D.x - 22 + k * 10},${D.y - 54}L${D.x - 70 + k * 34},40`} />)}
+  </g>
+
+  <!-- 6 tail fins with radiator panels -->
+  <g data-bp-pass="pass_thermal" style="--tint: #ff9e64; --dx: 30; --dy: 0">
+    <path class="hv__body" d={finTop} />
+    <path class="hv__body" d={finBot} />
+    {radiator(-1).map((d) => <path class="hv__fine" d={d} />)}
+    {radiator(1).map((d) => <path class="hv__fine" d={d} />)}
+    <path d={`M${f(tailX + 10)},${CY - 3}L${X0 + L + 14},${CY - 3}L${X0 + L + 14},${CY + 3}L${f(tailX + 10)},${CY + 3}`} />
+  </g>
+
+  <!-- 7 tether and the probe in the deep layer -->
+  <g data-bp-pass="pass_core" style="--tint: #f7768e; --dx: 0; --dy: 40">
+    <path d={`M${T.x},${T.y0}L${T.x},${T.y1}`} />
+    {xs(T.y0 + 24, T.y1 - 12, 28).map((y) => <path class="hv__fine" d={`M${T.x - 5},${y}L${T.x + 5},${y}`} />)}
+    <path class="hv__body" d={probe} />
+    {probeRibs.map((d) => <path class="hv__fine" d={d} />)}
+    <circle cx={T.x} cy={T.y1 + 40} r="9" />
+    <path class="hv__fine" d={blades(T.x, T.y1 + 40, 9, 3)} />
+  </g>
+
+  <!-- 8 the vortex street behind the tail: what the machine takes out of the jet -->
+  <g class="hv__wake">
+    {wake.map((d) => <path d={d} />)}
+  </g>
+
+  <!-- dimensions -->
+  <g class="hv__dim">
+    <path d={`M${X0},252L${X0 + L},252M${X0},244L${X0},260M${X0 + L},244L${X0 + L},260M${X0},${CY - 20}L${X0},248M${X0 + L},${CY - 6}L${X0 + L},248`} />
+    <path d={`M${X0 + 8},252l12,-4l0,8zM${X0 + L - 8},252l-12,-4l0,8z`} class="hv__tip" />
+    <text x={X0 + L / 2} y="240" text-anchor="middle">L = 860 м</text>
+    <path d={`M320,${CY - RY}L320,${CY + RY}M312,${CY - RY}L328,${CY - RY}M312,${CY + RY}L328,${CY + RY}`} />
+    <text x="306" y={CY + 5} text-anchor="end">Ø 236 м</text>
+    <path d={`M${T.x + 30},${T.y0 + 6}L${T.x + 30},${T.y1}M${T.x + 22},${T.y1}L${T.x + 38},${T.y1}`} />
+    <text x={T.x + 42} y={(T.y0 + T.y1) / 2 + 5}>Δh ≈ 40 км</text>
+  </g>
+
+  <!-- pressure levels, left margin -->
+  <g class="hv__levels">
+    {[["0,1 бар", CY], ["0,5 бар", 760], ["1 бар", 930]].map(([label, y]) => (
+      <g>
+        <path d={`M40,${y}L250,${y}`} />
+        <text x="44" y={Number(y) - 8}>{label}</text>
+      </g>
+    ))}
+  </g>
+
+  <!-- view B: the craft from the front -->
+  <g class="hv__view">
+    <circle class="hv__body" cx={V.x} cy={V.y} r={V.r} />
+    {[0.78, 0.5].map((k) => <circle class="hv__fine" cx={V.x} cy={V.y} r={V.r * k} />)}
+    <path class="hv__axis" d={`M${V.x - V.r - 80},${V.y}L${V.x + V.r + 80},${V.y}M${V.x},${V.y - V.r - 80}L${V.x},${V.y + V.r + 96}`} />
+    {frontRotors.map((r) => (
+      <g>
+        <path d={`M${f(V.x + Math.cos(r.a) * V.r)},${f(V.y + Math.sin(r.a) * V.r)}L${f(r.x - Math.cos(r.a) * 20)},${f(r.y - Math.sin(r.a) * 20)}`} />
+        <circle cx={f(r.x)} cy={f(r.y)} r="20" />
+        <path class="hv__fine" d={blades(r.x, r.y, 20, 5, r.a)} />
+      </g>
+    ))}
+    <rect x={V.x - 22} y={V.y + V.r + 8} width="44" height="16" rx="5" />
+    <path d={`M${V.x},${V.y + V.r + 24}L${V.x},${V.y + V.r + 96}`} />
+    <text x={V.x - V.r - 78} y={V.y - V.r - 58}>Вид Б</text>
+  </g>
+
+  <!-- numbered callouts -->
+  <g class="hv__balloons">
+    {balloons.map(([n, [ax, ay], [bx, by]]) => (
+      <g>
+        <path d={`M${ax},${ay}L${bx},${by}`} />
+        <circle cx={ax} cy={ay} r="3" />
+        <circle class="hv__balloon" cx={bx} cy={by} r="15" />
+        <text x={bx} y={by + 5} text-anchor="middle">{n}</text>
+      </g>
+    ))}
+  </g>
+
+  <!-- scale -->
+  <g class="hv__dim">
+    {scaleTicks.map((i) => <path d={`M${1180 + i * 60},955L${1180 + i * 60},${i % 5 ? 963 : 967}`} />)}
+    <path d="M1180,955L1480,955" />
+    <text x="1180" y="985">0</text>
+    <text x="1480" y="985" text-anchor="end">300 м</text>
+  </g>
+</svg>
