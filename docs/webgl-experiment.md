@@ -30,7 +30,7 @@ npm run bench:webgl -- --igpu --throttle  # сеть 20 Мбит/с, 40 мс
 npm run bench:webgl -- --shots            # скриншоты всех сцен обоих движков → docs/perf/shots
 ```
 
-Результаты: `docs/perf/*.json`, скриншоты: `docs/perf/shots/`.
+Результаты: `docs/perf/*.json` (текущая, вторая итерация), `docs/perf/iter1/*.json` (первая итерация — к таблицам раздела «Измерения»), скриншоты: `docs/perf/shots/`.
 
 ## Исходная архитектура (с чем сравниваем)
 

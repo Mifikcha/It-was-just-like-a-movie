@@ -1,0 +1,74 @@
+{
+  "date": "2026-10-14T21:34:51.296Z",
+  "base": "http://localhost:4390/It-was-just-like-a-movie/",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "throttle": false,
+  "igpu": false,
+  "cpu": 1,
+  "scrollMs": 40000,
+  "results": [
+    {
+      "engine": "legacy",
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Laptop GPU (0x00002D19) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "refreshMs": 6.9,
+      "load": {
+        "fcpMs": 1108,
+        "readyMs": 1338,
+        "bytesAtReadyMB": 5.34,
+        "requestsAtReady": 156,
+        "longTasks": 2,
+        "totalBlockingMs": 98
+      },
+      "scroll": {
+        "frames": 4914,
+        "avgFps": 122.9,
+        "p50Ms": 6.9,
+        "p95Ms": 7.1,
+        "p99Ms": 48.7,
+        "over25ms": 136,
+        "over50ms": 46,
+        "longTasks": 53,
+        "totalBlockingMs": 225
+      },
+      "totalTransferMB": 67.82,
+      "totalRequests": 800,
+      "jsHeapMB": 3.9,
+      "tier": null
+    },
+    {
+      "engine": "webgl",
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Laptop GPU (0x00002D19) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "refreshMs": 6.9,
+      "load": {
+        "fcpMs": 1452,
+        "readyMs": 1440,
+        "bytesAtReadyMB": 1.36,
+        "requestsAtReady": 25,
+        "longTasks": 2,
+        "totalBlockingMs": 246
+      },
+      "scroll": {
+        "frames": 5731,
+        "avgFps": 143.3,
+        "p50Ms": 6.9,
+        "p95Ms": 7,
+        "p99Ms": 7.1,
+        "over25ms": 4,
+        "over50ms": 1,
+        "longTasks": 0,
+        "totalBlockingMs": 0
+      },
+      "totalTransferMB": 2.79,
+      "totalRequests": 41,
+      "jsHeapMB": 8.8,
+      "tier": {
+        "tier": "high",
+        "switches": 2,
+        "res": 1
+      }
+    }
+  ]
+}
