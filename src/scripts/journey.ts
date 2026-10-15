@@ -67,6 +67,13 @@ const placeAnchors = () => {
     el.style.left = `${x}px`;
     el.style.top = `${y}px`;
   });
+  // the route map is drawn in the stage's frame space: it gets the same cover crop, so its nodes sit on the stars
+  const kmap = $<SVGElement>("[data-kmap]");
+  if (kmap) {
+    const a = stage.toScreen(0, 0);
+    const b = stage.toScreen(1, 1);
+    Object.assign(kmap.style, { left: `${a.x}px`, top: `${a.y}px`, width: `${b.x - a.x}px`, height: `${b.y - a.y}px` });
+  }
   fitQuads();
 };
 
@@ -188,67 +195,6 @@ $("[data-subject-tab]")?.parentElement?.addEventListener("keydown", (e) => {
   next.focus();
 });
 
-// ---------------------------------------------------------------- scene 03: the living constellation
-// The student's trajectory is fixed. Every other star wanders slowly on its own smooth random path, and the
-// links of the background graph fade in and out at their own pace, so the map keeps changing its shape.
-const skyLife = (() => {
-  const svg = $<SVGSVGElement>("[data-kmap]");
-  if (!svg || reducedMotion) return null;
-  const rnd = (seed: number) => () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
-  const r = rnd(20261011);
-  const wave = () => ({ a: 10 + r() * 22, w: (2 * Math.PI) / (14 + r() * 26), p: r() * 6.28 });
-  const home = new Map<string, { x: number; y: number; wx: ReturnType<typeof wave>[]; wy: ReturnType<typeof wave>[] }>();
-  const stars = Array.from(svg.querySelectorAll<SVGCircleElement>("[data-star]"));
-  stars.forEach((c) => home.set(c.dataset.star!, { x: +c.getAttribute("cx")!, y: +c.getAttribute("cy")!, wx: [wave(), wave()], wy: [wave(), wave()] }));
-  const labels = Array.from(svg.querySelectorAll<SVGTextElement>("[data-star-label]"));
-  const lines = Array.from(svg.querySelectorAll<SVGLineElement>(".kmap__sky line")).map((l) => ({
-    el: l, a: l.dataset.a!, b: l.dataset.b!,
-    x1: +l.getAttribute("x1")!, y1: +l.getAttribute("y1")!, x2: +l.getAttribute("x2")!, y2: +l.getAttribute("y2")!,
-    fade: { w: (2 * Math.PI) / (18 + r() * 30), p: r() * 6.28 },
-  }));
-  const off = (id: string, t: number) => {
-    const h = home.get(id);
-    if (!h) return [0, 0];
-    return [h.wx.reduce((s, q) => s + q.a * Math.sin(q.w * t + q.p), 0), h.wy.reduce((s, q) => s + q.a * Math.sin(q.w * t + q.p), 0)];
-  };
-  let frame = 0;
-  let last = 0;
-  const tick = (now: number) => {
-    frame = requestAnimationFrame(tick);
-    if (now - last < 33) return; // ~30 fps is plenty for motion this slow
-    last = now;
-    const t = now / 1000;
-    stars.forEach((c) => {
-      const h = home.get(c.dataset.star!)!;
-      const [dx, dy] = off(c.dataset.star!, t);
-      c.setAttribute("cx", (h.x + dx).toFixed(1));
-      c.setAttribute("cy", (h.y + dy).toFixed(1));
-    });
-    labels.forEach((l) => {
-      const [dx, dy] = off(l.dataset.starLabel!, t);
-      l.setAttribute("transform", `translate(${dx.toFixed(1)} ${dy.toFixed(1)})`);
-    });
-    lines.forEach((l) => {
-      const [ax, ay] = off(l.a, t);
-      const [bx, by] = off(l.b, t);
-      l.el.setAttribute("x1", (l.x1 + ax).toFixed(1));
-      l.el.setAttribute("y1", (l.y1 + ay).toFixed(1));
-      l.el.setAttribute("x2", (l.x2 + bx).toFixed(1));
-      l.el.setAttribute("y2", (l.y2 + by).toFixed(1));
-      // a link dissolves and reappears: the graph's structure changes, not only its position
-      const v = 0.5 + 0.5 * Math.sin(l.fade.w * t + l.fade.p);
-      l.el.style.strokeOpacity = (v * v * 1.1).toFixed(3);
-    });
-  };
-  return (on: boolean) => {
-    if (on && !frame) frame = requestAnimationFrame(tick);
-    if (!on && frame) {
-      cancelAnimationFrame(frame);
-      frame = 0;
-    }
-  };
-})();
-
 // ---------------------------------------------------------------- scene 03: the route surfaces on the map
 // the map and the mastered topics surface -> the route draws on to the focus -> the reopened topic returns
 // to the route -> the next step.
@@ -266,7 +212,6 @@ function setMap(p: number, svg: SVGElement) {
   set("--next", lit.next);
   // the calm idle motion (breathing sky, drift, pulse on the focus) runs only while the map is on screen
   svg.toggleAttribute("data-live", p > 0.22 && p < 0.97);
-  skyLife?.(p > 0.22 && p < 0.97);
 }
 
 // ---------------------------------------------------------------- the journey, one screen at a time
@@ -390,6 +335,11 @@ const setupJourney = () => {
 
   // ---------------------------------------------------------------- scene 03: the route surfaces on the map, in time
   const kmap = tracks[2].querySelector<SVGElement>("[data-kmap]");
+  // a bright star of the sky under every node of the route, seen from the route screen's camera stop
+  if (kmap && stage instanceof WebGLStage) {
+    const pins = Array.from(kmap.querySelectorAll<SVGCircleElement>("[data-pin]"), (c): [number, number] => [c.cx.baseVal.value, c.cy.baseVal.value]);
+    stage.pinStars(pins, INTO.work.seq);
+  }
   let mapTween: gsap.core.Tween | null = null;
   const map = (on: boolean) => {
     mapTween?.kill();

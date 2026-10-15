@@ -51,8 +51,9 @@ const S: Record<string, Key> = {
   hero: { p: v(3.5, 5.6, 25.0), t: v(-6.2, -0.9, 0), fov: 37, roll: -16 },
   // behind the drawing: the night side from just under the ring plane, a lit crescent and the backlit rings
   drawing: { p: v(-4.4, -1.3, -12.9), t: v(0.4, 0.3, 1.0), fov: 40, roll: 9 },
-  // skimming the A ring toward the planet: the rings run out under the camera, the limb rises ahead
-  shell: { p: v(-2.85, 0.7, 5.3), t: v(1.8, 0.5, 2.6), fov: 50, roll: -6 },
+  // the route screen: out past the rings on the sun side, looking along the galactic band (the densest sky),
+  // Saturn low in the left corner; the route is drawn on the stars
+  shell: { p: v(-13.7, 0.9, 2.6), t: v(-8.3, 2.7, 4.4), fov: 50, roll: 0 },
   // the whole system from high above, left of centre, both moon orbits in view
   overview: { p: v(5.0, 13.0, 15.0), t: v(1.8, 0, 0), fov: 36, roll: 0 },
   // over the north pole: the hexagon below, the rings curving away around it
@@ -64,8 +65,8 @@ const S: Record<string, Key> = {
 // nothing streams through the lens
 const saturnShots = (hero: Key): Record<string, Shot> => ({
   approach: path(hero, [[v(12.5, 3.0, 12.0), v(-2.5, -0.4, 0.4)], [v(10.6, -1.5, -8.6), v(-0.4, 0.2, 0.8)]], S.drawing),
-  f_stories: path(S.drawing, [[v(11.0, -1.4, -7.5), v(0.0, 0.3, 0.8)], [v(12.5, 1.6, 5.5), v(0.4, 0.4, 1.0)], [v(-1.2, 1.4, 9.6), v(0.8, 0.4, 1.0)]], S.shell),
-  f_subjects: path(S.shell, [[v(-5.6, 1.8, 7.6), v(0.8, 0.3, 0)], [v(-1.0, 7.0, 13.5), v(1.4, 0, 0)]], S.overview),
+  f_stories: path(S.drawing, [[v(-11.0, -1.4, -8.6), v(0.0, 0.3, 0.8)], [v(-14.2, -0.2, -2.5), v(-4.0, 1.0, 1.5)]], S.shell),
+  f_subjects: path(S.shell, [[v(-11.5, 4.5, 9.0), v(-1.5, 1.5, 1.0)], [v(-1.0, 8.0, 15.5), v(1.4, 0, 0)]], S.overview),
   f_human: path(S.overview, [[STUDY.behind, v(0.2, 0.1, 0)], [STUDY.mouth, STUDY.look]], S.study),
   f_formats: path(S.study, [[STUDY.mouth, STUDY.look], [v(4.0, 9.0, 12.0), v(0.2, 0.8, 0)], [v(3.8, 6.6, 4.6), v(-0.2, 1.3, -0.4)]], S.pole),
   f_final: path(S.pole, [[v(5.5, 6.5, 8.5), v(-0.8, 0.6, 0)], [v(4.8, 5.4, 20.0), v(-4.4, -0.6, 0)]], hero),
@@ -99,7 +100,8 @@ export class WebGLStage {
   readonly renderer: THREE.WebGLRenderer;
   private scene = new THREE.Scene();
   private camera = new THREE.PerspectiveCamera(32, FRAME_W / FRAME_H, 0.03, 3000);
-  private world: (World & { study?: THREE.Object3D }) | null = null;
+  private world: (World & { study?: THREE.Object3D; pin?: (dirs: THREE.Vector3[]) => void }) | null = null;
+  private pins: { points: [number, number][]; shot: string } | null = null;
   private layoutAnchors: Layout;
   tier: Tier;
   /** chosen by the visitor (debug panel, ?quality=); auto mode may step down on its own */
@@ -235,6 +237,7 @@ export class WebGLStage {
     this.world = SATURN ? buildSaturn(tier) : buildWorld(tier, this.layoutAnchors, LOOK);
     this.scene.add(this.world.group);
     this.world.update(this.build);
+    this.applyPins();
     U.uOct.value = TIERS[tier].oct;
     this.resScale = resOf(tier)[1];
     this.calmUntil = performance.now() + 3000;
@@ -301,6 +304,24 @@ export class WebGLStage {
     if (x === this.focusX) return;
     this.focusX = x;
     this.resize();
+  }
+
+  /** Bright stars in the sky exactly under these frame-space points (1920×1080) as seen from the end of `shot`. */
+  pinStars(points: [number, number][], shot: string) {
+    this.pins = { points, shot };
+    this.applyPins();
+  }
+
+  private applyPins() {
+    const s = this.pins && shots()[this.pins.shot];
+    if (!s || !this.world?.pin) return;
+    const cam = new THREE.PerspectiveCamera(s.fov[1], FRAME_W / FRAME_H, 0.1, 10);
+    s.pos.getPointAt(1, cam.position);
+    cam.lookAt(s.look.getPointAt(1));
+    cam.rotateZ(THREE.MathUtils.degToRad(s.roll[1]));
+    cam.updateMatrixWorld();
+    this.world.pin(this.pins!.points.map(([x, y]) => v((x / FRAME_W) * 2 - 1, 1 - (y / FRAME_H) * 2, 0.5).unproject(cam).sub(cam.position).normalize()));
+    this.dirty = true;
   }
 
   preload(..._names: string[]) {}

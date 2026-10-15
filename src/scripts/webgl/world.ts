@@ -311,7 +311,7 @@ const SKY_FRAG = /* glsl */ `
 varying vec3 vC;
 void main() {
   float a = smoothstep(0.5, 0.0, length(gl_PointCoord - 0.5));
-  gl_FragColor = vec4(vC * a, 1.0);
+  gl_FragColor = vec4(vC * a * 1.6, 1.0);
   ${OUT}
 }`;
 

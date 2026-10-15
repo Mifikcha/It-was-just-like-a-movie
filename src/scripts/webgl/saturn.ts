@@ -1,7 +1,7 @@
 // Saturn, drawn in neon light: the planet and its rings are clouds of particles in the Tokyo Night palette.
 // The ring structure is the real one (C, B, Cassini division, A, Encke gap, F), the north pole carries the
 // hexagon, and the light is honest: the rings shade the planet, the planet shades the rings.
-// The planet and its spokes turn one way, the rings (Kepler) and the moons the other.
+// The planet turns one way, the rings (Kepler) and the moons the other.
 // Scroll "activates" it (uLive): a slow survey sweep across the rings and a brighter signal ring.
 import * as THREE from "three";
 import { buildStudy } from "./study";
@@ -181,11 +181,6 @@ void main() {
   float along = dot(p, uSun);
   float shadow = step(along, 0.0) * (1.0 - smoothstep(${(R * 0.97).toFixed(2)}, ${(R * 1.03).toFixed(2)}, length(p - uSun * along)));
   b *= 1.0 - 0.95 * shadow;
-  // spokes: dark radial smudges over the B ring that turn with the planet's field, not with the ring
-  float fa = atan(p.z, p.x) + uTime * ${SPIN};
-  float spoke = smoothstep(0.55, 0.85, vnoise(vec3(cos(fa) * 4.0, sin(fa) * 4.0, rr * 2.5 + uTime * 0.01)))
-    * smoothstep(1.58, 1.66, rr) * (1.0 - smoothstep(1.82, 1.92, rr));
-  b *= 1.0 - 0.7 * spoke;
   // spiral density waves launched at moon resonances: ripples that tighten and fade away from their source
   float wave = 0.0;
   for (int i = 0; i < 4; i++) {
@@ -244,6 +239,23 @@ void main() {
   float aa = 2.0 / vPx;
   float grain = 1.0 - smoothstep(0.55 - aa, 0.55 + aa, d);
   gl_FragColor = vec4(vC * vA * mix(soft, grain * 0.6 + soft * 0.2, smoothstep(2.0, 3.5, vPx)), 1.0);
+  ${OUT}
+}`;
+
+// the route's stars (stage.pinStars): brighter than the field around them, a tight core in a soft halo
+const PIN_VERT = /* glsl */ `
+uniform float uPR; attribute float aSeed; varying float vA;
+void main() {
+  vA = 0.85 + 0.3 * aSeed;
+  gl_PointSize = 15.0 * uPR;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+const PIN_FRAG = /* glsl */ `
+varying float vA;
+void main() {
+  float d = length(gl_PointCoord - 0.5) * 2.0;
+  float a = exp(-d * d * 30.0) * 2.6 + exp(-d * 4.0) * 0.3;
+  gl_FragColor = vec4(vec3(0.86, 0.9, 1.0) * a * vA, 1.0);
   ${OUT}
 }`;
 
@@ -373,6 +385,19 @@ export function buildSaturn(tier: Tier) {
     group,
     stars,
     study,
+    /** stars at these directions, as far as the sky (they ride with it) */
+    pin(dirs: THREE.Vector3[]) {
+      stars.children.forEach((c) => release(c as THREE.Group));
+      stars.clear();
+      const pos = new Float32Array(dirs.flatMap((d) => d.clone().multiplyScalar(880).toArray()));
+      const seed = new Float32Array(dirs.map((_, i) => (i * 0.37) % 1));
+      const pts = new THREE.Points(
+        new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(pos, 3)).setAttribute("aSeed", new THREE.BufferAttribute(seed, 1)),
+        shader(PIN_VERT, PIN_FRAG, {}, { blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }),
+      );
+      pts.frustumCulled = false;
+      stars.add(pts);
+    },
     update(build: number) {
       U.uLive.value = THREE.MathUtils.smoothstep(build, 0.42, 1);
     },

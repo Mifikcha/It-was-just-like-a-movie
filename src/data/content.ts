@@ -219,16 +219,17 @@ export const physicsMap: MapTopic[] = [
   { id: "MKT-003", name: "Газовые циклы", x: 1310, y: 120, state: "done" },
   { id: "MKT-004", name: "Фазовые переходы", x: 1170, y: 205, state: "done" },
   { id: "MKT-005", name: "Пары", x: 1290, y: 230, state: "done" },
-  // Модуль 4. Электродинамика — where the student is now
-  { id: "EM-001", name: "Электростатика", x: 1060, y: 300, state: "done" },
-  { id: "EM-002", name: "Вещество в электрическом поле", x: 1095, y: 410, state: "done" },
-  { id: "EM-003", name: "Электрический ток", x: 1088, y: 520, state: "done" },
-  { id: "EM-004", name: "Конденсатор", x: 1112, y: 625, state: "returned", label: "l" },
-  { id: "EM-005", name: "Цепи", x: 1075, y: 730, state: "done" },
-  { id: "EM-006", name: "Магнитное поле", x: 960, y: 830, state: "done" },
-  { id: "EM-007", name: "Индукция и движение проводников", x: 815, y: 900, state: "current", label: "s" },
-  { id: "EM-008", name: "Самоиндукция", x: 650, y: 912, state: "next", label: "n" },
-  { id: "EM-009", name: "Колебательный контур", x: 485, y: 860, state: "next", label: "w" },
+  // Модуль 4. Электродинамика — where the student is now. On the route screen these nine are real stars of the
+  // sky (the stage pins a bright star under each), placed in the open sky of that camera stop.
+  { id: "EM-001", name: "Электростатика", x: 390, y: 200, state: "done" },
+  { id: "EM-002", name: "Вещество в электрическом поле", x: 520, y: 255, state: "done" },
+  { id: "EM-003", name: "Электрический ток", x: 605, y: 360, state: "done" },
+  { id: "EM-004", name: "Конденсатор", x: 735, y: 405, state: "returned", label: "s" },
+  { id: "EM-005", name: "Цепи", x: 865, y: 335, state: "done" },
+  { id: "EM-006", name: "Магнитное поле", x: 995, y: 420, state: "done" },
+  { id: "EM-007", name: "Индукция и движение проводников", x: 960, y: 575, state: "current", label: "s" },
+  { id: "EM-008", name: "Самоиндукция", x: 815, y: 665, state: "next", label: "s" },
+  { id: "EM-009", name: "Колебательный контур", x: 660, y: 715, state: "next", label: "w" },
   { id: "EM-010", name: "Геометрическая оптика", x: 330, y: 930, state: "todo" },
   { id: "EM-011", name: "Линзы", x: 220, y: 870, state: "todo" },
   { id: "EM-012", name: "Волновая оптика", x: 250, y: 740, state: "todo" },
@@ -236,28 +237,6 @@ export const physicsMap: MapTopic[] = [
   { id: "QUANT-001", name: "Квантовая механика", x: 140, y: 520, state: "todo" },
   { id: "QUANT-002", name: "Фотоэффект", x: 180, y: 630, state: "todo" },
   { id: "QUANT-003", name: "Ядерные реакции", x: 250, y: 560, state: "todo" },
-];
-
-// Undirected: each pair is a wikilink between the two theory notes.
-export const physicsLinks: [string, string][] = [
-  ["MECH-008", "MECH-007"], ["MECH-008", "MECH-003"], ["MECH-008", "MECH-005"],
-  ["MECH-007", "MECH-001"], ["MECH-007", "MECH-003"], ["MECH-002", "MECH-007"],
-  ["MECH-009", "MECH-001"], ["MECH-009", "MECH-003"], ["MECH-009", "MECH-005"],
-  ["MECH-002", "MECH-001"], ["MECH-002", "MECH-003"], ["MECH-004", "MECH-002"],
-  ["MECH-004", "MECH-003"], ["MECH-004", "MECH-005"], ["MECH-011", "MECH-003"],
-  ["MECH-011", "MECH-005"], ["MECH-PMX", "MECH-010"], ["MECH-006", "MECH-003"],
-  ["MECH-006", "MECH-005"], ["MECH-003", "MECH-010"], ["MECH-010", "MECH-002"],
-  ["MECH-003", "MECH-005"],
-  ["MKT-002", "MKT-003"], ["MKT-002", "MKT-005"], ["MKT-002", "MKT-001"], ["MKT-003", "MKT-005"],
-  ["MKT-003", "MKT-001"], ["MKT-005", "MKT-001"], ["MKT-005", "MKT-004"], ["MKT-001", "MKT-004"],
-  ["EM-002", "EM-004"], ["EM-002", "EM-001"], ["EM-001", "EM-004"], ["EM-001", "EM-003"],
-  ["EM-003", "EM-006"], ["EM-003", "EM-005"], ["EM-004", "EM-009"], ["EM-004", "EM-005"],
-  ["EM-005", "EM-008"], ["EM-006", "EM-007"], ["EM-006", "EM-008"], ["EM-007", "EM-009"],
-  ["EM-007", "EM-008"], ["EM-008", "EM-009"], ["EM-012", "EM-010"], ["EM-012", "EM-011"],
-  ["EM-010", "EM-011"],
-  // across modules: oscillations lean on mechanics, the photoelectric effect on wave optics
-  ["MECH-011", "EM-009"], ["MECH-011", "EM-012"], ["QUANT-002", "EM-012"],
-  ["QUANT-001", "QUANT-002"], ["QUANT-001", "QUANT-003"],
 ];
 
 // The trajectory: the programme's own order through module 4.

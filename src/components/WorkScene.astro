@@ -1,33 +1,20 @@
 ---
-import { physicsMap, physicsLinks, routeWalked, routeAhead } from "../data/content";
+import { physicsMap, routeWalked, routeAhead } from "../data/content";
 
-// The physics map of Hopes and Dreams as it is: every theory note is a star, every wikilink a line.
-// One student's trajectory surfaces inside it; only the points that matter right now are named.
+// One student's trajectory through the physics map of Hopes and Dreams, drawn as a constellation: every topic on it
+// is a real star of the sky behind (journey.ts pins one under each node), the route runs straight from star to star.
 const byId = Object.fromEntries(physicsMap.map((n) => [n.id, n]));
 type P = { x: number; y: number };
 
-// a smooth line through the points (Catmull-Rom as cubic Béziers), so the route reads as a path, not a polyline
-const smooth = (ps: P[]) =>
-  ps.slice(1).reduce((d, p, i) => {
-    const p0 = ps[i - 1] ?? ps[i];
-    const p1 = ps[i];
-    const p3 = ps[i + 2] ?? p;
-    const c1 = `${(p1.x + (p.x - p0.x) / 6).toFixed(1)},${(p1.y + (p.y - p0.y) / 6).toFixed(1)}`;
-    const c2 = `${(p.x - (p3.x - p1.x) / 6).toFixed(1)},${(p.y - (p3.y - p1.y) / 6).toFixed(1)}`;
-    return `${d} C${c1} ${c2} ${p.x},${p.y}`;
-  }, `M${ps[0].x},${ps[0].y}`);
-
-const walkedD = smooth(routeWalked.map((id) => byId[id]));
-const aheadD = smooth(routeAhead.map((id) => byId[id]));
+const figure = (ps: P[]) => "M" + ps.map((p) => `${p.x},${p.y}`).join("L");
+const walkedD = figure(routeWalked.map((id) => byId[id]));
+const aheadD = figure(routeAhead.map((id) => byId[id]));
 const from = byId[routeWalked[0]];
 const current = physicsMap.find((n) => n.state === "current")!;
 const returned = physicsMap.find((n) => n.state === "returned")!;
 
-// links inside the route light up with it; the rest of the map stays a quiet constellation
-const onRoute = new Set([...routeWalked.slice(1), ...routeAhead]);
-const links = physicsLinks.map(([a, b]) => ({ a: byId[a], b: byId[b], lit: onRoute.has(a) && onRoute.has(b) }));
-// the trajectory itself never moves; every other star of the constellation may wander (see journey.ts: skyLife)
-const fixed = new Set([...routeWalked, ...routeAhead]);
+const onRoute = new Set([...routeWalked, ...routeAhead]);
+const stars = physicsMap.filter((n) => onRoute.has(n.id));
 
 // three lesson arcs around the current topic: estimated_lessons = 3, the second one is in progress
 const lessonArc = (i: number, r = 15) => {
@@ -41,7 +28,7 @@ const label = (n: (typeof physicsMap)[number]) => {
   const o = { s: [0, 46, "middle"], n: [0, -26, "middle"], e: [22, 7, "start"], w: [-20, -18, "end"], l: [-22, 7, "end"], dim: [0, 34, "middle"] }[n.label!];
   return { x: n.x + (o[0] as number), y: n.y + (o[1] as number), anchor: o[2] as string };
 };
-const named = physicsMap.filter((n) => n.label);
+const named = stars.filter((n) => n.label);
 
 ---
 
@@ -51,7 +38,7 @@ const named = physicsMap.filter((n) => n.label);
   <div class="track__stage still" data-still-stage>
     <div class="still__shade still__shade--route" aria-hidden="true"></div>
 
-    <svg class="kmap" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice" aria-hidden="true" data-kmap>
+    <svg class="kmap" viewBox="0 0 1920 1080" preserveAspectRatio="none" aria-hidden="true" data-kmap>
       <defs>
         <linearGradient id="kmap-walked" gradientUnits="userSpaceOnUse" x1={from.x} y1={from.y} x2={current.x} y2={current.y}>
           <stop offset="0" stop-color="#c9d6f0" stop-opacity="0" />
@@ -60,25 +47,13 @@ const named = physicsMap.filter((n) => n.label);
         </linearGradient>
       </defs>
 
-      <g class="kmap__sky">
-        {links.filter((l) => !l.lit).map(({ a, b }) => <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} data-a={a.id} data-b={b.id} />)}
-      </g>
-      <g class="kmap__links">
-        {links.filter((l) => l.lit).map(({ a, b }) => <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} />)}
-      </g>
 
       <path class="kmap__walked" d={walkedD} pathLength="1" stroke="url(#kmap-walked)" />
       <path class="kmap__ahead" d={aheadD} />
 
       <g class="kmap__nodes">
-        {physicsMap.map((n) => (
-          <circle
-            class:list={["kmap__node", `is-${n.state}`, onRoute.has(n.id) && "is-route"]}
-            cx={n.x}
-            cy={n.y}
-            data-star={fixed.has(n.id) ? undefined : n.id}
-            r={n.state === "current" ? 5.5 : n.state === "todo" ? 2.6 : onRoute.has(n.id) ? 3.6 : 2.6}
-          />
+        {stars.map((n) => (
+          <circle class:list={["kmap__node", `is-${n.state}`, "is-route"]} cx={n.x} cy={n.y} data-pin r={n.state === "current" ? 5.5 : 7} />
         ))}
       </g>
 
@@ -93,7 +68,7 @@ const named = physicsMap.filter((n) => n.label);
       {named.map((n) => {
         const l = label(n);
         return (
-          <text class:list={["kmap__label", `is-${n.state}`, n.label === "dim" && "is-aside"]} x={l.x} y={l.y} text-anchor={l.anchor} data-star-label={fixed.has(n.id) ? undefined : n.id}>
+          <text class:list={["kmap__label", `is-${n.state}`, n.label === "dim" && "is-aside"]} x={l.x} y={l.y} text-anchor={l.anchor}>
             {n.name}
           </text>
         );

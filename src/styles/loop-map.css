@@ -6,10 +6,12 @@
 /* the assembly sector stays the backdrop; the map needs a calm night in front of the lit panels */
 .still__shade--route {
   background:
-    linear-gradient(270deg, rgba(4, 5, 11, 0.94) 0%, rgba(4, 5, 11, 0.86) 26%, rgba(4, 5, 11, 0.62) 46%, rgba(4, 5, 11, 0.55) 100%),
-    linear-gradient(0deg, rgba(4, 5, 11, 0.6) 0%, rgba(4, 5, 11, 0) 35%);
+    linear-gradient(270deg, rgba(4, 5, 11, 0.9) 0%, rgba(4, 5, 11, 0.72) 24%, rgba(4, 5, 11, 0.2) 42%, rgba(4, 5, 11, 0) 56%);
   opacity: var(--content, 0);
 }
+/* the sky is the subject here: the opening's left-hand shade (for the hero copy) steps aside */
+.stage-shade { transition: opacity 0.6s ease; }
+.is-paged:has(.track--route[data-on]) .stage-shade { opacity: 0; }
 
 /* one statement over the map: the shared system recedes, the personal trajectory carries the light */
 .knowledge.route-scene { gap: 1.6rem; max-width: 40rem; align-content: center; }
@@ -74,20 +76,15 @@
 
 /* ---------------------------------------------------------------- 06 knowledge: the real physics map, one student's route */
 .kmap { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; --returned-c: #e8b98a; }
+/* the star itself is drawn by the stage: the map only rings it */
+.kmap__node.is-route.is-done { fill: none; stroke: rgba(227, 236, 250, 0.5); stroke-width: 1; }
 .kmap line, .kmap path, .kmap circle { vector-effect: non-scaling-stroke; }
 
-/* the whole map: every theory note and wikilink, barely there */
-.kmap__sky { opacity: var(--sky, 0); }
-.kmap__sky line { stroke: rgba(169, 177, 214, 0.1); stroke-width: 1; }
-.kmap__links { opacity: var(--route, 0); }
-.kmap__links line { stroke: rgba(169, 177, 214, 0.2); stroke-width: 1; }
 
-.kmap__node { fill: rgba(199, 206, 240, 0.5); opacity: var(--sky, 0); }
-.kmap__node.is-todo { fill: rgba(169, 177, 214, 0.28); }
 .kmap__node.is-route { opacity: var(--route, 0); fill: rgba(227, 236, 250, 0.82); }
 .kmap__node.is-returned { fill: var(--returned-c); opacity: var(--returned, 0); }
 .kmap__node.is-current { fill: var(--cyan); opacity: var(--focus, 0); }
-.kmap__node.is-next { fill: var(--ink); stroke: rgba(215, 225, 245, 0.75); stroke-width: 1; opacity: var(--next, 0); }
+.kmap__node.is-next { fill: none; stroke: rgba(215, 225, 245, 0.75); stroke-width: 1; opacity: var(--next, 0); }
 
 /* the trajectory: thin, calm, drawn in the programme's order */
 .kmap__walked {
@@ -105,21 +102,14 @@
   opacity: var(--next, 0);
 }
 
-/* calm idle motion: the constellation breathes and drifts a little, the current topic pulses slowly.
-   Only transform / opacity on a few groups: no per-frame layout, nothing runs off screen. */
+/* the one idle motion: the current topic pulses slowly */
 .kmap[data-live] .kmap__halo { transform-box: fill-box; transform-origin: center; animation: kmap-pulse 3.6s ease-in-out infinite; }
-/* the constellation moves in journey.ts (skyLife); here its stars only twinkle out of step */
-.kmap[data-live] .kmap__node:not(.is-route):not(.is-current) { animation: kmap-twinkle 3.4s ease-in-out infinite alternate; }
-.kmap[data-live] .kmap__node:nth-child(3n) { animation-duration: 4.6s; animation-delay: -1.2s; }
-.kmap[data-live] .kmap__node:nth-child(4n + 1) { animation-duration: 2.8s; animation-delay: -2.1s; }
-.kmap[data-live] .kmap__node:nth-child(5n + 2) { animation-duration: 5.2s; animation-delay: -0.6s; }
-@keyframes kmap-twinkle { from { fill-opacity: 0.25; } to { fill-opacity: 1; } }
 @keyframes kmap-pulse {
   0%, 100% { transform: scale(1); stroke-opacity: 0.9; stroke-width: 1; }
   50% { transform: scale(1.55); stroke-opacity: 0; stroke-width: 2; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .kmap[data-live], .kmap[data-live] .kmap__sky, .kmap[data-live] .kmap__halo, .kmap[data-live] .kmap__node { animation: none; }
+  .kmap[data-live] .kmap__halo { animation: none; }
 }
 
 .kmap__mark { fill: none; stroke-width: 1; }
