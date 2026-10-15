@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-15T08:41:52.066Z",
+  "base": "http://localhost:4391/It-was-just-like-a-movie/",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "throttle": false,
+  "igpu": true,
+  "cpu": 4,
+  "scrollMs": 40000,
+  "results": [
+    {
+      "engine": "dyson",
+      "gpu": "ANGLE (AMD, AMD Radeon(TM) 860M Graphics (0x00001114) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "refreshMs": 6.9,
+      "load": {
+        "fcpMs": 2932,
+        "readyMs": 2984,
+        "bytesAtReadyMB": 1.36,
+        "requestsAtReady": 25,
+        "longTasks": 3,
+        "totalBlockingMs": 932
+      },
+      "scroll": {
+        "frames": 2540,
+        "avgFps": 63.5,
+        "p50Ms": 7,
+        "p95Ms": 55.4,
+        "p99Ms": 69.5,
+        "over25ms": 463,
+        "over50ms": 128,
+        "longTasks": 133,
+        "totalBlockingMs": 1475
+      },
+      "totalTransferMB": 2.8,
+      "totalRequests": 41,
+      "jsHeapMB": 5.2,
+      "tier": {
+        "tier": "low",
+        "switches": 2,
+        "res": 1
+      }
+    },
+    {
+      "engine": "saturn",
+      "gpu": "ANGLE (AMD, AMD Radeon(TM) 860M Graphics (0x00001114) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "refreshMs": 7,
+      "load": {
+        "fcpMs": 3352,
+        "readyMs": 3433,
+        "bytesAtReadyMB": 1.36,
+        "requestsAtReady": 25,
+        "longTasks": 3,
+        "totalBlockingMs": 983
+      },
+      "scroll": {
+        "frames": 2465,
+        "avgFps": 61.6,
+        "p50Ms": 7,
+        "p95Ms": 55.7,
+        "p99Ms": 76.4,
+        "over25ms": 494,
+        "over50ms": 170,
+        "longTasks": 179,
+        "totalBlockingMs": 2657
+      },
+      "totalTransferMB": 2.8,
+      "totalRequests": 41,
+      "jsHeapMB": 5.6,
+      "tier": {
+        "tier": "medium",
+        "switches": 3,
+        "res": 0.6993055555555555
+      }
+    }
+  ]
+}

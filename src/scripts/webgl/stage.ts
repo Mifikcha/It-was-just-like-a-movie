@@ -3,6 +3,7 @@
 // show(name, t) puts the camera at t along that path. The state depends only on (path, t, construction),
 // so scrolling back and forth always lands on the same picture.
 import * as THREE from "three";
+import { SATURN_RES, buildSaturn } from "./saturn";
 import { buildWorld, SHELLS, SWARMS, TIERS, U, type Layout, type Look, type Tier, type World } from "./world";
 
 const FRAME_W = 1920;
@@ -34,7 +35,7 @@ const path = (a: Key, via: [THREE.Vector3, THREE.Vector3][], b: Key): Shot => ({
   roll: [a.roll, b.roll],
 });
 
-const SHOTS: Record<string, Shot> = {
+const DYSON_SHOTS: Record<string, Shot> = {
   approach: path(K.hero, [[v(2.2, 1.0, 13.4), v(-2.0, -0.9, 0)]], K.front),
   f_stories: path(K.front, [[v(-0.8, 1.4, 7.4), v(0.3, 0.2, 0.4)], [v(-1.9, 1.6, 5.2), v(0.9, 0.1, 0.9)]], K.shell),
   f_subjects: path(K.shell, [[v(-3.4, 2.4, 6.2), v(0.6, 0.0, 0.4)], [v(-1.0, 4.0, 11.5), v(1.2, 0.1, 0)]], K.overview),
@@ -42,10 +43,40 @@ const SHOTS: Record<string, Shot> = {
   f_final: path(K.pole, [[v(5.5, 5.5, 6.5), v(-0.6, 1.0, 0)], [v(5.0, 3.0, 13.0), v(-2.4, -0.8, 0)]], K.hero),
 };
 
+
+// Saturn: the same five stops, re-cut for a ringed planet (ring plane = XZ, rings out to 4.65, moons at 7.6 and 11.5)
+const S: Record<string, Key> = {
+  // the planet upper right, the rings a long diagonal across the frame
+  hero: { p: v(3.5, 5.6, 25.0), t: v(-6.2, -0.9, 0), fov: 37, roll: -16 },
+  // head-on and centred, a little above the ring plane
+  front: { p: v(0.6, 2.0, 12.5), t: v(0, 0, 0), fov: 38, roll: -8 },
+  // skimming the A ring toward the planet: the rings run out under the camera, the limb rises ahead
+  shell: { p: v(-2.85, 0.7, 5.3), t: v(1.8, 0.5, 2.6), fov: 50, roll: -6 },
+  // the whole system from high above, left of centre, both moon orbits in view
+  overview: { p: v(5.0, 13.0, 15.0), t: v(1.8, 0, 0), fov: 36, roll: 0 },
+  // over the north pole: the hexagon below, the rings curving away around it
+  pole: { p: v(1.4, 5.6, 2.4), t: v(-0.5, 1.2, -0.7), fov: 52, roll: -10 },
+};
+const saturnShots = (hero: Key): Record<string, Shot> => ({
+  approach: path(hero, [[v(2.6, 3.8, 19.0), v(-3.0, -0.3, 0)]], S.front),
+  f_stories: path(S.front, [[v(-2.4, 1.6, 9.0), v(0.4, 0.3, 0)], [v(-3.0, 1.0, 7.4), v(1.2, 0.4, 1.0)]], S.shell),
+  f_subjects: path(S.shell, [[v(-5.6, 1.8, 7.6), v(0.8, 0.3, 0)], [v(-1.0, 7.0, 13.5), v(1.4, 0, 0)]], S.overview),
+  f_formats: path(S.overview, [[v(7.0, 8.5, 8.5), v(0.5, 1.0, 0)], [v(3.8, 6.6, 4.6), v(-0.2, 1.3, -0.4)]], S.pole),
+  f_final: path(S.pole, [[v(5.5, 6.5, 8.5), v(-0.8, 0.6, 0)], [v(4.8, 5.4, 20.0), v(-4.4, -0.6, 0)]], hero),
+});
+const SATURN_SHOTS = saturnShots(S.hero);
+// portrait phones: the headline and the buttons fill the upper screen and the rings ran straight through the text;
+// the opening shot tilts up so the planet rises from the empty bottom of the screen instead
+const SATURN_SHOTS_TALL = saturnShots({ ...S.hero, t: v(-6.2, 5.8, 0) });
+
 // art variants for comparison: ?shell=refined|layered|hybrid, ?swarm=modules|shards|ribbon (first = default)
 const pick = <T extends string>(list: readonly T[], v: string | null) => (list.includes(v as T) ? (v as T) : list[0]);
 const query = new URLSearchParams(location.search);
 const LOOK: Look = { shell: pick(SHELLS, query.get("shell")), swarm: pick(SWARMS, query.get("swarm")) };
+// ?world=dyson brings back the sphere for comparison
+const SATURN = query.get("world") !== "dyson";
+const shots = () => (!SATURN ? DYSON_SHOTS : innerWidth < innerHeight ? SATURN_SHOTS_TALL : SATURN_SHOTS);
+const resOf = (t: Tier) => (SATURN ? SATURN_RES[t] : TIERS[t].res);
 
 const isTier = (t: unknown): t is Tier => t === "low" || t === "medium" || t === "high";
 // the visitor's choice, and the automatic result of the last visit (per GPU) so it is not measured again
@@ -54,7 +85,8 @@ const keep = (key: string) => ({
   set: (v: string | null) => { try { v ? localStorage.setItem(key, v) : localStorage.removeItem(key); } catch { /* private mode */ } },
 });
 const store = keep("hd-quality");
-const remembered = keep("hd-quality-auto");
+// per world: the two worlds load the GPU differently, so a tier measured on one says little about the other
+const remembered = keep(SATURN ? "hd-quality-auto-saturn" : "hd-quality-auto");
 
 export class WebGLStage {
   readonly renderer: THREE.WebGLRenderer;
@@ -164,7 +196,10 @@ export class WebGLStage {
     for (let i = 0; i < 5; i++) this.renderer.render(this.scene, this.camera);
     sync();
     const ms = (performance.now() - t0) / 5;
-    const tier: Tier = ms < 4 ? "high" : ms < 11 ? "medium" : "low";
+    // Saturn is measured on the opening shot, its cheapest: the pole costs ~4x more (docs/perf/worlds*.json),
+    // so integrated graphics (~1.5 ms here on medium) must land on medium, not high
+    const [hi, mid] = SATURN ? [0.9, 3] : [4, 11];
+    const tier: Tier = ms < hi ? "high" : ms < mid ? "medium" : "low";
     // touch devices start low and stay there unless the visitor asks for more
     if ((this.tier !== "low" || tier === "low") && tier !== this.tier) this.setTier(tier);
     this.reason = `bench ${ms.toFixed(1)} ms/frame`;
@@ -182,11 +217,11 @@ export class WebGLStage {
     this.tier = tier;
     this.canvas.dataset.tier = tier;
     this.canvas.dataset.tierSwitches = String(++this.switches);
-    this.world = buildWorld(tier, this.layoutAnchors, LOOK);
+    this.world = SATURN ? buildSaturn(tier) : buildWorld(tier, this.layoutAnchors, LOOK);
     this.scene.add(this.world.group);
     this.world.update(this.build);
     U.uOct.value = TIERS[tier].oct;
-    this.resScale = TIERS[tier].res[1];
+    this.resScale = resOf(tier)[1];
     this.calmUntil = performance.now() + 3000;
     this.resize();
   }
@@ -200,7 +235,7 @@ export class WebGLStage {
 
   // ---------------------------------------------------------------- SequenceStage API
   show(name: string, progress: number, immediate = false) {
-    if (!SHOTS[name]) return;
+    if (!shots()[name]) return;
     const t = Math.max(0, Math.min(1, progress));
     if (name !== this.shot) {
       this.shot = name;
@@ -283,7 +318,7 @@ export class WebGLStage {
   }
 
   private placeCamera() {
-    const s = SHOTS[this.shot];
+    const s = shots()[this.shot];
     const t = this.current;
     s.pos.getPointAt(t, this.camera.position);
     s.look.getPointAt(t, this.look);
@@ -339,7 +374,7 @@ export class WebGLStage {
   private adapt(dt: number, now: number) {
     this.ema = this.ema * 0.94 + dt * 0.06;
     if (now < this.calmUntil) return;
-    const [lo, hi] = TIERS[this.tier].res;
+    const [lo, hi] = resOf(this.tier);
     const cap = Math.min(window.devicePixelRatio || 1, 2, hi);
     if (this.ema > 21 && this.resScale > lo) {
       this.resScale = Math.max(lo, Math.min(this.resScale, cap) - 0.15);

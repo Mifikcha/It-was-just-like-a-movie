@@ -33,9 +33,9 @@ export const U = {
 };
 
 const SHELL_R = 2.6;
-const deg = THREE.MathUtils.degToRad;
+export const deg = THREE.MathUtils.degToRad;
 
-const COMMON = /* glsl */ `
+export const COMMON = /* glsl */ `
 uniform float uTime; uniform float uLive; uniform float uOct;
 const vec3 CYAN = vec3(0.49, 0.81, 1.0);
 const vec3 VIOLET = vec3(0.73, 0.6, 0.97);
@@ -55,12 +55,12 @@ float fbm(vec3 p) {
 }
 `;
 
-const OUT = /* glsl */ `
+export const OUT = /* glsl */ `
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
 `;
 
-const VERT = /* glsl */ `
+export const VERT = /* glsl */ `
 ${COMMON}
 attribute float aSeed;
 varying vec3 vW; varying vec3 vN; varying vec2 vUv; varying float vSeed; varying vec3 vObj; varying vec3 vObjN; varying vec3 vTx; varying vec3 vTy;
@@ -315,11 +315,11 @@ void main() {
   ${OUT}
 }`;
 
-const shader = (vertexShader: string, fragmentShader: string, uniforms: Record<string, THREE.IUniform> = {}, extra: THREE.ShaderMaterialParameters = {}) =>
+export const shader = (vertexShader: string, fragmentShader: string, uniforms: Record<string, THREE.IUniform> = {}, extra: THREE.ShaderMaterialParameters = {}) =>
   new THREE.ShaderMaterial({ vertexShader, fragmentShader, uniforms: { ...U, ...uniforms }, ...extra });
 
 // deterministic: the same structure on every visit
-const rng = (seed: number) => () => {
+export const rng = (seed: number) => () => {
   seed |= 0;
   seed = (seed + 0x6d2b79f5) | 0;
   let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
@@ -582,12 +582,27 @@ export function buildWorld(tier: Tier, layout: Layout, look: Look) {
   atmo.position.copy(layout.earth);
   atmo.scale.setScalar(layout.earthR * 1.06);
 
-  // ---------------------------------------------------------------- sky: a shell of points that travels with the camera
-  const sky = new Float32Array(cfg.stars * 3);
-  const size = new Float32Array(cfg.stars);
-  const color = new Float32Array(cfg.stars * 3);
+  const stars = add(buildSky(cfg.stars, r));
+
+  return {
+    group,
+    stars,
+    /** the old construction value now only activates the structure: seams, edges and traces brighten */
+    update(build: number) {
+      U.uLive.value = THREE.MathUtils.smoothstep(build, 0.42, 1);
+    },
+    instances: () => group.children.reduce((s, o) => s + ((o as THREE.InstancedMesh).isInstancedMesh ? (o as THREE.InstancedMesh).count : 0), 0),
+    dispose: () => release(group),
+  };
+}
+
+/** the sky: a shell of points that travels with the camera */
+export function buildSky(count: number, r: () => number) {
+  const sky = new Float32Array(count * 3);
+  const size = new Float32Array(count);
+  const color = new Float32Array(count * 3);
   const band = new THREE.Quaternion().setFromEuler(new THREE.Euler(deg(60), 0, deg(25)));
-  for (let s = 0; s < cfg.stars; s++) {
+  for (let s = 0; s < count; s++) {
     // a third of the stars crowd a galactic band
     const y = s % 3 === 0 ? (r() + r() + r() - 1.5) * 0.18 : r() * 2 - 1;
     const a = r() * Math.PI * 2;
@@ -601,25 +616,17 @@ export function buildWorld(tier: Tier, layout: Layout, look: Look) {
     .setAttribute("position", new THREE.BufferAttribute(sky, 3))
     .setAttribute("aSize", new THREE.BufferAttribute(size, 1))
     .setAttribute("aColor", new THREE.BufferAttribute(color, 3));
-  const stars = add(new THREE.Points(skyGeo, shader(SKY_VERT, SKY_FRAG, {}, { blending: THREE.AdditiveBlending, depthWrite: false, transparent: true })));
+  const stars = new THREE.Points(skyGeo, shader(SKY_VERT, SKY_FRAG, {}, { blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
   stars.frustumCulled = false;
   stars.renderOrder = -1;
+  return stars;
+}
 
-  return {
-    group,
-    stars,
-    /** the old construction value now only activates the structure: seams, edges and traces brighten */
-    update(build: number) {
-      U.uLive.value = THREE.MathUtils.smoothstep(build, 0.42, 1);
-    },
-    instances: () => group.children.reduce((s, o) => s + ((o as THREE.InstancedMesh).isInstancedMesh ? (o as THREE.InstancedMesh).count : 0), 0),
-    dispose() {
-      group.traverse((o) => {
-        const m = o as THREE.Mesh;
-        m.geometry?.dispose();
-        (Array.isArray(m.material) ? m.material : m.material ? [m.material] : []).forEach((x) => x.dispose());
-        (o as THREE.InstancedMesh).dispose?.();
-      });
-    },
-  };
+export function release(group: THREE.Group) {
+  group.traverse((o) => {
+    const m = o as THREE.Mesh;
+    m.geometry?.dispose();
+    (Array.isArray(m.material) ? m.material : m.material ? [m.material] : []).forEach((x) => x.dispose());
+    (o as THREE.InstancedMesh).dispose?.();
+  });
 }

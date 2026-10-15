@@ -2,6 +2,8 @@
 import type { WebGLStage } from "./stage";
 
 export function mountDebug(stage: WebGLStage) {
+  // for driving the camera from the console: stage.show("f_formats", 1, true)
+  Object.assign(window, { stage });
   const el = document.createElement("aside");
   el.setAttribute("aria-label", "WebGL diagnostics");
   el.style.cssText =

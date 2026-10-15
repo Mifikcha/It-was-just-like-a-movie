@@ -7,6 +7,7 @@
 //   --quality low|medium|high  pins the WebGL tier (default: automatic)
 //   --igpu       ask Chrome for the low-power (integrated) GPU on dual-GPU laptops
 //   --cpu <n>    CPU slowdown factor (CDP throttling), e.g. 4 for a weak laptop / phone
+//   --worlds     the two WebGL worlds against each other (?world=dyson vs Saturn) instead of legacy vs WebGL
 import { chromium } from "playwright-core";
 import { mkdir, writeFile } from "node:fs/promises";
 
@@ -29,7 +30,10 @@ const browser = await chromium.launch({
   args: [`--window-size=${VIEW.width},${VIEW.height + 140}`, "--disable-renderer-backgrounding", "--disable-background-timer-throttling", "--disable-features=CalculateNativeWinOcclusion", ...(IGPU ? ["--force_low_power_gpu"] : [])],
 });
 
-const ENGINES = { legacy: "?engine=legacy", webgl: QUALITY ? `?quality=${QUALITY}` : "" };
+const Q = QUALITY ? `quality=${QUALITY}` : "";
+const ENGINES = has("--worlds")
+  ? { dyson: `?world=dyson${Q && "&" + Q}`, saturn: Q && `?${Q}` }
+  : { legacy: "?engine=legacy", webgl: Q && `?${Q}` };
 const pct = (a, p) => [...a].sort((x, y) => x - y)[Math.min(a.length - 1, Math.floor(a.length * p))];
 const round = (v, d = 1) => Math.round(v * 10 ** d) / 10 ** d;
 
@@ -170,7 +174,7 @@ else {
     results.push(r);
     console.log(JSON.stringify(r, null, 2));
   }
-  const name = `docs/perf/results${THROTTLE ? "-throttled" : ""}${IGPU ? "-igpu" : ""}${CPU > 1 ? `-cpu${CPU}` : ""}${QUALITY ? `-${QUALITY}` : ""}.json`;
+  const name = `docs/perf/${has("--worlds") ? "worlds" : "results"}${THROTTLE ? "-throttled" : ""}${IGPU ? "-igpu" : ""}${CPU > 1 ? `-cpu${CPU}` : ""}${QUALITY ? `-${QUALITY}` : ""}.json`;
   await writeFile(name, JSON.stringify({ date: new Date().toISOString(), base: BASE, viewport: VIEW, throttle: THROTTLE, igpu: IGPU, cpu: CPU, scrollMs: SCROLL_MS, results }, null, 2));
   console.log("saved", name);
 }
