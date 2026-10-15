@@ -20,6 +20,13 @@ const SUN = new THREE.Vector3(-0.78, 0.3, 0.55).normalize();
 const SPIN = 0.2;
 // ring orbits follow Kepler (inner faster): the outermost ring at 0.75 x SPIN, the innermost about twice as fast
 const ORBIT = 0.6 * SPIN * 1.25 * ((BANDS[BANDS.length - 1][1] * RING) / (R * 2)) ** 1.5;
+// atmospheric harvesters riding the pink jets: [starting longitude, jet latitude]. They drift a little slower than the
+// clouds, and each sheds a Kármán vortex street behind it: the energy taken out of the jet, made visible
+const FLOATS: [number, number][] = [[0.4, 0.42], [2.5, 0.42], [4.6, 0.42], [1.5, -0.42], [3.9, -0.42]];
+/** the floats' drift against the clouds, rad/s */
+const DRIFT = 0.04;
+/** half the vortex spacing in longitude: a whole number around the planet, so the lattice closes */
+const HS = TAU / 30;
 // particles on the planet, in the rings
 const COUNT: Record<Tier, [number, number]> = { low: [22000, 50000], medium: [100000, 220000], high: [180000, 420000] };
 // render scale range per tier: points blur at once when the canvas is upscaled, and Saturn has GPU to spare
@@ -42,6 +49,33 @@ ${BANDS.map(([a, b, d]) => `  o += ${d.toFixed(2)} * step(${a.toFixed(3)}, r) * 
   return o;
 }`;
 
+const JET = /* glsl */ `
+float wrapPi(float x) { return x - 6.2831853 * floor(x / 6.2831853 + 0.5); }
+// the pink jet's latitude at a longitude of the cloud frame: the line wanders with the band noise
+float jetY(float lon, float j) {
+  float c = sqrt(1.0 - j * j);
+  return j - (vnoise(vec3(cos(lon) * c, j, sin(lon) * c) * 4.0) - 0.5) * 0.09;
+}
+// one harvester's street: vortex sites fixed in the clouds, alternating side and spin. A site turns once the float has
+// passed it, its eddy widening and fading downstream. Returns how far to swirl the cloud lookup at (lon, y).
+vec2 street(float lon, float y, float cl, float h0, float j, float len) {
+  float h = h0 + uTime * ${DRIFT.toFixed(3)};
+  float x = wrapPi(h - lon);
+  if (x < -0.25 || x > len + 0.25 || abs(y - j) > 0.25) return vec2(0.0);
+  vec2 w = vec2(0.0);
+  float m0 = floor(lon / ${HS.toFixed(5)} + 0.5);
+  for (int k = -1; k <= 1; k++) {
+    float m = m0 + float(k), lc = m * ${HS.toFixed(5)};
+    float age = wrapPi(h - lc);
+    float side = mod(m, 2.0) * 2.0 - 1.0;
+    vec2 d = vec2(wrapPi(lon - lc) * cl, y - jetY(lc, j) - side * 0.06);
+    float sig = 0.055 * (1.0 + max(age, 0.0) / 1.8);
+    float a = side * 2.6 * smoothstep(0.0, 0.2, age) * (1.0 - smoothstep(0.35 * len, len, age)) * exp(-dot(d, d) / (2.0 * sig * sig));
+    w += vec2(d.x * cos(a) - d.y * sin(a), d.x * sin(a) + d.y * cos(a)) - d;
+  }
+  return w;
+}`;
+
 // size in pixels from the particle's world size. Below 1.2 px a share of the particles equal to their real coverage
 // is kept at full strength and the rest dropped: dimming them all instead averages hundreds of faint dots per pixel
 // into haze. Close up the size is capped (the fragment shader turns those into crisp grains).
@@ -61,6 +95,7 @@ ${COMMON}
 ${NEON}
 ${RING_OP}
 ${POINT}
+${JET}
 uniform vec3 uSun;
 attribute float aSeed;
 varying vec3 vC; varying float vA;
@@ -74,9 +109,16 @@ void main() {
   // the cloud pattern turns with the planet, against the rings; light and shadows stay with the sun
   float a = uTime * ${SPIN};
   vec3 s = vec3(n.x * cos(a) - n.z * sin(a), n.y, n.x * sin(a) + n.z * cos(a));
+  // the harvesters' vortex streets swirl the point the cloud pattern is read from (the wake grows with uLive)
+  float cl = max(sqrt(1.0 - s.y * s.y), 0.1), sl = atan(s.z, s.x), len = mix(0.5, 1.8, uLive);
+  vec2 w = vec2(0.0);
+${FLOATS.map(([h, j]) => `  w += street(sl, s.y, cl, ${h.toFixed(2)}, ${j.toFixed(2)}, len);`).join("\n")}
+  sl += w.x / cl;
+  float sy = clamp(s.y + w.y, -1.0, 1.0);
+  s = vec3(cos(sl), 0.0, sin(sl)) * sqrt(1.0 - sy * sy) + vec3(0.0, sy, 0.0);
   float lon = atan(s.z, s.x);
   // band edges: festoons along the jets and small eddies where they shear
-  float lat = n.y + (vnoise(s * 4.0) - 0.5) * 0.09
+  float lat = s.y + (vnoise(s * 4.0) - 0.5) * 0.09
     + sin(lon * 11.0 + n.y * 40.0) * 0.012 + (vnoise(s * vec3(16.0, 48.0, 16.0)) - 0.5) * 0.02;
   float belts = vnoise(vec3(lat * 17.0, 0.5, 0.5));
   float fine = vnoise(vec3(lat * 70.0, 2.5, 0.5));
@@ -162,6 +204,30 @@ void main() {
   gl_PointSize = pointSize(mv, aSeed, gain);
   vC = col;
   vA = b * gain * 1.4 * smoothstep(0.06, 0.5, -mv.z);
+  gl_Position = projectionMatrix * mv;
+}`;
+
+// the harvesters: three cyan grains in a row on each jet, like a buoy on a current
+const FLOAT_VERT = /* glsl */ `
+${COMMON}
+${NEON}
+${POINT}
+${JET}
+uniform vec3 uSun;
+varying vec3 vC; varying float vA;
+void main() {
+  // position carries (starting longitude, jet latitude, offset along the stream), all in the cloud frame
+  float h = position.x + uTime * ${DRIFT.toFixed(3)};
+  float y = jetY(h, position.y);
+  float lon = h + position.z - uTime * ${SPIN};
+  vec3 n = vec3(cos(lon), 0.0, sin(lon)) * sqrt(1.0 - y * y) + vec3(0.0, y, 0.0);
+  // a flash each time the float sheds a vortex
+  float shed = pow(1.0 - fract(h / ${HS.toFixed(5)}), 14.0) * uLive;
+  vC = mix(TN_CYAN, vec3(1.0), 0.3 + 0.4 * shed);
+  vA = (1.4 + 0.6 * uLive) * mix(0.3, 1.0, smoothstep(-0.06, 0.35, dot(n, uSun))) + 2.5 * shed;
+  vec4 mv = modelViewMatrix * vec4(n * ${(R * 1.01).toFixed(2)}, 1.0);
+  float gain;
+  gl_PointSize = pointSize(mv, 0.0, gain);
   gl_Position = projectionMatrix * mv;
 }`;
 
@@ -263,6 +329,8 @@ export function buildSaturn(tier: Tier) {
     blending: THREE.AdditiveBlending, depthWrite: false, transparent: true,
   })));
   halo.frustumCulled = false;
+  const fp = new Float32Array(FLOATS.flatMap(([h, j]) => [-0.012, 0, 0.012].flatMap((o) => [h, j, o])));
+  cloud(fp, new Float32Array(fp.length / 3), dots(FLOAT_VERT, spacing * R * 3.5));
 
   // ---------------------------------------------------------------- rings: bands weighted by area and depth, fine ringlets
   const weights = BANDS.map(([a, b, d]) => (b * b - a * a) * (0.25 + d));
