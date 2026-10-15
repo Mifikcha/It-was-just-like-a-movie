@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-14T21:34:51.296Z",
+  "date": "2026-10-15T07:58:48.475Z",
   "base": "http://localhost:4390/It-was-just-like-a-movie/",
   "viewport": {
     "width": 1440,
@@ -15,27 +15,27 @@
       "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Laptop GPU (0x00002D19) Direct3D11 vs_5_0 ps_5_0, D3D11)",
       "refreshMs": 6.9,
       "load": {
-        "fcpMs": 1108,
-        "readyMs": 1338,
-        "bytesAtReadyMB": 5.34,
-        "requestsAtReady": 156,
+        "fcpMs": 1064,
+        "readyMs": 1318,
+        "bytesAtReadyMB": 5.4,
+        "requestsAtReady": 157,
         "longTasks": 2,
-        "totalBlockingMs": 98
+        "totalBlockingMs": 135
       },
       "scroll": {
-        "frames": 4914,
-        "avgFps": 122.9,
+        "frames": 4934,
+        "avgFps": 123.4,
         "p50Ms": 6.9,
-        "p95Ms": 7.1,
-        "p99Ms": 48.7,
-        "over25ms": 136,
-        "over50ms": 46,
-        "longTasks": 53,
-        "totalBlockingMs": 225
+        "p95Ms": 7.2,
+        "p99Ms": 48.6,
+        "over25ms": 132,
+        "over50ms": 28,
+        "longTasks": 30,
+        "totalBlockingMs": 144
       },
       "totalTransferMB": 67.82,
       "totalRequests": 800,
-      "jsHeapMB": 3.9,
+      "jsHeapMB": 3.2,
       "tier": null
     },
     {
@@ -43,27 +43,27 @@
       "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 5060 Laptop GPU (0x00002D19) Direct3D11 vs_5_0 ps_5_0, D3D11)",
       "refreshMs": 6.9,
       "load": {
-        "fcpMs": 1452,
-        "readyMs": 1440,
+        "fcpMs": 1300,
+        "readyMs": 1290,
         "bytesAtReadyMB": 1.36,
         "requestsAtReady": 25,
         "longTasks": 2,
-        "totalBlockingMs": 246
+        "totalBlockingMs": 126
       },
       "scroll": {
-        "frames": 5731,
-        "avgFps": 143.3,
+        "frames": 5719,
+        "avgFps": 143,
         "p50Ms": 6.9,
-        "p95Ms": 7,
+        "p95Ms": 7.1,
         "p99Ms": 7.1,
-        "over25ms": 4,
-        "over50ms": 1,
+        "over25ms": 3,
+        "over50ms": 2,
         "longTasks": 0,
         "totalBlockingMs": 0
       },
       "totalTransferMB": 2.79,
       "totalRequests": 41,
-      "jsHeapMB": 8.8,
+      "jsHeapMB": 5.1,
       "tier": {
         "tier": "high",
         "switches": 2,

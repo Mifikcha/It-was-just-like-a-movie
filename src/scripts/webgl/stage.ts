@@ -3,7 +3,7 @@
 // show(name, t) puts the camera at t along that path. The state depends only on (path, t, construction),
 // so scrolling back and forth always lands on the same picture.
 import * as THREE from "three";
-import { buildWorld, TIERS, U, type Layout, type Tier, type World } from "./world";
+import { buildWorld, SHELLS, SWARMS, TIERS, U, type Layout, type Look, type Tier, type World } from "./world";
 
 const FRAME_W = 1920;
 const FRAME_H = 1080;
@@ -41,6 +41,11 @@ const SHOTS: Record<string, Shot> = {
   f_formats: path(K.overview, [[v(6.5, 5.0, 9.0), v(0.6, 1.0, 0)], [v(4.4, 5.0, 5.2), v(-0.2, 1.8, -0.2)]], K.pole),
   f_final: path(K.pole, [[v(5.5, 5.5, 6.5), v(-0.6, 1.0, 0)], [v(5.0, 3.0, 13.0), v(-2.4, -0.8, 0)]], K.hero),
 };
+
+// art variants for comparison: ?shell=refined|layered|hybrid, ?swarm=modules|shards|ribbon (first = default)
+const pick = <T extends string>(list: readonly T[], v: string | null) => (list.includes(v as T) ? (v as T) : list[0]);
+const query = new URLSearchParams(location.search);
+const LOOK: Look = { shell: pick(SHELLS, query.get("shell")), swarm: pick(SWARMS, query.get("swarm")) };
 
 const isTier = (t: unknown): t is Tier => t === "low" || t === "medium" || t === "high";
 // the visitor's choice, and the automatic result of the last visit (per GPU) so it is not measured again
@@ -177,7 +182,7 @@ export class WebGLStage {
     this.tier = tier;
     this.canvas.dataset.tier = tier;
     this.canvas.dataset.tierSwitches = String(++this.switches);
-    this.world = buildWorld(tier, this.layoutAnchors);
+    this.world = buildWorld(tier, this.layoutAnchors, LOOK);
     this.scene.add(this.world.group);
     this.world.update(this.build);
     U.uOct.value = TIERS[tier].oct;
