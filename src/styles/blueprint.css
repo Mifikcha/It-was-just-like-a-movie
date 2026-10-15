@@ -596,3 +596,28 @@
 }
 .hv g[data-bp-pass][data-active] { stroke: var(--tint); }
 .hv g[data-bp-pass][data-active] .hv__fine { stroke-opacity: 0.85; }
+
+/* the story switcher: big enough to find at a glance, the current story filled, arrows on both sides */
+.evidence__nav { display: flex; align-items: center; gap: 0.5rem; }
+.evidence__ticks { gap: 0.4rem; }
+.evidence__ticks li { min-width: 2.75rem; border-color: var(--line-strong); border-radius: 4px; color: var(--muted); font-size: 0.82rem; transition: background 200ms ease, color 200ms ease, border-color 200ms ease; }
+.evidence__ticks button { padding: 0.66rem 0.55rem; }
+.evidence__ticks li[data-current] { border-color: var(--cyan-hud); background: var(--cyan-hud); color: var(--space); font-weight: 600; }
+.evidence__step {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid rgba(111, 200, 255, 0.5);
+  border-radius: 4px;
+  background: rgba(111, 200, 255, 0.08);
+  color: var(--text-strong);
+  cursor: pointer;
+  transition: background 200ms ease, opacity 200ms ease;
+}
+.evidence__step .icon { width: 18px; height: 18px; }
+.evidence__step:hover:not(:disabled) { background: rgba(111, 200, 255, 0.2); }
+.evidence__step:disabled { opacity: 0.3; cursor: default; }
+.evidence__step:focus-visible, .evidence__ticks button:focus-visible { outline: 1.5px solid var(--cyan-hud); outline-offset: 2px; }
+@media (max-width: 900px) { .evidence__nav { display: none; } }
+.is-still .evidence__nav { display: none; }

@@ -151,7 +151,7 @@
   height: 100%;
   padding: 0.7rem 0.8rem;
   border: 1px solid var(--line-strong);
-  background: rgba(4, 5, 11, 0.72);
+  background: rgba(4, 5, 11, 0.88);
   color: var(--muted);
   font: inherit;
   font-size: 0.76rem;
@@ -184,8 +184,6 @@
 .decision-ui__left,
 .decision-ui__right { display: grid; gap: 1.3rem; align-content: start; }
 .decision-ui .display--final { font-size: clamp(2.4rem, 4.2vw, 4.8rem); }
-.decision-ui .contact-line { grid-template-columns: 1fr 1fr; }
-.decision-ui .contact-line button { grid-column: 1 / -1; justify-self: start; }
 
 /* ---------------------------------------------------------------- 09 formats: compact head */
 .formats { gap: 1.1rem; align-content: end; }
@@ -250,7 +248,6 @@
   .build-ui { display: none; }
   .decision-ui { position: relative; inset: auto; left: auto; top: auto; width: auto; padding: 96px 20px 48px; opacity: 1 !important; visibility: visible !important; transform: none !important; }
   .templates ul { grid-template-columns: 1fr; }
-  .decision-ui .contact-line { grid-template-columns: 1fr; }
   .templates__title span { display: block; margin: 0.35rem 0 0; }
   .template { font-size: 0.82rem; }
 }

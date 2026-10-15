@@ -115,51 +115,6 @@ stage.onLayout(placeAnchors);
 placeAnchors();
 document.fonts?.ready.then(placeAnchors);
 
-// ---------------------------------------------------------------- contact form (no backend yet)
-// the contact form posts to the lead relay (worker/lead-relay), which sends the lead to the teacher's Telegram
-const setupContactForm = () => {
-  const form = $<HTMLFormElement>("[data-contact-form]");
-  const status = $("[data-contact-status]");
-  const submit = $<HTMLButtonElement>("[data-contact-submit]");
-  if (!form || !status || !submit) return;
-  const tgLink = '<a href="https://t.me/Skifcha" target="_blank" rel="noreferrer">@Skifcha</a>';
-  const say = (state: string, html: string) => {
-    form.dataset.state = state;
-    status.innerHTML = html;
-  };
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    if (form.dataset.state === "sending" || form.dataset.state === "sent") return;
-    if (!form.reportValidity()) return;
-    const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
-    const endpoint = form.dataset.endpoint ?? "";
-    if (!endpoint) {
-      say("error", `Отправка заявок ещё не подключена — напишите напрямую в Телеграм ${tgLink}. Данные никуда не отправлены.`);
-      return;
-    }
-    say("sending", "Отправляем…");
-    submit.disabled = true;
-    try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...data, page: location.pathname }),
-      });
-      const out = await res.json().catch(() => ({}));
-      if (!res.ok || !out.ok) throw new Error(out.error ?? String(res.status));
-      form.querySelectorAll("input").forEach((i) => (i.disabled = true));
-      submit.textContent = "Отправлено";
-      say("sent", `Заявка у Сергея: <b>${data.name.replace(/[<>&]/g, "")}</b>, ${data.contact.replace(/[<>&]/g, "")}. Он напишет вам в ближайшее время.`);
-    } catch (err) {
-      submit.disabled = false;
-      const msg = String((err as Error).message);
-      say("error", msg === "fields"
-        ? "Проверьте контакт: нужен телефон или ник в Телеграме."
-        : `Не получилось отправить. Попробуйте ещё раз или напишите в Телеграм ${tgLink}.`);
-    }
-  });
-};
-
 const setupHeader = () => {
   const header = $("[data-site-header]");
   if (!header) return;
@@ -392,9 +347,11 @@ const setupJourney = () => {
   const bpPasses = $$("[data-bp-pass]");
   const evSteps = $$("[data-ev-step]");
   const evTicks = $$("[data-ev-tick]");
+  const evBy = $$<HTMLButtonElement>("[data-ev-by]");
   let story = 0;
   const setStory = (k: number) => {
     story = Math.max(0, Math.min(evSteps.length - 1, k));
+    evBy.forEach((b) => (b.disabled = Number(b.dataset.evBy) < 0 ? story === 0 : story === evSteps.length - 1));
     evSteps.forEach((s, i) => {
       s.dataset.state = i < story ? "past" : i === story ? "current" : "next";
       s.toggleAttribute("inert", i !== story);
@@ -406,6 +363,7 @@ const setupJourney = () => {
   };
   setStory(0);
   $$<HTMLButtonElement>("[data-ev-go]").forEach((b) => b.addEventListener("click", () => setStory(Number(b.dataset.evGo))));
+  evBy.forEach((b) => b.addEventListener("click", () => setStory(story + Number(b.dataset.evBy))));
   // desktop: the drawing recedes behind the stories; phones keep the sheet's heading above it, in flow
   ["--bp-blue", "--bp-grid", ...(compact ? [] : ["--bp-recede"])].forEach((k) => bp?.style.setProperty(k, "1"));
   const BG_ORDER = [...new Set(bpPasses.map((el) => el.dataset.bpPass!))];
@@ -661,7 +619,6 @@ const setupStill = () => {
 };
 
 setupHeader();
-setupContactForm();
 if (reducedMotion) setupStill();
 else setupJourney();
 boot(stage, "approach");

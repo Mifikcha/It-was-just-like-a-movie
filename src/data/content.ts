@@ -4,7 +4,6 @@ export const links = {
   vk: "https://vk.ru/mifikcha",
   phone: "tel:+79397050642",
   // the contact form posts here (worker/lead-relay -> Telegram); empty until the worker is deployed
-  leadEndpoint: "",
 };
 
 export const quotes = {

@@ -167,7 +167,6 @@
   .journey .subjects__ladder li,
   .journey .format__price small,
   .journey .final-quote figcaption,
-  .journey .contact-line label,
   .journey-footer a { font-size: 0.75rem; letter-spacing: 0.06em; }
 
   /* subject tabs: one row of three, no orphan on a second line */

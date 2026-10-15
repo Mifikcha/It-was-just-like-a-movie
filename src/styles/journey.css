@@ -481,88 +481,6 @@ body {
   font-size: clamp(2.8rem, 5.2vw, 5.8rem);
 }
 
-.contact-line {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
-  align-items: end;
-  gap: 1rem 1.4rem;
-  max-width: 42rem;
-  padding: 1.1rem 1.4rem 0.6rem;
-  border: 1px solid var(--line);
-  border-left-color: rgba(111, 200, 255, 0.5);
-  background: rgba(4, 5, 11, 0.76);
-}
-
-.contact-line .cta--quiet {
-  color: var(--text-strong);
-}
-
-.contact-line label {
-  display: grid;
-  gap: 0.3rem;
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.contact-line input {
-  height: 44px;
-  border: 0;
-  border-bottom: 1px solid var(--line-strong);
-  background: transparent;
-  color: var(--text-strong);
-  font-family: var(--sans);
-  font-size: 1rem;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.contact-line input:focus {
-  outline: none;
-  border-color: var(--cyan-hud);
-}
-
-.contact-line__status {
-  grid-column: 1 / -1;
-  min-height: 1.4em;
-  color: var(--muted);
-  font-size: 0.86rem;
-}
-
-.contact-line__status a {
-  color: var(--cyan-hud);
-}
-
-/* honeypot: present for bots, invisible and unreachable for people */
-.contact-line__trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
-
-/* the request in flight, and the one that landed */
-.contact-line[data-state="sending"] [data-contact-submit] { opacity: 0.6; cursor: progress; }
-.contact-line[data-state="sent"] {
-  border-color: rgba(111, 200, 255, 0.55);
-  box-shadow: 0 0 0 1px rgba(111, 200, 255, 0.18), 0 18px 40px rgba(0, 0, 0, 0.35);
-  transition: border-color 500ms ease, box-shadow 500ms ease;
-}
-.contact-line[data-state="sent"] input { color: var(--muted); border-bottom-style: dashed; }
-.contact-line[data-state="sent"] [data-contact-submit] { color: var(--cyan-hud); border-color: var(--cyan-hud); cursor: default; }
-.contact-line[data-state="sent"] .contact-line__status { color: var(--text-strong); animation: lead-sent 650ms cubic-bezier(0.16, 1, 0.3, 1) both; }
-.contact-line[data-state="sent"] .contact-line__status::before {
-  content: "";
-  display: inline-block;
-  width: 0.55rem;
-  height: 0.55rem;
-  margin-right: 0.55rem;
-  border-radius: 50%;
-  background: var(--cyan-hud);
-  box-shadow: 0 0 10px rgba(111, 200, 255, 0.9);
-  vertical-align: 0.05em;
-}
-.contact-line[data-state="sent"] .contact-line__status b { font-weight: 600; }
-.contact-line[data-state="error"] .contact-line__status { color: #f0b49a; }
-@keyframes lead-sent { from { opacity: 0; transform: translateY(6px); } }
-
 .final-quote {
   max-width: 30rem;
   text-shadow: 0 1px 12px rgba(4, 5, 11, 0.9);
@@ -728,7 +646,6 @@ body {
   .hero-ui__copy { top: 92px; }
   .display { font-size: clamp(2.6rem, 12vw, 3.6rem); }
   .hero-ui__quote { display: none; }
-  .contact-line { grid-template-columns: 1fr; }
   .build-meter__stages { font-size: 0.66rem; }
 }
 
