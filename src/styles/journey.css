@@ -673,10 +673,10 @@ body {
 /* the footer belongs to the last screen: along its bottom edge */
 .is-paged .journey-footer { position: absolute; left: 0; right: 0; bottom: 0; padding-block: 1.1rem; background: none; }
 
-/* phones: a screen taller than the viewport scrolls inside; the next swipe at its end turns the page */
-@media (max-width: 900px) {
-  .is-paged .track { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
-  .is-paged .track--final .track__stage { height: auto; min-height: 100%; overflow: visible; }
-  .is-paged .decision-ui { position: relative; inset: auto; width: auto; padding: 96px clamp(20px, 4.4vw, 56px) 48px; }
-  .is-paged .journey-footer { position: relative; }
-}
+/* phones: the page scrolls natively and snaps screen by screen (journey.ts); a screen taller than the phone
+   scrolls freely inside its snap area, then the next one snaps in */
+.is-snap { scroll-snap-type: y mandatory; }
+.is-snap .track { height: auto !important; min-height: 100vh; min-height: 100svh; scroll-snap-align: start; }
+.is-snap .track__stage { position: relative; height: auto; min-height: 100vh; min-height: 100svh; overflow: visible; }
+.is-snap .decision-ui { position: relative; inset: auto; width: auto; padding: 96px clamp(20px, 4.4vw, 56px) 48px; }
+.is-snap .journey-footer { position: relative; }

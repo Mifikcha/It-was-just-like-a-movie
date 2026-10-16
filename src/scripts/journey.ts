@@ -258,8 +258,8 @@ const fly = (seq: string, a: number, b: number, ms: number, build: [number, numb
 };
 
 const setupJourney = () => {
-  document.documentElement.classList.add("is-paged");
   const compact = window.matchMedia("(max-width: 900px)").matches;
+  document.documentElement.classList.add(compact ? "is-snap" : "is-paged");
   const tracks = SCENES.map((name) => $(`[data-track='${name}']`)!);
   const header = $("[data-site-header]");
 
@@ -390,6 +390,53 @@ const setupJourney = () => {
     if (SCENES[i] === "blueprint") drawing(false);
     if (SCENES[i] === "work") map(false);
   };
+  // ---------------------------------------------------------------- phones: the browser's own scroll, snapped by screen
+  // The page scrolls natively (momentum, bounce, every gesture the phone knows) and snaps screen by screen; a screen
+  // taller than the phone scrolls freely inside its snap area. The camera flies to whichever screen holds the middle
+  // of the view, one stop at a time, catching up if the visitor scrolls faster than it flies.
+  if (compact) {
+    SCENES.forEach((s) => show[s](1));
+    let landed = Math.max(0, tracks.findIndex((tr) => location.hash && tr.id === location.hash.slice(1)));
+    let target = landed;
+    const [seq0, t0, build0] = rest(SCENES[landed]);
+    stage.show(seq0 as never, t0, true);
+    setConstruction(build0);
+    settle(landed);
+    let flying = false;
+    const follow = async () => {
+      if (flying) return;
+      flying = true;
+      while (landed !== target) {
+        const from = landed;
+        const step = Math.sign(target - from);
+        const next = Math.abs(target - from) > 1 ? target : from + step;
+        leave(from);
+        if (next !== from + step) {
+          // several screens at once (an anchor link, a long fling): straight to the stop
+          const [seq, t, build] = rest(SCENES[next]);
+          stage.show(seq as never, t, true);
+          setConstruction(build);
+        } else {
+          const f = INTO[SCENES[step > 0 ? next : from]];
+          stage.setFade(backdrop(next));
+          await fly(f.seq, step > 0 ? 0 : 1, step > 0 ? 1 : 0, f.ms * 0.6, step > 0 ? [f.from, f.to] : [f.to, f.from]);
+        }
+        landed = next;
+        settle(next);
+      }
+      flying = false;
+    };
+    const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      target = tracks.indexOf(e.target as HTMLElement);
+      setScene(Number(tracks[target].dataset.sceneIndex));
+      follow();
+    }), { rootMargin: "-50% 0px -50% 0px" });
+    tracks.forEach((tr) => io.observe(tr));
+    if (landed) tracks[landed].scrollIntoView();
+    return;
+  }
+
   // a screen with nothing flying: the camera at its stop, its content shown
   const land = (i: number) => {
     const [seq, t, build] = rest(SCENES[i]);

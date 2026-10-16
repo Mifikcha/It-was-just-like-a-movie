@@ -74,7 +74,7 @@ const saturnShots = (hero: Key): Record<string, Shot> => ({
 const SATURN_SHOTS = saturnShots(S.hero);
 // portrait phones: the headline and the buttons fill the upper screen and the rings ran straight through the text;
 // the opening shot tilts up so the planet rises from the empty bottom of the screen instead
-const SATURN_SHOTS_TALL = saturnShots({ ...S.hero, t: v(-6.2, 9.4, 0) });
+const SATURN_SHOTS_TALL = saturnShots({ ...S.hero, t: v(-4.6, 6.6, 0) });
 
 // art variants for comparison: ?shell=refined|layered|hybrid, ?swarm=modules|shards|ribbon (first = default)
 const pick = <T extends string>(list: readonly T[], v: string | null) => (list.includes(v as T) ? (v as T) : list[0]);
