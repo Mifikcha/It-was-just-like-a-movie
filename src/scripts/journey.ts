@@ -408,7 +408,8 @@ const setupJourney = () => {
     cur = next;
     preloadAround(next);
     leave(from);
-    tracks[next].scrollTop = 0;
+    // coming back up, a long screen opens at its end, as if scrolled back into it
+    tracks[next].scrollTop = next < from && Math.abs(next - from) === 1 ? tracks[next].scrollHeight : 0;
     if (Math.abs(next - from) > 1) {
       // a jump across several screens: a short dip to the night, no flight through every stop on the way
       const f = { v: restFade(from) };
@@ -424,7 +425,8 @@ const setupJourney = () => {
     }
     const forward = next > from;
     const flight = INTO[SCENES[forward ? next : from]];
-    const ms = flight.ms;
+    // phones: a swipe is a quick gesture, the flight answers it sooner
+    const ms = flight.ms * (compact ? 0.6 : 1);
     // out first, quickly; the flight starts as the content goes
     fadeTo(SCENES[from], 0, 0.35);
     mark(next);
@@ -470,29 +472,30 @@ const setupJourney = () => {
     if (fresh && Math.abs(e.deltaY) > 2) go(cur + dir);
   }, { passive: false });
 
-  let touch: { y: number; x: number; up: boolean; down: boolean } | null = null;
+  // A swipe scrolls a long screen natively; once the screen hits its end (at the start of the swipe or in the
+  // middle of it), the finger pulling on past that point turns the page, in the same gesture.
+  const PULL = 48;
+  let touch: { x: number; y: number; target: EventTarget | null; endAt: number | null; topAt: number | null; done: boolean } | null = null;
   window.addEventListener("touchstart", (e) => {
     if (modal() || e.touches.length > 1) return void (touch = null);
     const p = e.touches[0];
-    touch = { y: p.clientY, x: p.clientX, up: !canScroll(e.target, -1), down: !canScroll(e.target, 1) };
+    touch = { x: p.clientX, y: p.clientY, target: e.target, endAt: null, topAt: null, done: false };
   }, { passive: true });
   window.addEventListener("touchmove", (e) => {
     if (!touch) return;
-    const dy = touch.y - e.touches[0].clientY;
-    // at the panel's edge the browser would bounce or reload the page: the swipe is ours
-    if ((busy || (dy > 0 && touch.down) || (dy < 0 && touch.up)) && e.cancelable) e.preventDefault();
+    const p = e.touches[0];
+    // where the finger was when the screen ran out of room, each way
+    if (touch.endAt === null && !canScroll(touch.target, 1)) touch.endAt = p.clientY;
+    if (touch.topAt === null && !canScroll(touch.target, -1)) touch.topAt = p.clientY;
+    const past = Math.max(touch.endAt === null ? 0 : touch.endAt - p.clientY, touch.topAt === null ? 0 : p.clientY - touch.topAt);
+    // past the edge the browser would bounce or reload the page: the swipe is ours
+    if ((busy || past > 0) && e.cancelable) e.preventDefault();
+    const vertical = Math.abs(touch.y - p.clientY) > Math.abs(touch.x - p.clientX) * 1.3;
+    if (touch.done || busy || !vertical || past < PULL) return;
+    touch.done = true;
+    go(cur + (touch.endAt !== null && touch.endAt - p.clientY >= PULL ? 1 : -1));
   }, { passive: false });
-  window.addEventListener("touchend", (e) => {
-    if (!touch) return;
-    const p = e.changedTouches[0];
-    const dy = touch.y - p.clientY;
-    const dx = touch.x - p.clientX;
-    if (Math.abs(dy) > 44 && Math.abs(dy) > Math.abs(dx) * 1.3) {
-      if (dy > 0 && touch.down) go(cur + 1);
-      if (dy < 0 && touch.up) go(cur - 1);
-    }
-    touch = null;
-  });
+  window.addEventListener("touchend", () => (touch = null));
 
   window.addEventListener("keydown", (e) => {
     const t = e.target as HTMLElement;
