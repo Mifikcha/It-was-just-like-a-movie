@@ -148,7 +148,7 @@ export const trajectories: Trajectory[] = [
 ];
 
 // Screenshots of messages from students and parents (names redacted).
-export const reviewShots = Array.from({ length: 14 }, (_, i) => `evidence/review-${String(i + 1).padStart(2, "0")}.webp`);
+export const reviewShots = Array.from({ length: 15 }, (_, i) => `evidence/review-${String(i + 1).padStart(2, "0")}.webp`);
 
 // ---------------------------------------------------------------- scene 02: evidence — seven routes, each with its review
 // A case is one story: the result first, then the route (было → решили → делали → вышло),
@@ -168,6 +168,7 @@ export type EvidenceCase = {
 const shot = (n: number) => `evidence/review-${String(n).padStart(2, "0")}.webp`;
 // the review that belongs to each module (the others go to "ещё отзывы")
 const caseReviews: Record<string, Review[]> = {
+  "06": [{ shot: shot(15), source: "из отзыва ученика", excerpt: "Объясняет нормально, на человеческом языке, если ты <…> не понял с первого раза, объяснит ещё раз, только уже по-другому, пока не дойдёт." }],
   "03": [{ shot: shot(12), source: "из переписки с учеником", excerpt: "МГУ <…> Высшая школа управления и иноваций." }],
   "08": [{ shot: shot(13), source: "из переписки с учеником", excerpt: "Всё отлично, поступил на радиоэлектронику и лазерку в Бауманке. <…> Всё хорошо, учиться сложно." }],
   "09": [{ shot: shot(14), source: "из переписки с учеником", excerpt: "Меня короче в ИТМО на фотонику взяли. На тоненького прошёл, в списках чёт второй с конца вроде был, но взяли." }],
