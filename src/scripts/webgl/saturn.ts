@@ -79,15 +79,19 @@ vec2 street(float lon, float y, float cl, float h0, float j, float len) {
 
 // size in pixels from the particle's world size. Below 1.2 px a share of the particles equal to their real coverage
 // is kept at full strength and the rest dropped: dimming them all instead averages hundreds of faint dots per pixel
-// into haze. Close up the size is capped (the fragment shader turns those into crisp grains).
+// into haze. Below 1.6 px a sprite is widened to 1.6 px with a soft profile and dimmed to keep its light: spread over a
+// few pixels it glides across the pixel grid as the rings turn, instead of flickering on and off.
+// Close up the size is capped (the fragment shader turns those into crisp grains).
 const POINT = /* glsl */ `
 uniform float uPx; uniform float uSize;
-varying float vPx;
+varying float vPx; varying float vSoft;
 float pointSize(vec4 mv, float seed, out float gain) {
   float px = uSize / (-mv.z * uPx);
   float cov = clamp(px / 1.2, 0.0, 1.0);
-  gain = step(fract(seed * 917.31), cov * cov);
-  vPx = clamp(px, 1.2, 4.0);
+  vSoft = 1.0 - smoothstep(1.3, 2.0, px);
+  float p = max(px, 1.2);
+  gain = step(fract(seed * 917.31), cov * cov) * mix(1.0, p * p * 0.24, vSoft);
+  vPx = clamp(px, 1.6, 4.0);
   return vPx;
 }`;
 
@@ -228,13 +232,13 @@ void main() {
 }`;
 
 const DOT_FRAG = /* glsl */ `
-varying vec3 vC; varying float vA; varying float vPx;
+varying vec3 vC; varying float vA; varying float vPx; varying float vSoft;
 void main() {
   float d = length(gl_PointCoord - 0.5) * 2.0;
   if (d > 1.0) discard;
   float f = 1.0 - d;
   // a tight core with a faint halo: distant particles stay points instead of melting into haze
-  float soft = pow(f, 4.0) * 1.15 + pow(f, 1.6) * 0.18;
+  float soft = mix(pow(f, 4.0) * 1.15 + pow(f, 1.6) * 0.18, exp(-d * d * 6.0), vSoft);
   // large sprites (close up) become crisp grains with a one-pixel edge and a faint neon halo, not soft blobs
   float aa = 2.0 / vPx;
   float grain = 1.0 - smoothstep(0.55 - aa, 0.55 + aa, d);

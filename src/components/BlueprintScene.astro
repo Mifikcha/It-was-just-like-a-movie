@@ -25,7 +25,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     <div class="evidence" data-evidence>
       <header class="evidence__head">
         <h3 class="evidence__title">Истории учеников</h3>
-        <p class="evidence__sub">Семь маршрутов: с чего начинали, как вели и чем закончилось.</p>
+        <p class="evidence__sub">Девять маршрутов: с чего начинали, как вели и чем закончилось.</p>
         <div class="evidence__nav">
           <button type="button" class="evidence__step" data-ev-by="-1" aria-label="Предыдущая история"><Icon name="arrow-left" /></button>
           <ol class="evidence__ticks" aria-label="Истории">
@@ -42,7 +42,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
         {evidenceCases.map((c, i) => (
           <article class:list={["ecase", c.reviews.length === 0 && "ecase--solo"]} data-ev-step={i}>
             <div class="ecase__route">
-              <p class="ecase__meta">История {String(i + 1).padStart(2, "0")} · {c.exam} · {c.subjects}{c.span && ` · ${c.span}`}</p>
+              <p class="ecase__meta">История {String(i + 1).padStart(2, "0")} · {c.exam}{c.subjects && ` · ${c.subjects}`}{c.span && ` · ${c.span}`}</p>
               <h4 class="ecase__result">{c.result}</h4>
               <p class="ecase__title">{c.title}</p>
               <ol class="ecase__steps">
