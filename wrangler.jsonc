@@ -1,0 +1,8 @@
+// Static site: Workers Static Assets serve dist/ as-is. No Worker script, no SSR adapter.
+// Having this file stops `wrangler deploy` from auto-configuring Astro with @astrojs/cloudflare.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "it-was-just-like-a-movie",
+  "compatibility_date": "2026-10-01",
+  "assets": { "directory": "./dist" }
+}
