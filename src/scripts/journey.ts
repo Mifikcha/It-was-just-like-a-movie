@@ -392,48 +392,42 @@ const setupJourney = () => {
   };
   // ---------------------------------------------------------------- phones: the browser's own scroll, snapped by screen
   // The page scrolls natively (momentum, bounce, every gesture the phone knows) and snaps screen by screen; a screen
-  // taller than the phone scrolls freely inside its snap area. The camera flies to whichever screen holds the middle
-  // of the view, one stop at a time, catching up if the visitor scrolls faster than it flies.
+  // taller than the phone scrolls freely inside its snap area. No flights: each screen has its own still backdrop
+  // (the stop its flight would end on), and the scene behind changes with a brief dip to the night.
   if (compact) {
     SCENES.forEach((s) => show[s](1));
-    let landed = Math.max(0, tracks.findIndex((tr) => location.hash && tr.id === location.hash.slice(1)));
-    let target = landed;
-    const [seq0, t0, build0] = rest(SCENES[landed]);
-    stage.show(seq0 as never, t0, true);
-    setConstruction(build0);
-    settle(landed);
-    let flying = false;
-    const follow = async () => {
-      if (flying) return;
-      flying = true;
-      while (landed !== target) {
-        const from = landed;
-        const step = Math.sign(target - from);
-        const next = Math.abs(target - from) > 1 ? target : from + step;
-        leave(from);
-        if (next !== from + step) {
-          // several screens at once (an anchor link, a long fling): straight to the stop
-          const [seq, t, build] = rest(SCENES[next]);
-          stage.show(seq as never, t, true);
-          setConstruction(build);
-        } else {
-          const f = INTO[SCENES[step > 0 ? next : from]];
-          stage.setFade(backdrop(next));
-          await fly(f.seq, step > 0 ? 0 : 1, step > 0 ? 1 : 0, f.ms * 0.6, step > 0 ? [f.from, f.to] : [f.to, f.from]);
-        }
-        landed = next;
-        settle(next);
-      }
-      flying = false;
+    let shown = Math.max(0, tracks.findIndex((tr) => location.hash && tr.id === location.hash.slice(1)));
+    const place = (i: number) => {
+      const [seq, t, build] = rest(SCENES[i]);
+      stage.show(seq as never, t, true);
+      setConstruction(build);
+      settle(i);
+    };
+    place(shown);
+    const dip = { v: restFade(shown) };
+    const fade = () => stage.setFade(dip.v);
+    let change: gsap.core.Timeline | null = null;
+    const toScene = (i: number) => {
+      if (i === shown) return;
+      leave(shown);
+      shown = i;
+      change?.kill();
+      change = gsap.timeline()
+        .to(dip, { v: 1, duration: 0.18, ease: "power1.in", onUpdate: fade })
+        .call(() => {
+          place(i);
+          stage.setFade(dip.v);
+        })
+        .to(dip, { v: restFade(i), duration: 0.35, ease: "power2.out", onUpdate: fade });
     };
     const io = new IntersectionObserver((entries) => entries.forEach((e) => {
       if (!e.isIntersecting) return;
-      target = tracks.indexOf(e.target as HTMLElement);
-      setScene(Number(tracks[target].dataset.sceneIndex));
-      follow();
+      const i = tracks.indexOf(e.target as HTMLElement);
+      setScene(Number(tracks[i].dataset.sceneIndex));
+      toScene(i);
     }), { rootMargin: "-50% 0px -50% 0px" });
     tracks.forEach((tr) => io.observe(tr));
-    if (landed) tracks[landed].scrollIntoView();
+    if (shown) tracks[shown].scrollIntoView();
     return;
   }
 
@@ -472,8 +466,7 @@ const setupJourney = () => {
     }
     const forward = next > from;
     const flight = INTO[SCENES[forward ? next : from]];
-    // phones: a swipe is a quick gesture, the flight answers it sooner
-    const ms = flight.ms * (compact ? 0.6 : 1);
+    const ms = flight.ms;
     // out first, quickly; the flight starts as the content goes
     fadeTo(SCENES[from], 0, 0.35);
     mark(next);
