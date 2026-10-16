@@ -188,6 +188,5 @@
 
   /* the knowledge map comes back as the scene's sky: the route and its marks without labels (they would
      collide with the text); the portrait slice keeps the current topic and the return point in view */
-  .kmap { display: block; opacity: 0.38; --sky: 1; --route: 1; --focus: 1; --returned: 1; --next: 1; }
-  .kmap__label { display: none; }
+  .kmap { display: none; }
 }

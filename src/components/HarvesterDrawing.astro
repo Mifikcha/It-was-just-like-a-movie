@@ -48,14 +48,16 @@ const blades = (cx: number, cy: number, r: number, n: number, rot = 0.3) =>
     return `M${f(cx + Math.cos(a) * r * 0.22)},${f(cy + Math.sin(a) * r * 0.22)}Q${f(cx + Math.cos(b) * r * 0.75)},${f(cy + Math.sin(b) * r * 0.75)} ${f(cx + Math.cos(a + 0.2) * r * 0.96)},${f(cy + Math.sin(a + 0.2) * r * 0.96)}`;
   }).join("");
 
-// the gondola under the hull
-const G = { x: 650, y: 562, w: 230, h: 44 };
+// the gondola under the hull, between the lower turbines (their ducts span station ± 40)
+const G = { x: 680, y: 562, w: 210, h: 44 };
 const gondola = `M${G.x},${G.y + G.h}L${G.x + G.w - 30},${G.y + G.h}Q${G.x + G.w + 8},${G.y + G.h} ${G.x + G.w + 8},${G.y + G.h / 2}Q${G.x + G.w + 8},${G.y} ${G.x + G.w - 30},${G.y}L${G.x + 24},${G.y}Q${G.x - 18},${G.y} ${G.x - 18},${G.y + G.h * 0.6}Q${G.x - 18},${G.y + G.h} ${G.x},${G.y + G.h}Z`;
-const windows = Array.from({ length: 10 }, (_, i) => ({ x: G.x + 8 + i * 19, y: G.y + 10 }));
-const struts = [670, 720, 810, 860].map((x) => `M${x},${f(CY + half(x) - 2)}L${x + (x < 765 ? 8 : -8)},${G.y}`);
+const windows = Array.from({ length: 9 }, (_, i) => ({ x: G.x + 8 + i * 19, y: G.y + 10 }));
+const struts = [700, 745, 835, 875].map((x) => `M${x},${f(CY + half(x) - 2)}L${x + (x < 785 ? 8 : -8)},${G.y}`);
 
 // tether to the probe in the deep layer
-const T = { x: 765, y0: G.y + G.h, y1: 892 };
+const T = { x: 785, y0: G.y + G.h, y1: 892 };
+// the tether is not to scale (40 km on a sheet where the hull is 860 m): a break mark says so
+const BREAK = (T.y0 + T.y1) / 2 - 20;
 const probe = `M${T.x},${T.y1}L${T.x - 52},${T.y1 + 52}Q${T.x},${T.y1 + 70} ${T.x + 52},${T.y1 + 52}Z`;
 const probeRibs = [-34, -17, 0, 17, 34].map((d) => `M${T.x},${T.y1}L${T.x + d * 1.5},${T.y1 + 52 + (1 - Math.abs(d) / 34) * 10}`);
 
@@ -102,10 +104,10 @@ const balloons: [string, [number, number], [number, number]][] = [
   ["1", [470, 330], [430, 262]],
   ["2", [1000, 512], [1060, 600]],
   ["3", [975, 268], [1040, 214]],
-  ["4", [700, 590], [600, 650]],
+  ["4", [720, 590], [640, 690]],
   ["5", [850, 268], [770, 214]],
   ["6", [1180, 310], [1226, 252]],
-  ["7", [765, 780], [700, 800]],
+  ["7", [785, 800], [715, 830]],
   ["8", [1395, 386], [1440, 320]],
 ];
 const scaleTicks = [0, 1, 2, 3, 4, 5];
@@ -133,8 +135,10 @@ const scaleTicks = [0, 1, 2, 3, 4, 5];
   </g>
 
   <!-- 3 ducted turbines on pylons, and the near rotors face-on -->
-  <g data-bp-pass="pass_rings" style="--tint: #7dcfff; --dx: 0; --dy: -26">
-    {turbines.map((t) => (
+  <!-- in the exploded view the upper turbines lift off and the lower ones drop: one group per side -->
+  {[-1, 1].map((side) => (
+  <g data-bp-pass="pass_rings" style={`--tint: #7dcfff; --dx: 0; --dy: ${side * 26}`}>
+    {turbines.filter((t) => t.s === side).map((t) => (
       <g>
         <path d={`M${t.x - 7},${f(t.y0)}L${t.x - 4},${f(t.y1)}M${t.x + 7},${f(t.y0)}L${t.x + 4},${f(t.y1)}`} />
         {[0.25, 0.5, 0.75].map((k) => <path class="hv__fine" d={`M${t.x - 6},${f(t.y0 + (t.y1 - t.y0) * k)}L${t.x + 6},${f(t.y0 + (t.y1 - t.y0) * (k + 0.12))}`} />)}
@@ -144,6 +148,9 @@ const scaleTicks = [0, 1, 2, 3, 4, 5];
         <path d={`M${t.x - 18},${f(t.y1 - 6)}Q${t.x + 26},${f(t.y1 - 7)} ${t.x + 34},${f(t.y1)}Q${t.x + 26},${f(t.y1 + 7)} ${t.x - 18},${f(t.y1 + 6)}Z`} />
       </g>
     ))}
+  </g>
+  ))}
+  <g data-bp-pass="pass_rings" style="--tint: #7dcfff; --dx: 0; --dy: 0">
     {stations.map((x) => (
       <g>
         <circle cx={x} cy={CY - 4} r="26" />
@@ -163,7 +170,7 @@ const scaleTicks = [0, 1, 2, 3, 4, 5];
   </g>
 
   <!-- 5 microwave link to orbit -->
-  <g data-bp-pass="pass_mirrors" style="--tint: #bb9af7; --dx: 0; --dy: -44">
+  <g data-bp-pass="pass_mirrors" style="--tint: #bb9af7; --dx: 0; --dy: -30">
     <path d={`M${D.x},${f(CY - half(D.x) + 2)}L${D.x},${D.y}`} />
     <path class="hv__body" d={dish} />
     <path class="hv__fine" d={`M${D.x - 4},${D.y}L${D.x - 22},${D.y - 44}M${D.x + 6},${D.y - 4}L${D.x - 22},${D.y - 44}`} />
@@ -181,9 +188,10 @@ const scaleTicks = [0, 1, 2, 3, 4, 5];
   </g>
 
   <!-- 7 tether and the probe in the deep layer -->
-  <g data-bp-pass="pass_core" style="--tint: #f7768e; --dx: 0; --dy: 40">
-    <path d={`M${T.x},${T.y0}L${T.x},${T.y1}`} />
-    {xs(T.y0 + 24, T.y1 - 12, 28).map((y) => <path class="hv__fine" d={`M${T.x - 5},${y}L${T.x + 5},${y}`} />)}
+  <g data-bp-pass="pass_core" style="--tint: #f7768e; --dx: 0; --dy: 24">
+    <path d={`M${T.x},${T.y0}L${T.x},${BREAK - 6}M${T.x},${BREAK + 10}L${T.x},${T.y1}`} />
+    <path class="hv__fine" d={`M${T.x - 11},${BREAK - 2}L${T.x + 11},${BREAK - 10}M${T.x - 11},${BREAK + 14}L${T.x + 11},${BREAK + 6}`} />
+    {xs(T.y0 + 24, T.y1 - 12, 28).filter((y) => Math.abs(y - BREAK - 2) > 18).map((y) => <path class="hv__fine" d={`M${T.x - 5},${y}L${T.x + 5},${y}`} />)}
     <path class="hv__body" d={probe} />
     {probeRibs.map((d) => <path class="hv__fine" d={d} />)}
     <circle cx={T.x} cy={T.y1 + 40} r="9" />
@@ -197,12 +205,12 @@ const scaleTicks = [0, 1, 2, 3, 4, 5];
 
   <!-- dimensions -->
   <g class="hv__dim">
-    <path d={`M${X0},252L${X0 + L},252M${X0},244L${X0},260M${X0 + L},244L${X0 + L},260M${X0},${CY - 20}L${X0},248M${X0 + L},${CY - 6}L${X0 + L},248`} />
-    <path d={`M${X0 + 8},252l12,-4l0,8zM${X0 + L - 8},252l-12,-4l0,8z`} class="hv__tip" />
-    <text x={X0 + L / 2} y="240" text-anchor="middle">L = 860 м</text>
+    <path d={`M${X0},164L${X0 + L},164M${X0},156L${X0},172M${X0 + L},156L${X0 + L},172M${X0},${CY - 20}L${X0},160M${X0 + L},${CY - 6}L${X0 + L},160`} />
+    <path d={`M${X0 + 8},164l12,-4l0,8zM${X0 + L - 8},164l-12,-4l0,8z`} class="hv__tip" />
+    <text x={X0 + L * 0.3} y="152" text-anchor="middle">L = 860 м</text>
     <path d={`M320,${CY - RY}L320,${CY + RY}M312,${CY - RY}L328,${CY - RY}M312,${CY + RY}L328,${CY + RY}`} />
     <text x="306" y={CY + 5} text-anchor="end">Ø 236 м</text>
-    <path d={`M${T.x + 30},${T.y0 + 6}L${T.x + 30},${T.y1}M${T.x + 22},${T.y1}L${T.x + 38},${T.y1}`} />
+    <path d={`M${T.x + 30},${T.y0 + 6}L${T.x + 30},${BREAK - 6}M${T.x + 30},${BREAK + 10}L${T.x + 30},${T.y1}M${T.x + 22},${T.y1}L${T.x + 38},${T.y1}`} />
     <text x={T.x + 42} y={(T.y0 + T.y1) / 2 + 5}>Δh ≈ 40 км</text>
   </g>
 

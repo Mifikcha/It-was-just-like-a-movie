@@ -455,7 +455,7 @@
   .evidence::before { display: none; }
   .evidence__head { grid-template-columns: 1fr; }
   .evidence__ticks { display: none; }
-  .ecase { grid-area: auto; grid-template-columns: 1fr; gap: 1.4rem; margin-bottom: 3rem; opacity: 1 !important; visibility: visible !important; transform: none !important; }
+  .ecase { grid-template-columns: 1fr; gap: 1.4rem; align-self: start; align-content: start; }
   .ecase__steps li { grid-template-columns: 1fr; gap: 0.25rem; --o: 1; }
   .more { grid-template-columns: 1fr; }
 }
@@ -588,6 +588,8 @@
 .hv__levels path { stroke-dasharray: 2 6; stroke-opacity: 0.32; }
 .hv__levels text { fill: #565f89; }
 .hv__balloons { stroke-opacity: 0.6; }
+/* callouts and dimensions point at the assembled craft: they step back while it is exploded */
+.hv__balloons, .hv__dim { opacity: calc(1 - var(--bp-exposed, 0)); }
 .hv__balloon { fill: #050914; }
 .hv__balloons text { fill: #c0caf5; }
 .hv g[data-bp-pass] {
@@ -619,5 +621,11 @@
 .evidence__step:hover:not(:disabled) { background: rgba(111, 200, 255, 0.2); }
 .evidence__step:disabled { opacity: 0.3; cursor: default; }
 .evidence__step:focus-visible, .evidence__ticks button:focus-visible { outline: 1.5px solid var(--cyan-hud); outline-offset: 2px; }
-@media (max-width: 900px) { .evidence__nav { display: none; } }
+.evidence__count { display: none; }
+/* phones: one story at a time too, with arrows and a counter (nine numbers do not fit the width) */
+@media (max-width: 900px) {
+  .evidence__head { scroll-margin-top: 84px; }
+  .evidence__nav { justify-content: space-between; margin-top: 0.8rem; }
+  .evidence__count { display: block; color: var(--text-strong); font-family: var(--mono); font-size: 0.86rem; letter-spacing: 0.08em; }
+}
 .is-still .evidence__nav { display: none; }

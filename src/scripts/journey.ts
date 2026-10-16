@@ -293,10 +293,14 @@ const setupJourney = () => {
   const evSteps = $$("[data-ev-step]");
   const evTicks = $$("[data-ev-tick]");
   const evBy = $$<HTMLButtonElement>("[data-ev-by]");
+  const evCount = $("[data-ev-count]");
+  const evHead = $(".evidence__head");
   let story = 0;
   const setStory = (k: number) => {
     story = Math.max(0, Math.min(evSteps.length - 1, k));
     evBy.forEach((b) => (b.disabled = Number(b.dataset.evBy) < 0 ? story === 0 : story === evSteps.length - 1));
+    const pad = (n: number) => String(n).padStart(2, "0");
+    if (evCount) evCount.textContent = story < evSteps.length - 1 ? `${pad(story + 1)} / ${pad(evSteps.length - 1)}` : "ещё отзывы";
     evSteps.forEach((s, i) => {
       s.dataset.state = i < story ? "past" : i === story ? "current" : "next";
       s.toggleAttribute("inert", i !== story);
@@ -308,7 +312,11 @@ const setupJourney = () => {
   };
   setStory(0);
   $$<HTMLButtonElement>("[data-ev-go]").forEach((b) => b.addEventListener("click", () => setStory(Number(b.dataset.evGo))));
-  evBy.forEach((b) => b.addEventListener("click", () => setStory(story + Number(b.dataset.evBy))));
+  evBy.forEach((b) => b.addEventListener("click", () => {
+    setStory(story + Number(b.dataset.evBy));
+    // phones: a long story may have been scrolled; the next one starts from its top, under the arrows
+    if (compact) evHead?.scrollIntoView({ block: "start", behavior: "smooth" });
+  }));
   // desktop: the drawing recedes behind the stories; phones keep the sheet's heading above it, in flow
   ["--bp-blue", "--bp-grid", ...(compact ? [] : ["--bp-recede"])].forEach((k) => bp?.style.setProperty(k, "1"));
   const BG_ORDER = [...new Set(bpPasses.map((el) => el.dataset.bpPass!))];
@@ -513,6 +521,9 @@ const setupJourney = () => {
       go(tracks.indexOf(track));
     }),
   );
+
+  // the address edited by hand (or the browser's back/forward between anchors) moves too
+  window.addEventListener("hashchange", () => go(Math.max(0, tracks.findIndex((tr) => tr.id === location.hash.slice(1)))));
 
   // start where the address points (a reload, a shared link)
   cur = Math.max(0, tracks.findIndex((tr) => location.hash && tr.id === location.hash.slice(1)));
